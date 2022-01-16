@@ -10,6 +10,7 @@ from discord.utils import get
 from discord.ext import commands, tasks
 from discord.ext.commands import has_permissions, CheckFailure, check
 
+from WebServer import keep_alive
 from SunBotHelpCommand import SunBotHelpCommand
 import BotUser
 import Meteo
@@ -167,4 +168,7 @@ async def meteo(ctx, nomLocalite="Toulouse"):
 async def pluie(ctx):
   print("Demande pluie dans l'heure demandé par {}".format(ctx.author.name))
 
+
+#ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES - ALWAYS RUN PART
+keep_alive()
 sunBot.run(os.environ["token"])
