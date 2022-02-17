@@ -68,13 +68,13 @@ dictWeatherCode = {
   771 : "701.jpg",
   781  : "781.jpg",
   800  : "800d.jpg",
-  8002  : "800n.jpg",
+  #8002  : "800n.jpg",
   801  : "801d.jpg",
-  8012  : "801n.jpg",
+  #8012  : "801n.jpg",
   802  : "802d.jpg",
-  8022  : "802n.jpg",
+  #8022  : "802n.jpg",
   803  : "803d.jpg",
-  8032  : "803n.jpg",
+  #8032  : "803n.jpg",
   804 : "804.jpg"
 }
 
@@ -140,7 +140,7 @@ class AlerteMeteo(WebhookEvent):
     WebhookEvent.__init__(self, "https://api.openweathermap.org/data/2.5/onecall?lat=43.604259&lon=1.44367&exclude=current,minutely,hourly,daily&appid={}&lang=fr".format(os.environ['idOpenWeather']))
 
     #Attributs de la classe
-    self.alerteEnCours = True
+    self.decompteurStopAlerte = 0 #Nombre de requêtes consécutives ne renvoyant pas d'alerte en cours avant de considérer la levée de l'alerte.
   
   def run(self):
     while True :
@@ -153,11 +153,11 @@ class AlerteMeteo(WebhookEvent):
         #S'il n'y a aucune alerte en cours sur Toulouse :
         if reponseJson.get("alerts", None) == None:
           print("AlerteMeteo : Aucune alerte en cours sur Toulouse")
-          self.alerteEnCours = False
+          self.decompteurStopAlerte -= 1 #Décompte de 1 pour indiquer qu'aucune alerte n'a été renvoyée pour la requête en cours
         else:
           #Si l'alerte vient de débuter on envoie un webHook :
-          if not self.alerteEnCours :
-            self.alerteEnCours = True
+          if self.decompteurStopAlerte <= 0 :
+            self.decompteurStopAlerte = 2;
             #Création de l'embed à envoyer
             alerteToSend = discord.Embed(title="Alerte météo", description=reponseJson["alerts"][0]["event"], color = 0x77b5fe)
 
@@ -171,7 +171,9 @@ class AlerteMeteo(WebhookEvent):
               alerteToSend.set_thumbnail(url="attachment://logoMeteoFrance.png")
               alerteToSend.set_footer(text="Source : Météo France via OpenWeather")
               webhook.send(file=logoMeteoFrance, embed=alerteToSend)
+          #Si l'alerte a déjà été signalée :
           else:
+            self.decompteurStopAlerte = 2 
             print("AlerteMeteo : Alerte en cours déjà signalée")
 
 
@@ -199,10 +201,10 @@ class DailyMeteo(WebhookEvent):
 
           #Domaines de l'Embed
           dailyMeteoToSend.add_field(name="Temps :", value="{}".format(reponseJson["daily"][0]["weather"][0]["description"]), inline=False)
-          dailyMeteoToSend.add_field(name="Température jour :", value="{}°C".format(round(reponseJson["daily"][0]["temp"]["day"], 1)))
-          dailyMeteoToSend.add_field(name="Température ressentie :", value="{}°C".format(round(reponseJson["daily"][0]["feels_like"]["day"], 1)))
           dailyMeteoToSend.add_field(name="Température max :", value="{}°C".format(round(reponseJson["daily"][0]["temp"]["max"], 1)))
           dailyMeteoToSend.add_field(name="Température min :", value="{}°C".format(round(reponseJson["daily"][0]["temp"]["min"], 1)))
+          dailyMeteoToSend.add_field(name="Température moyenne :", value="{}°C".format(round(reponseJson["daily"][0]["temp"]["day"], 1)))
+          dailyMeteoToSend.add_field(name="Température ressentie :", value="{}°C".format(round(reponseJson["daily"][0]["feels_like"]["day"], 1)))
           dailyMeteoToSend.add_field(name="Pression au niveau de la mer :", value="{}hPa".format(reponseJson["daily"][0]["pressure"]), inline=False)
           dailyMeteoToSend.add_field(name="Humidité :", value="{}%".format(reponseJson["daily"][0]["humidity"]), inline=False)
           directionVent = degToStrDirectVent(reponseJson["daily"][0]["wind_deg"])
