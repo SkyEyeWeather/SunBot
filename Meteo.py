@@ -46,7 +46,7 @@ dictWeatherCode = {
   521 : "500.jpg",
   522 : "500.jpg",
   531 : "500.jpg",
-  600  : "600.jpg",
+  600 : "600.jpg",
   601 : "600.jpg",
   602 : "600.jpg",
   611 : "600.jpg",
@@ -57,23 +57,23 @@ dictWeatherCode = {
   620 : "600.jpg",
   621 : "600.jpg",
   622 : "600.jpg",
-  701  : "701.jpg",
+  701 : "701.jpg",
   711 : "701.jpg",
-  721  : "721.jpg",
+  721 : "721.jpg",
   731 : "701.jpg",
   741 : "721.jpg",
   751 : "701.jpg",
   761 : "701.jpg",
   762 : "701.jpg",
   771 : "701.jpg",
-  781  : "781.jpg",
-  800  : "800d.jpg",
+  781 : "781.jpg",
+  800 : "800d.jpg",
   #8002  : "800n.jpg",
-  801  : "801d.jpg",
+  801 : "801d.jpg",
   #8012  : "801n.jpg",
-  802  : "802d.jpg",
+  802 : "802d.jpg",
   #8022  : "802n.jpg",
-  803  : "803d.jpg",
+  803 : "803d.jpg",
   #8032  : "803n.jpg",
   804 : "804.jpg"
 }
@@ -184,43 +184,49 @@ class DailyMeteo(WebhookEvent):
     WebhookEvent.__init__(self, "https://api.openweathermap.org/data/2.5/onecall?lat=43.604259&lon=1.44367&exclude=current,minutely,hourly,alerts&appid={}&lang=fr&units=metric".format(os.environ['idOpenWeather']))
     
     #Attributs de la classe
-  
+    self.alreadySend = False      #Booleen to indicate if daily message has already been sent
 
   def run(self):
     while True :
       time.sleep(60)
       currentTime = time.localtime()
-      if currentTime[3] + 1 == 7 and currentTime[4] == 0:
-        reponse = requests.get(self.url)
-        if reponse.status_code != 200:
-          print("DailyMeteo : Une erreur est survenue lors de la récupération des informations de l'API")
-        else:
-          reponseJson = reponse.json()
-          #Création de l'embed à envoyer
-          dailyMeteoToSend = discord.Embed(title="Météo du jour", description="Voici la météo prévue pour aujourd'hui sur Toulouse", color=0x77b5fe)
-
-          #Domaines de l'Embed
-          dailyMeteoToSend.add_field(name="Temps :", value="{}".format(reponseJson["daily"][0]["weather"][0]["description"]), inline=False)
-          dailyMeteoToSend.add_field(name="Température max :", value="{}°C".format(round(reponseJson["daily"][0]["temp"]["max"], 1)))
-          dailyMeteoToSend.add_field(name="Température min :", value="{}°C".format(round(reponseJson["daily"][0]["temp"]["min"], 1)))
-          dailyMeteoToSend.add_field(name="Température moyenne :", value="{}°C".format(round(reponseJson["daily"][0]["temp"]["day"], 1)))
-          dailyMeteoToSend.add_field(name="Température ressentie :", value="{}°C".format(round(reponseJson["daily"][0]["feels_like"]["day"], 1)))
-          dailyMeteoToSend.add_field(name="Pression au niveau de la mer :", value="{}hPa".format(reponseJson["daily"][0]["pressure"]), inline=False)
-          dailyMeteoToSend.add_field(name="Humidité :", value="{}%".format(reponseJson["daily"][0]["humidity"]), inline=False)
-          directionVent = degToStrDirectVent(reponseJson["daily"][0]["wind_deg"])
-          dailyMeteoToSend.add_field(name="Direction vent :",value="{} **{}**".format(directionVent[0], directionVent[1]))
-          dailyMeteoToSend.add_field(name="Vitesse vent :", value="{}km/h".format(round(reponseJson["daily"][0]["wind_speed"] * 3.6, 2)))
-
-          vitesseRafale = reponseJson["daily"][0].get("gust", -1.)
-          if vitesseRafale >= 0. :
-            dailyMeteoToSend.add_field(name="Rafale :", value="{}km/h".format(round(vitesseRafale * 3.6, 2)), inline=True)
-          dailyMeteoToSend.add_field(name="Risque de précipitation :", value="{}%".format(reponseJson["daily"][0]["pop"] * 100), inline=False)
-          dailyMeteoToSend.add_field(name="Indice UV :", value="{}".format(reponseJson["daily"][0]["uvi"], inline=False), inline=False)
-          dailyMeteoToSend.add_field(name="Levé du soleil:", value="{}:{}".format(int(datetime.fromtimestamp(reponseJson["daily"][0]["sunrise"]).strftime("%H"))+1, datetime.fromtimestamp(reponseJson["daily"][0]["sunrise"]).strftime("%M"))) 
-          dailyMeteoToSend.add_field(name="Couché du soleil:", value="{}:{}".format(int(datetime.fromtimestamp(reponseJson["daily"][0]["sunset"]).strftime("%H"))+1, datetime.fromtimestamp(reponseJson["daily"][0]["sunset"]).strftime("%M")))  #Envoie l'embed sur les différents serveurs reliés au bot :
-          for webhook in self.webhooksList:
-            time.sleep(1)
-            dailyMeteoLogo = discord.File("./Data/Images/{}".format(dictWeatherCode[reponseJson["daily"][0]["weather"][0]["id"]]), "dailyMeteoLogo.jpg")
-            dailyMeteoToSend.set_thumbnail(url="attachment://dailyMeteoLogo.jpg")
-            dailyMeteoToSend.set_footer(text="Données de l'API d'OpenWeather", icon_url="https://openweathermap.org/themes/openweathermap/assets/img/logo_white_cropped.png")
-            webhook.send(embed=dailyMeteoToSend, file=dailyMeteoLogo)
+      hour = currentTime[3]
+      minute = currentTime[4]
+      if (hour == 0) and (minute >= 0 and minute <= 1):
+        self.alreadySend = False
+      if (hour == 7) and (minute >= 0 and minute <= 1) and not self.alreadySend:
+          reponse = requests.get(self.url)
+          if reponse.status_code != 200:
+            print("DailyMeteo : Une erreur est survenue lors de la récupération des informations de l'API")
+          else:
+            self.alreadySend = True
+            reponseJson = reponse.json()
+            #Création de l'embed à envoyer
+            dailyMeteoToSend = discord.Embed(title="Météo du jour", description="Voici la météo prévue pour aujourd'hui sur Toulouse", color=0x77b5fe)
+  
+            #Domaines de l'Embed
+            dailyMeteoToSend.add_field(name="Temps :", value="{}".format(reponseJson["daily"][0]["weather"][0]["description"]), inline=False)
+            dailyMeteoToSend.add_field(name="Température max :", value="{}°C".format(round(reponseJson["daily"][0]["temp"]["max"], 1)))
+            dailyMeteoToSend.add_field(name="Température min :", value="{}°C".format(round(reponseJson["daily"][0]["temp"]["min"], 1)))
+            dailyMeteoToSend.add_field(name="Température moyenne :", value="{}°C".format(round(reponseJson["daily"][0]["temp"]["day"], 1)))
+            dailyMeteoToSend.add_field(name="Température ressentie :", value="{}°C".format(round(reponseJson["daily"][0]["feels_like"]["day"], 1)))
+            dailyMeteoToSend.add_field(name="Pression au niveau de la mer :", value="{}hPa".format(reponseJson["daily"][0]["pressure"]), inline=False)
+            dailyMeteoToSend.add_field(name="Humidité :", value="{}%".format(reponseJson["daily"][0]["humidity"]), inline=False)
+            directionVent = degToStrDirectVent(reponseJson["daily"][0]["wind_deg"])
+            dailyMeteoToSend.add_field(name="Direction vent :",value="{} **{}**".format(directionVent[0], directionVent[1]))
+            dailyMeteoToSend.add_field(name="Vitesse vent :", value="{}km/h".format(round(reponseJson["daily"][0]["wind_speed"] * 3.6, 2)))
+  
+            vitesseRafale = reponseJson["daily"][0].get("gust", -1.)
+            if vitesseRafale >= 0. :
+              dailyMeteoToSend.add_field(name="Rafale :", value="{}km/h".format(round(vitesseRafale * 3.6, 2)), inline=True)
+            dailyMeteoToSend.add_field(name="Risque de précipitation :", value="{}%".format(reponseJson["daily"][0]["pop"] * 100), inline=False)
+            dailyMeteoToSend.add_field(name="Indice UV :", value="{}".format(reponseJson["daily"][0]["uvi"], inline=False), inline=False)
+            dailyMeteoToSend.add_field(name="Levé du soleil:", value="{}:{}".format(int(datetime.fromtimestamp(reponseJson["daily"][0]["sunrise"]).strftime("%H"))+1, datetime.fromtimestamp(reponseJson["daily"][0]["sunrise"]).strftime("%M"))) 
+            dailyMeteoToSend.add_field(name="Couché du soleil:", value="{}:{}".format(int(datetime.fromtimestamp(reponseJson["daily"][0]["sunset"]).strftime("%H"))+1, datetime.fromtimestamp(reponseJson["daily"][0]["sunset"]).strftime("%M")))  #Envoie l'embed sur les différents serveurs reliés au bot :
+            for webhook in self.webhooksList:
+              time.sleep(1)
+              dailyMeteoLogo = discord.File("./Data/Images/{}".format(dictWeatherCode[reponseJson["daily"][0]["weather"][0]["id"]]), "dailyMeteoLogo.jpg")
+              dailyMeteoToSend.set_thumbnail(url="attachment://dailyMeteoLogo.jpg")
+              dailyMeteoToSend.set_footer(text="Données de l'API d'OpenWeather", icon_url="https://openweathermap.org/themes/openweathermap/assets/img/logo_white_cropped.png")
+              webhook.send(embed=dailyMeteoToSend, file=dailyMeteoLogo)
+          
