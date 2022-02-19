@@ -5,7 +5,6 @@ import requests
 import json
 import os
 import time
-from pickle import Pickler, Unpickler
 import numpy as np
 from discord.utils import get
 from discord.ext import commands, tasks
@@ -97,10 +96,11 @@ async def on_ready():
       #Teste si l'utilisateur est dans la base de données du bot:
       if os.path.isfile(userFilePath):
         #Si l'utilisateur existe, chargement de ses données à partir du fichier correspondant:
-        with open("{}/{}.txt".format(PATH_SAVE_USER_REP, member.id), 'rb') as userFile :
+        with open("{}/{}.txt".format(PATH_SAVE_USER_REP, member.id), 'r') as userFile :
           print("Chargement des données de l'utilisateur n°{}".format(member.id))
-          userUnpickler = Unpickler(userFile)
-          dictUsersBot[member.id] = userUnpickler.load()
+          dataUser = json.load(userFile)
+          dictUsersBot[member.id] = BotUser.BotUser(dataUser["emojis"], dataUser["favMeteo"])
+          print(dictUsersBot[member.id])
       #Sinon création d'un nouvel utilisateur :
       else:
         print("Création de l'utilisateur n°{}".format(member.id))
@@ -194,9 +194,9 @@ async def on_disconnect():
   #Enregistrement des données des utilisateurs (un fichier par utilisateur) :
   for userId in dictUsersBot.keys():
     print("Sauvegarde des données de l'utilisateur n°{}".format(userId))
-    with open("{}/{}.txt".format(PATH_SAVE_USER_REP, userId), 'wb') as userFile:
-      userPickler = Pickler(userFile)
-      userPickler.dump(dictUsersBot[userId])
+    with open("{}/{}.txt".format(PATH_SAVE_USER_REP, userId), 'w') as userFile:
+      dataJson = json.dumps(dictUsersBot[userId].__dict__)
+      userFile.write(dataJson)
   print("Déconnexion terminée")
 
 
