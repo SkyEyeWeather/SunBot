@@ -190,10 +190,12 @@ class DailyMeteo(WebhookEvent):
     while True :
       time.sleep(60)
       currentTime = time.localtime()
-      hour = currentTime[3]
+      hour = currentTime[3] + 1
       minute = currentTime[4]
-      if (hour == 0) and (minute >= 0 and minute <= 1):
+      #Si l'heure de reset quotidienne a été atteinte, mettre à jour le drapeau
+      if (hour == 1) and (minute >= 0 and minute <= 1):
         self.alreadySend = False
+      #Si l'heure d'envoyer le weebhook a été atteinte et que le webhook n'a pas déjà été envoyé:
       if (hour == 7) and (minute >= 0 and minute <= 1) and not self.alreadySend:
           reponse = requests.get(self.url)
           if reponse.status_code != 200:

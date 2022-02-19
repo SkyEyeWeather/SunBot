@@ -88,16 +88,27 @@ messageTeteDePomme = 0  #Nombre de messages "tête de pomme" consécutifs (on su
 
 @sunBot.event
 async def on_ready():
-    #Création du dictionnaire des membres (à voir plus tard pour diff serveur) :
+    #Création du dictionnaire des membres :
     print("Initialisation du bot...")
     print("Chargement des données des utilisateurs...")
+    #Pour chaque utilisateur présent sur un des serveurs du bot :
     for member in sunBot.get_all_members():
-      with open("{}/{}.txt".format(PATH_SAVE_USER_REP, member.id), 'rb') as userFile :
-        print("Chargement des données de l'utilisateur n°{}".format(member.id))
-        userUnpickler = Unpickler(userFile)
-        dictUsersBot[member.id] = userUnpickler.load()
+      userFilePath = "{}/{}.txt".format(PATH_SAVE_USER_REP, member.id)
+      #Teste si l'utilisateur est dans la base de données du bot:
+      if os.path.isfile(userFilePath):
+        #Si l'utilisateur existe, chargement de ses données à partir du fichier correspondant:
+        with open("{}/{}.txt".format(PATH_SAVE_USER_REP, member.id), 'rb') as userFile :
+          print("Chargement des données de l'utilisateur n°{}".format(member.id))
+          userUnpickler = Unpickler(userFile)
+          dictUsersBot[member.id] = userUnpickler.load()
+      #Sinon création d'un nouvel utilisateur :
+      else:
+        print("Création de l'utilisateur n°{}".format(member.id))
+        dictUsersBot[member.id] = BotUser.BotUser()
     print("Chargement des données utilisateur : OK")
+    
     #Création du thread écoutant les alertes météos:
+    print("Génération des webhooks...")
     webhookServeurTest1 = discord.Webhook.from_url(
         'https://discord.com/api/webhooks/923863299270013018/6jfjT1QtrZ8UCXM1aEUhUD7z5G5Or9S3loFvlQs34Age8hX7VPfrD4UUQvGXCzmDN0Oo',
         adapter=discord.RequestsWebhookAdapter())
