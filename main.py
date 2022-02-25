@@ -231,16 +231,10 @@ async def ping(ctx):
 
 @sunBot.command(name="meteo",
                 brief="Pour obtenir la météo actuelle d'une localité")
-async def meteo(*args, nomLocalite=""):
-  print(len(args))
-  ctx = args[0]
-  #Si une localité est spécificiée dans la commande :
-  if len(args) > 1:
-    nomLocalite = args[1]
-    for s in args[2:]:
-      nomLocalite += " " + s
-  #Sinon utilisé la localité favorite de l'utilisateur appelant:
-  else:
+async def meteo(ctx : discord.ext.commands.Context, *args):
+  nomLocalite = " ".join(args)
+  #Si une localité n'est pas spécificiée dans la commande :
+  if nomLocalite == " " or nomLocalite == "":
     print("ok")
     nomLocalite = dictUsersBot[ctx.author.id].favMeteo
   print("Recherche de la météo pour la localité {} par {}".format(nomLocalite, ctx.author.name))

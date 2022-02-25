@@ -1,1 +1,1 @@
-{"emojis": {}, "favMeteo": "Toulouse"}
+{"emojis": {}, "favMeteo": "Bordeaux"}
