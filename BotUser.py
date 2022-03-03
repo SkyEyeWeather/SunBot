@@ -16,10 +16,10 @@ class BotUser:
                   - emoji : [Optionnel] reaction par défaut que le bot va ajouter aux messages envoyés par l'utilisateur"""
     self.emojis = emojis
     self.favMeteo = favMeteo
-  
+
   def __str__(self):
     return " emoji = {}, favori météo = {}".format(self.emojis, self.favMeteo)
-  
+
   def setEmoji(self, emoji : str, freq : float, typeMessage : int = COMMON_MESSAGE) -> None:
     """Modifie l'emoji spécifié pour le type de message passé en paramètre de la méthode.
     Paramètres :  - emoji : chaine de caractère représentant l'unicode de l'emoji
@@ -28,7 +28,7 @@ class BotUser:
     if freq < 0 or freq > 1:
       raise ValueError("BotUser.setEmoji :  Freq must be between 0 and 1 !")
     self.emojis[typeMessage] = (emoji, freq)
-  
+
   async def setFavMeteo(self, ctx, nomLocalite) -> None:
     print("Test favori : recherche de la météo pour la localité {} par {}".format(nomLocalite, ctx.author.name))
     url = "http://api.openweathermap.org/data/2.5/weather?q={}&appid={}&lang=fr&units=metric".format(nomLocalite, os.environ['idOpenWeather'])

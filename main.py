@@ -64,7 +64,7 @@ async def on_ready():
             dataUser = json.load(userFile)
             sbm.dictUsersBot[member.id] = BotUser.BotUser(dataUser["emojis"], dataUser["favMeteo"])
             print(sbm.dictUsersBot[member.id])
-          except json.decoder.JSONDecodeError :
+          except json.decoder.JSONDecodeError:
             print("Une erreur est survenue lors du chargement de l'utilisateur n°{} : le fichier est soit vide soit corrompu. Suppression du fichier".format(member.id))
             os.system("rm {}{}.txt".format(PATH_SAVE_USER_REP, member.id))
             userLoadIsOK = False
@@ -73,7 +73,7 @@ async def on_ready():
         print("Création de l'utilisateur n°{}".format(member.id))
         sbm.dictUsersBot[member.id] = BotUser.BotUser()
     print("Chargement des données utilisateur : {}".format(userLoadIsOK))
-    
+
     #Création du thread écoutant les alertes météos:
     print("Génération des webhooks...")
     webhookServeurTest1 = discord.Webhook.from_url(
