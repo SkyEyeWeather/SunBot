@@ -49,12 +49,12 @@ def adminFunction(function):
 #====================
 #    FUNCTIONS
 #====================
-  
+
 async def deleteCommand(ctx : discord.ext.commands.Context):
   await ctx.message.delete()
 
 
-  
+
 #====================
 #    BOT'S COMMANDS 
 #====================

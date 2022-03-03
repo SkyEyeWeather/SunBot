@@ -73,7 +73,7 @@ async def on_ready():
         print("Création de l'utilisateur n°{}".format(member.id))
         sbm.dictUsersBot[member.id] = BotUser.BotUser()
     print("Chargement des données utilisateur : {}".format(userLoadIsOK))
-    
+
     #Création du thread écoutant les alertes météos:
     print("Génération des webhooks...")
     webhookServeurTest1 = discord.Webhook.from_url(

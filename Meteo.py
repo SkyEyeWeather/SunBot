@@ -138,7 +138,7 @@ class AlerteMeteo(WebhookEvent):
 
     #Attributs de la classe
     self.decompteurStopAlerte = 0 #Nombre de requêtes consécutives ne renvoyant pas d'alerte en cours avant de considérer la levée de l'alerte.
-  
+
   def run(self):
     while True :
       time.sleep(300)
@@ -148,7 +148,7 @@ class AlerteMeteo(WebhookEvent):
       else:
         reponseJson = reponse.json()
         #S'il n'y a aucune alerte en cours sur Toulouse :
-        if reponseJson.get("alerts", None) == None:
+        if reponseJson.get("alerts", None) is None:
           print("AlerteMeteo : Aucune alerte en cours sur Toulouse")
           self.decompteurStopAlerte -= 1 #Décompte de 1 pour indiquer qu'aucune alerte n'a été renvoyée pour la requête en cours
         else:
@@ -179,7 +179,7 @@ class DailyMeteo(WebhookEvent):
   et de d'envoyer un webHook sur les serveurs connectés"""
   def __init__(self):
     WebhookEvent.__init__(self, "https://api.openweathermap.org/data/2.5/onecall?lat=43.604259&lon=1.44367&exclude=current,minutely,hourly,alerts&appid={}&lang=fr&units=metric".format(os.environ['idOpenWeather']))
-    
+
     #Attributs de la classe
     self.alreadySend = False      #Booleen to indicate if daily message has already been sent
 
@@ -202,7 +202,7 @@ class DailyMeteo(WebhookEvent):
             reponseJson = reponse.json()
             #Création de l'embed à envoyer
             dailyMeteoToSend = discord.Embed(title="Météo du jour", description="Voici la météo prévue pour aujourd'hui sur Toulouse", color=0x77b5fe)
-  
+
             #Domaines de l'Embed
             dailyMeteoToSend.add_field(name="Temps :", value="{}".format(reponseJson["daily"][0]["weather"][0]["description"]), inline=False)
             dailyMeteoToSend.add_field(name="Température max :", value="{}°C".format(round(reponseJson["daily"][0]["temp"]["max"], 1)))
@@ -214,7 +214,7 @@ class DailyMeteo(WebhookEvent):
             directionVent = degToStrDirectVent(reponseJson["daily"][0]["wind_deg"])
             dailyMeteoToSend.add_field(name="Direction vent :",value="{} **{}**".format(directionVent[0], directionVent[1]))
             dailyMeteoToSend.add_field(name="Vitesse vent :", value="{}km/h".format(round(reponseJson["daily"][0]["wind_speed"] * 3.6, 2)))
-  
+
             vitesseRafale = reponseJson["daily"][0].get("gust", -1.)
             if vitesseRafale >= 0. :
               dailyMeteoToSend.add_field(name="Rafale :", value="{}km/h".format(round(vitesseRafale * 3.6, 2)), inline=True)
@@ -228,4 +228,3 @@ class DailyMeteo(WebhookEvent):
               dailyMeteoToSend.set_thumbnail(url="attachment://dailyMeteoLogo.jpg")
               dailyMeteoToSend.set_footer(text="Données de l'API d'OpenWeather", icon_url="https://openweathermap.org/themes/openweathermap/assets/img/logo_white_cropped.png")
               webhook.send(embed=dailyMeteoToSend, file=dailyMeteoLogo)
-          

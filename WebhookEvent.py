@@ -9,7 +9,7 @@ class WebhookEvent(threading.Thread):
 
     self.webhooksList = []    #Liste des webhooks à l'écoute d'un événement
     self.url = url            #Url contenant la requête à envoyer à l'API
-  
+
   def addWebhook(self, webhook : discord.Webhook):
     """Ajout un listener à la liste des webhooks à l'écoute d'un événement"""
     self.webhooksList.append(webhook)
