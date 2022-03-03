@@ -148,7 +148,7 @@ class AlerteMeteo(WebhookEvent):
       else:
         reponseJson = reponse.json()
         #S'il n'y a aucune alerte en cours sur Toulouse :
-        if reponseJson.get("alerts", None) == None:
+        if reponseJson.get("alerts", None) is None:
           print("AlerteMeteo : Aucune alerte en cours sur Toulouse")
           self.decompteurStopAlerte -= 1 #Décompte de 1 pour indiquer qu'aucune alerte n'a été renvoyée pour la requête en cours
         else:
