@@ -10,10 +10,12 @@ class BotUser:
   COMMON_MESSAGE = 0        #Message commun
 
   #Constructeur de la classe
-  def __init__(self, emojis = {}, favMeteo = "Toulouse") -> None:
+  def __init__(self, emojis = None, favMeteo = "Toulouse") -> None:
     """Constructeur de la classe BotUser. Permet de générer un nouvel utilisateur du SunBot.
     Paramètres :  - discordMember : référence vers l'instance de la classe discord.Member représentant l'utilisateur du bot à créer
                   - emoji : [Optionnel] reaction par défaut que le bot va ajouter aux messages envoyés par l'utilisateur"""
+    if emojis is None:
+      emojis = {}
     self.emojis = emojis
     self.favMeteo = favMeteo
   
