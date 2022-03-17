@@ -124,6 +124,7 @@ async def on_message(message):
         messageTeteDePomme += 1
         #Si le message a été répété 3 fois de suite, on invoque le gif :
         if messageTeteDePomme == 3:
+          """
             messageTeteDePomme = 0
             print("Invocation tête de pomme !")
             embedToSend = discord.Embed(
@@ -131,7 +132,8 @@ async def on_message(message):
             gifTeteDePomme = discord.File("./Data/TeteDePomme.gif",
                                           "TeteDePomme.gif")
             embedToSend.set_image(url="attachment://TeteDePomme.gif")
-            await message.channel.send(embed=embedToSend, file=gifTeteDePomme)
+            await message.channel.send(embed=embedToSend, file=gifTeteDePomme)"""
+          await message.channel.send("Fonctionnalité suspendue")
     #Autres type de message :
     else:
         messageTeteDePomme = 0

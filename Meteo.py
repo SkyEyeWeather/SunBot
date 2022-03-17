@@ -201,7 +201,7 @@ class DailyMeteo(WebhookEvent):
             self.alreadySend = True
             reponseJson = reponse.json()
             #Création de l'embed à envoyer
-            dailyMeteoToSend = discord.Embed(title="Météo du jour", description="Voici la météo prévue pour aujourd'hui sur Toulouse", color=0x77b5fe)
+            dailyMeteoToSend = discord.Embed(title="Météo du jour sur Toulouse", description="\u26A0\uFE0F Changement d'API à venir \u26A0\uFE0F", color=0x77b5fe)
 
             #Domaines de l'Embed
             dailyMeteoToSend.add_field(name="Temps :", value="{}".format(reponseJson["daily"][0]["weather"][0]["description"]), inline=False)
