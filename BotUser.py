@@ -20,7 +20,7 @@ class BotUser:
 	        emojis = {}
 	    self.emojis = emojis
 	    self.favMeteo = favMeteo
-	
+
 	def __str__(self):
 		return " emoji = {}, favori météo = {}".format(self.emojis,
 													   self.favMeteo)
