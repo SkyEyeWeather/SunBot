@@ -8,14 +8,13 @@ from WebServer import keep_alive
 
 import BotUser
 import Meteo
-import sunBotModule.commands as sbm 
+import sunBotModule.commands as sbm
 
 #=======================
 #    GLOBAL VARIABLES
 #=======================
 
 PATH_SAVE_USER_REP = "./Data/Save/Users/"
-
 
 listeGifMignons = [
     "https://i.pinimg.com/originals/2a/65/72/2a6572296e58045b3f89c73e06e4916f.gif",
@@ -32,19 +31,18 @@ listeGifMignons = [
 ]
 
 listeGifKernelDead = [
-  "https://c.tenor.com/Ojww2DB8_x0AAAAd/dead-teletubbies.gif",
-  "https://c.tenor.com/CXZRwTD_4BsAAAAM/im-dead-lol.gif",
-  "https://c.tenor.com/LPYL83NEVcAAAAAM/dead-dog.gif",
-  "https://c.tenor.com/X13wwMFZN2YAAAAM/dies-cat.gif"
+    "https://c.tenor.com/Ojww2DB8_x0AAAAd/dead-teletubbies.gif",
+    "https://c.tenor.com/CXZRwTD_4BsAAAAM/im-dead-lol.gif",
+    "https://c.tenor.com/LPYL83NEVcAAAAAM/dead-dog.gif",
+    "https://c.tenor.com/X13wwMFZN2YAAAAM/dies-cat.gif"
 ]
 
 messageTeteDePomme = 0  #Nombre de messages "tête de pomme" consécutifs (on suppose que l'invocation n'est faite que sur un erveur à la fois)
 
-
-
 #==================================
 #     Evénements liés au bot
 #==================================
+
 
 @sbm.sunBot.event
 async def on_ready():
@@ -54,24 +52,24 @@ async def on_ready():
     userLoadIsOK = True
     #Pour chaque utilisateur présent sur un des serveurs du bot :
     for member in sbm.sunBot.get_all_members():
-      userFilePath = "{}/{}.txt".format(PATH_SAVE_USER_REP, member.id)
-      #Teste si l'utilisateur est dans la base de données du bot:
-      if os.path.isfile(userFilePath):
-        #Si l'utilisateur existe, chargement de ses données à partir du fichier correspondant:
-        with open("{}/{}.txt".format(PATH_SAVE_USER_REP, member.id), 'r') as userFile :
-          print("Chargement des données de l'utilisateur n°{}".format(member.id))
-          try:
-            dataUser = json.load(userFile)
-            sbm.dictUsersBot[member.id] = BotUser.BotUser(dataUser["emojis"], dataUser["favMeteo"])
-            print(sbm.dictUsersBot[member.id])
-          except json.decoder.JSONDecodeError:
-            print("Une erreur est survenue lors du chargement de l'utilisateur n°{} : le fichier est soit vide soit corrompu. Suppression du fichier".format(member.id))
-            os.system("rm {}{}.txt".format(PATH_SAVE_USER_REP, member.id))
-            userLoadIsOK = False
-      #Sinon création d'un nouvel utilisateur :
-      else:
-        print("Création de l'utilisateur n°{}".format(member.id))
-        sbm.dictUsersBot[member.id] = BotUser.BotUser()
+        userFilePath = "{}/{}.txt".format(PATH_SAVE_USER_REP, member.id)
+        #Teste si l'utilisateur est dans la base de données du bot:
+        if os.path.isfile(userFilePath):
+            #Si l'utilisateur existe, chargement de ses données à partir du fichier correspondant:
+            with open("{}/{}.txt".format(PATH_SAVE_USER_REP, member.id),'r') as userFile:
+                print("Chargement des données de l'utilisateur n°{}".format(member.id))
+                try:
+                    dataUser = json.load(userFile)
+                    sbm.dictUsersBot[member.id] = BotUser.BotUser( dataUser["emojis"], dataUser["favMeteo"])
+                    print(sbm.dictUsersBot[member.id])
+                except json.decoder.JSONDecodeError:
+                    print("Une erreur est survenue lors du chargement de l'utilisateur n°{} : le fichier est soit vide soit corrompu. Suppression du fichier".format(member.id))
+                    os.system("rm {}{}.txt".format(PATH_SAVE_USER_REP,member.id))
+                    userLoadIsOK = False
+        #Sinon création d'un nouvel utilisateur :
+        else:
+            print("Création de l'utilisateur n°{}".format(member.id))
+            sbm.dictUsersBot[member.id] = BotUser.BotUser()
     print("Chargement des données utilisateur : {}".format(userLoadIsOK))
 
     #Création du thread écoutant les alertes météos:
@@ -99,15 +97,12 @@ async def on_ready():
 
 @sbm.sunBot.event
 async def on_member_join(member):
-    print("{} a rejoint le serveur {} !".format(member.name,
-                                                member.guild.name))
+    print("{} a rejoint le serveur {} !".format(member.name, member.guild.name))
     userBot = BotUser.BotUser(member)
     sbm.dictUsersBot[member.id] = userBot
     if member.guild.id == 816226592556580865:
         channel = sbm.sunBot.get_channel(816226592556580868)
-        await channel.send(
-            "Bienvenue sur le serveur {}! Je suis SunBot, bot spécialiste de la météo (ou pas)! Tu peux utiliser +help dans le channel des bots pour en savoir plus sur moi!"
-            .format(member.mention))
+        await channel.send("Bienvenue sur le serveur {}! Je suis SunBot, bot spécialiste de la météo (ou pas)! Tu peux utiliser +help dans le channel des bots pour en savoir plus sur moi!".format(member.mention))
 
 
 @sbm.sunBot.event
@@ -124,7 +119,7 @@ async def on_message(message):
         messageTeteDePomme += 1
         #Si le message a été répété 3 fois de suite, on invoque le gif :
         if messageTeteDePomme == 3:
-          """
+            """
             messageTeteDePomme = 0
             print("Invocation tête de pomme !")
             embedToSend = discord.Embed(
@@ -133,40 +128,38 @@ async def on_message(message):
                                           "TeteDePomme.gif")
             embedToSend.set_image(url="attachment://TeteDePomme.gif")
             await message.channel.send(embed=embedToSend, file=gifTeteDePomme)"""
-          await message.channel.send("Fonctionnalité suspendue")
+            await message.channel.send("Fonctionnalité suspendue")
     #Autres type de message :
     else:
         messageTeteDePomme = 0
         if "me foutre au sol" in messageMin and np.random.uniform() > 0.5:
-            await message.reply(
-                "Tu sais, il y a des gens qui disaient ça avant toi et qui ont fini ingénieurs aéronautique chez Boeing ! Donc ne te décourage pas \U0001f31e !"
+            await message.reply("Tu sais, il y a des gens qui disaient ça avant toi et qui ont fini ingénieurs aéronautique chez Boeing ! Donc ne te décourage pas \U0001f31e !"
             )
         if messageMin == "sinus":
             await message.channel.send("Tangente")
-        if messageMin in ["patrick", "patou", "patoche", "pata", "patrikou"
-                          ] and np.random.uniform() > 0.25:
+        if messageMin in ["patrick", "patou", "patoche", "pata", "patrikou"] and np.random.uniform() > 0.25:
             indiceGifToSend = int(np.random.uniform(0, len(listeGifMignons)))
             await message.reply(listeGifMignons[indiceGifToSend])
             await message.channel.send("Mignon !!")
         if "kernel is dead" in messageMin:
-          indiceGifToSend = int(np.random.uniform(0, len(listeGifKernelDead)))
-          await message.reply(listeGifKernelDead[indiceGifToSend])
+            indiceGifToSend = int(np.random.uniform(0, len(listeGifKernelDead)))
+            await message.reply(listeGifKernelDead[indiceGifToSend])
 
 
 @sbm.sunBot.event
 async def on_disconnect():
-  print("Déconnexion du bot...")
-  #Si le répertoire de sauvegarde des données utilisateurs n'existe pas, le créer:
-  if not os.path.exists(PATH_SAVE_USER_REP):
-    print("on_disconnect : Répertoire de sauvegarde des utilisateurs inexistant.")
-    os.makedirs(PATH_SAVE_USER_REP, exist_ok=True)
-  #Enregistrement des données des utilisateurs (un fichier par utilisateur) :
-  for userId in sbm.dictUsersBot.keys():
-    print("Sauvegarde des données de l'utilisateur n°{}".format(userId))
-    with open("{}/{}.txt".format(PATH_SAVE_USER_REP, userId), 'w') as userFile:
-      dataJson = json.dumps(sbm.dictUsersBot[userId].__dict__)
-      userFile.write(dataJson)
-  print("Déconnexion terminée")
+    print("Déconnexion du bot...")
+    #Si le répertoire de sauvegarde des données utilisateurs n'existe pas, le créer:
+    if not os.path.exists(PATH_SAVE_USER_REP):
+        print("on_disconnect : Répertoire de sauvegarde des utilisateurs inexistant.")
+        os.makedirs(PATH_SAVE_USER_REP, exist_ok=True)
+    #Enregistrement des données des utilisateurs (un fichier par utilisateur) :
+    for userId in sbm.dictUsersBot.keys():
+        print("Sauvegarde des données de l'utilisateur n°{}".format(userId))
+        with open("{}/{}.txt".format(PATH_SAVE_USER_REP, userId), 'w') as userFile:
+            dataJson = json.dumps(sbm.dictUsersBot[userId].__dict__)
+            userFile.write(dataJson)
+    print("Déconnexion terminée")
 
 
 #####################################################################################################
