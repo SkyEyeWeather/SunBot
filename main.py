@@ -8,7 +8,12 @@ from WebServer import keep_alive
 
 import BotUser
 import Meteo
-import sunBotModule.commands as sbm
+import time
+import requests
+from discord.ext import commands
+
+from SunBotHelpCommand import SunBotHelpCommand
+
 
 #=======================
 #    GLOBAL VARIABLES
@@ -37,21 +42,54 @@ listeGifKernelDead = [
     "https://c.tenor.com/X13wwMFZN2YAAAAM/dies-cat.gif"
 ]
 
+sunBot = commands.Bot(command_prefix='+', intents=discord.Intents.all(), help_command=SunBotHelpCommand())
+dictUsersBot = {}
+
 messageTeteDePomme = 0  #Nombre de messages "tête de pomme" consécutifs (on suppose que l'invocation n'est faite que sur un erveur à la fois)
+
+
+
+
+#============================
+#        DECORATORS
+#============================
+
+def betaFunction(function):
+  """Decorator used to indicate that a function can only be call by robot's maintainers"""
+  async def fonctionModifie(*args, **opt):
+      if args[0].author.id != 691614947280551936:
+          await args[0].channel.send(
+              "J'aimerais pouvoir t'aider, mais mon créateur (ce ravagé) me l'a interdit car cette fonctionnalité est actuellement en travaux !"
+          )
+      else:
+          await function(*args, **opt)
+  return fonctionModifie
+
+
+def adminFunction(function):
+  """Decorator used to indicate that function can only be call by an adminstrator of 
+  the bot. Other users will receive an error message."""
+  async def fonctionModifie(*args, **kwargs):
+    if args[0].author.id != 691614947280551936 and args[0].author.id != 690593377250443374:
+      await args[0].channel.send(
+            "Il faut être ravagé ou complètement chèvre pour utiliser cette commande !")
+    else:
+        await function(*args, **kwargs)
+  return fonctionModifie
 
 #==================================
 #     Evénements liés au bot
 #==================================
 
 
-@sbm.sunBot.event
+@sunBot.event
 async def on_ready():
     #Création du dictionnaire des membres :
     print("Initialisation du bot...")
     print("Chargement des données des utilisateurs...")
     userLoadIsOK = True
     #Pour chaque utilisateur présent sur un des serveurs du bot :
-    for member in sbm.sunBot.get_all_members():
+    for member in sunBot.get_all_members():
         userFilePath = "{}/{}.txt".format(PATH_SAVE_USER_REP, member.id)
         #Teste si l'utilisateur est dans la base de données du bot:
         if os.path.isfile(userFilePath):
@@ -60,8 +98,8 @@ async def on_ready():
                 print("Chargement des données de l'utilisateur n°{}".format(member.id))
                 try:
                     dataUser = json.load(userFile)
-                    sbm.dictUsersBot[member.id] = BotUser.BotUser( dataUser["emojis"], dataUser["favMeteo"])
-                    print(sbm.dictUsersBot[member.id])
+                    dictUsersBot[member.id] = BotUser.BotUser( dataUser["emojis"], dataUser["favMeteo"])
+                    print(dictUsersBot[member.id])
                 except json.decoder.JSONDecodeError:
                     print("Une erreur est survenue lors du chargement de l'utilisateur n°{} : le fichier est soit vide soit corrompu. Suppression du fichier".format(member.id))
                     os.system("rm {}{}.txt".format(PATH_SAVE_USER_REP,member.id))
@@ -69,7 +107,7 @@ async def on_ready():
         #Sinon création d'un nouvel utilisateur :
         else:
             print("Création de l'utilisateur n°{}".format(member.id))
-            sbm.dictUsersBot[member.id] = BotUser.BotUser()
+            dictUsersBot[member.id] = BotUser.BotUser()
     print("Chargement des données utilisateur : {}".format(userLoadIsOK))
 
     #Création du thread écoutant les alertes météos:
@@ -95,24 +133,24 @@ async def on_ready():
     print("SunBot est chaud patate!")
 
 
-@sbm.sunBot.event
+@sunBot.event
 async def on_member_join(member):
     print("{} a rejoint le serveur {} !".format(member.name, member.guild.name))
     userBot = BotUser.BotUser(member)
-    sbm.dictUsersBot[member.id] = userBot
+    dictUsersBot[member.id] = userBot
     if member.guild.id == 816226592556580865:
-        channel = sbm.sunBot.get_channel(816226592556580868)
+        channel = sunBot.get_channel(816226592556580868)
         await channel.send("Bienvenue sur le serveur {}! Je suis SunBot, bot spécialiste de la météo (ou pas)! Tu peux utiliser +help dans le channel des bots pour en savoir plus sur moi!".format(member.mention))
 
 
-@sbm.sunBot.event
+@sunBot.event
 async def on_message(message):
 
     global messageTeteDePomme
 
-    await sbm.sunBot.process_commands(message)
+    await sunBot.process_commands(message)
     if not message.author.bot:
-        await sbm.dictUsersBot[message.author.id].addReaction(message)
+        await dictUsersBot[message.author.id].addReaction(message)
     messageMin = message.content.lower()
     #Si le message correspond à l'invocation tête de pomme
     if messageMin in ["tête de pomme", "tete de pomme", "#tetedepomme"]:
@@ -146,7 +184,7 @@ async def on_message(message):
             await message.reply(listeGifKernelDead[indiceGifToSend])
 
 
-@sbm.sunBot.event
+@sunBot.event
 async def on_disconnect():
     print("Déconnexion du bot...")
     #Si le répertoire de sauvegarde des données utilisateurs n'existe pas, le créer:
@@ -154,12 +192,97 @@ async def on_disconnect():
         print("on_disconnect : Répertoire de sauvegarde des utilisateurs inexistant.")
         os.makedirs(PATH_SAVE_USER_REP, exist_ok=True)
     #Enregistrement des données des utilisateurs (un fichier par utilisateur) :
-    for userId in sbm.dictUsersBot.keys():
+    for userId in dictUsersBot.keys():
         print("Sauvegarde des données de l'utilisateur n°{}".format(userId))
         with open("{}/{}.txt".format(PATH_SAVE_USER_REP, userId), 'w') as userFile:
-            dataJson = json.dumps(sbm.dictUsersBot[userId].__dict__)
+            dataJson = json.dumps(dictUsersBot[userId].__dict__)
             userFile.write(dataJson)
     print("Déconnexion terminée")
+
+
+
+async def deleteCommand(ctx : discord.ext.commands.Context):
+  await ctx.message.delete()
+
+#====================
+#    BOT'S COMMANDS 
+#====================
+
+@adminFunction
+async def adminSetEmoji(ctx, userId :int, emoji : str, freq : float):
+  try :
+    dictUsersBot[userId].setEmoji(emoji, freq)
+  except KeyError:
+    await ctx.channel.send("L'ID ne correspond à aucun utilisateur de mes services...\U0001f622")
+  except ValueError:
+    await ctx.channel.send("La fréquence doit être dans l'intervalle [0, 1] \U0001f620")
+  else:
+    await ctx.channel.send("L'emoji a bien été mis à jour \U0001f642")
+
+
+@sunBot.command(name="ping", brief="Si je suis réveillé, je réponds pong ! Sinon c'est que je dors...")
+async def ping(ctx):
+  await ctx.channel.send("pong !")
+  await deleteCommand(ctx)
+
+
+
+@sunBot.command(name="meteo",
+                brief="Pour obtenir la météo actuelle d'une localité")
+async def meteo(ctx : discord.ext.commands.Context, *args):
+  nomLocalite = " ".join(args)
+  #Si une localité n'est pas spécificiée dans la commande :
+  if nomLocalite == " " or nomLocalite == "":
+    print("ok")
+    nomLocalite = dictUsersBot[ctx.author.id].favMeteo
+  print("Recherche de la météo pour la localité {} par {}".format(nomLocalite, ctx.author.name))
+  url = "http://api.openweathermap.org/data/2.5/weather?q={}&appid={}&lang=fr&units=metric".format(nomLocalite, os.environ['idOpenWeather'])
+  reponse = requests.get(url)
+  if reponse.status_code != 200:
+      print("Echec de lors de la récupération de l'API. Code erreur : {}".format(reponse.status_code))
+      await ctx.channel.send("Désolé, une erreur est survenue lors de l'exécution de la commande \U0001f972")
+  else:
+      (embed, image) = Meteo.jsonToMeteoCourante(reponse.json())
+      await ctx.channel.send(embed=embed, file=image)
+
+
+@sunBot.command(name="favMeteo", brief="Envie de connaître la météo d'une localité sans te casser la tête ? Cette commande est pour toi !")
+async def favMeteo(ctx, nomLocalte):
+  await dictUsersBot[ctx.author.id].setFavMeteo(ctx, nomLocalte)
+
+
+@sunBot.command(name="vocalConnect", brief="Vous m'avez appelez ? Je vous réponds (vraiment) ! [admin]")
+@adminFunction
+async def vocalConnect(ctx):
+  channel = ctx.author.voice.channel
+  await channel.connect()
+  time.sleep(1)
+  ctx.voice_client.play(discord.FFmpegPCMAudio("./Data/Source/alpha.mp3"))
+  await deleteCommand(ctx)
+
+
+@sunBot.command(name="vocalDisconnect", brief="Deconnexion serveur vocal [admin]")
+@adminFunction
+async def vocalDisconnect(ctx):
+  await ctx.voice_client.disconnect()
+
+
+@sunBot.command(name="setEmoji", brief="Commande à utiliser pour ajouter un emoji à un membre ! [admin]")
+async def setEmoji(ctx, userId : int, emoji : str, freq : float) -> None:
+  """ Commande permettant de mettre à jour l'emoji ajouté aux messages postés par l'utilisateur dont l'ID est
+  passé en paramètre.
+  Paramètres :  - ctx : contexte d'appel de la compile
+                - userId : Identifiant de l'utisateur dont on souhaite modifier l'emoji
+                - freq : fréquende d'apparition de l'émoji sur les messages envoyés par l'utilisateur
+  Ne retourne rien
+  """
+  await adminSetEmoji(ctx, userId, emoji, freq)
+
+
+@sunBot.command(name="disconnect", brief="Vous voulez vraiment me tuer ?!! [Admin]")
+@adminFunction
+async def disconnect(ctx):
+  await sunBot.logout()
 
 
 #####################################################################################################
@@ -167,4 +290,4 @@ async def on_disconnect():
 #####################################################################################################
 
 keep_alive()
-sbm.sunBot.run(os.environ["token"])
+sunBot.run(os.environ["token"])
