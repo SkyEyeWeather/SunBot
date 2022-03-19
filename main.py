@@ -70,7 +70,7 @@ def adminFunction(function):
   """Decorator used to indicate that function can only be call by an adminstrator of 
   the bot. Other users will receive an error message."""
   async def fonctionModifie(*args, **kwargs):
-    if args[0].author.id != 691614947280551936 and args[0].author.id != 690593377250443374:
+    if args[0].author.id not in (691614947280551936, 690593377250443374):
       await args[0].channel.send(
             "Il faut être ravagé ou complètement chèvre pour utiliser cette commande !")
     else:
@@ -232,7 +232,7 @@ async def ping(ctx):
 async def meteo(ctx : discord.ext.commands.Context, *args):
   nomLocalite = " ".join(args)
   #Si une localité n'est pas spécificiée dans la commande :
-  if nomLocalite == " " or nomLocalite == "":
+  if nomLocalite in (" ", ""):
     print("ok")
     nomLocalite = dictUsersBot[ctx.author.id].favMeteo
   print("Recherche de la météo pour la localité {} par {}".format(nomLocalite, ctx.author.name))
