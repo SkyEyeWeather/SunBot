@@ -89,19 +89,17 @@ def degToStrDirectVent(directionVent: int) -> tuple:
             if directionVent < 22:
                 return (VENT_NORD, "N")
             return (VENT_NORD_EST, "NE")
-        elif directionVent < 112:
+        if directionVent < 112:
             return (VENT_EST, "E")
-        else:
-            return (VENT_SUD_EST, "SE")
+        return (VENT_SUD_EST, "SE")
     else:
         if directionVent < 257:
             if directionVent < 212:
                 return (VENT_SUD, "S")
             return (VENT_SUD_OUEST, "SW")
-        else:
-            if directionVent < 292:
-                return (VENT_OUEST, "W")
-            return (VENT_NORD_OUEST, "NW")
+        if directionVent < 292:
+            return (VENT_OUEST, "W")
+        return (VENT_NORD_OUEST, "NW")
 
 
 def jsonToMeteoCourante(messageJson: dict) -> tuple:
