@@ -1,16 +1,17 @@
 #Importation des différents modules
 import os
 import discord
+from discord.ext import commands
 import json
+import requests
 import numpy as np
+import time
 
 from WebServer import keep_alive
+from VisualCrossingHandler import VisualCrossingHandler
 
 import BotUser
 import Meteo
-import time
-import requests
-from discord.ext import commands
 
 from SunBotHelpCommand import SunBotHelpCommand
 
@@ -84,53 +85,54 @@ def adminFunction(function):
 
 @sunBot.event
 async def on_ready():
-    #Création du dictionnaire des membres :
-    print("Initialisation du bot...")
-    print("Chargement des données des utilisateurs...")
-    userLoadIsOK = True
-    #Pour chaque utilisateur présent sur un des serveurs du bot :
-    for member in sunBot.get_all_members():
-        userFilePath = "{}/{}.txt".format(PATH_SAVE_USER_REP, member.id)
-        #Teste si l'utilisateur est dans la base de données du bot:
-        if os.path.isfile(userFilePath):
-            #Si l'utilisateur existe, chargement de ses données à partir du fichier correspondant:
-            with open("{}/{}.txt".format(PATH_SAVE_USER_REP, member.id),'r') as userFile:
-                print("Chargement des données de l'utilisateur n°{}".format(member.id))
-                try:
-                    dataUser = json.load(userFile)
-                    dictUsersBot[member.id] = BotUser.BotUser( dataUser["emojis"], dataUser["favMeteo"])
-                    print(dictUsersBot[member.id])
-                except json.decoder.JSONDecodeError:
-                    print("Une erreur est survenue lors du chargement de l'utilisateur n°{} : le fichier est soit vide soit corrompu. Suppression du fichier".format(member.id))
-                    os.system("rm {}{}.txt".format(PATH_SAVE_USER_REP,member.id))
-                    userLoadIsOK = False
-        #Sinon création d'un nouvel utilisateur :
-        else:
-            print("Création de l'utilisateur n°{}".format(member.id))
-            dictUsersBot[member.id] = BotUser.BotUser()
-    print("Chargement des données utilisateur : {}".format(userLoadIsOK))
+	#Création du dictionnaire des membres :
+	print("Initialisation du bot...")
+	print("Chargement des données des utilisateurs...")
+	userLoadIsOK = True
+	#Pour chaque utilisateur présent sur un des serveurs du bot :
+	for member in sunBot.get_all_members():
+		userFilePath = "{}/{}.txt".format(PATH_SAVE_USER_REP, member.id)
+		#Teste si l'utilisateur est dans la base de données du bot:
+		if os.path.isfile(userFilePath):
+			#Si l'utilisateur existe, chargement de ses données à partir du fichier correspondant:
+			with open("{}/{}.txt".format(PATH_SAVE_USER_REP, member.id),'r') as userFile:
+				print("Chargement des données de l'utilisateur n°{}".format(member.id))
+				try:
+					dataUser = json.load(userFile)
+					dictUsersBot[member.id] = BotUser.BotUser( dataUser["emojis"], dataUser["favMeteo"])
+					print(dictUsersBot[member.id])
+				except json.decoder.JSONDecodeError:
+					print("Une erreur est survenue lors du chargement de l'utilisateur n°{} : le fichier est soit vide soit corrompu. Suppression du fichier".format(member.id))
+					os.system("rm {}{}.txt".format(PATH_SAVE_USER_REP,member.id))
+					userLoadIsOK = False
+		#Sinon création d'un nouvel utilisateur :
+		else:
+			print("Création de l'utilisateur n°{}".format(member.id))
+			dictUsersBot[member.id] = BotUser.BotUser()
+	print("Chargement des données utilisateur : {}".format(userLoadIsOK))
+	print("Initialisation du gestionnaire de requête Visual Crossing")
+	vcRequestHandler = VisualCrossingHandler()
+	#print(vcRequestHandler.performRequestTest(f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/Toulouse?unitGroup=metric&key={os.environ['idVisualCrossing']}&contentType=json"))
 
-    #Création du thread écoutant les alertes météos:
-    print("Génération des webhooks...")
-    webhookServeurTest1 = discord.Webhook.from_url(
-        'https://discord.com/api/webhooks/923863299270013018/6jfjT1QtrZ8UCXM1aEUhUD7z5G5Or9S3loFvlQs34Age8hX7VPfrD4UUQvGXCzmDN0Oo',
-        adapter=discord.RequestsWebhookAdapter())
+	#Création du thread écoutant les alertes météos:
+	print("Génération des webhooks...")
+	webhookServeurTest1 = discord.Webhook.from_url(
+    'https://discord.com/api/webhooks/923863299270013018/6jfjT1QtrZ8UCXM1aEUhUD7z5G5Or9S3loFvlQs34Age8hX7VPfrD4UUQvGXCzmDN0Oo', adapter=discord.RequestsWebhookAdapter())
     #webhookServeurTest2 = discord.Webhook.from_url('https://discord.com/api/webhooks/927208384946638898/zRq8mLQT2aEV4GqufzrEYOFAdOdaTVxNypOuXDc4mgpnZCBNaQXpZbl1zqmwXS8pp4hC', adapter=discord.RequestsWebhookAdapter())
-    webhookServeurCUPGE = discord.Webhook.from_url(
-        'https://discord.com/api/webhooks/921547043196002324/NJohjH9dduqidXHvV4Ei9V4KuIUvOiAPnbMEVPf_x06CUStZou0TlTapQi3B1i_zuLfp',
-        adapter=discord.RequestsWebhookAdapter())
-    alerteMeteo = Meteo.AlerteMeteo()
-    alerteMeteo.addWebhook(webhookServeurTest1)
-    alerteMeteo.start()
-    print("Webhook alerte météo prêt")
-    #Création du thread écoutant les informations météo quotidiennes :
-    dailyMeteo = Meteo.DailyMeteo()
-    dailyMeteo.addWebhook(webhookServeurCUPGE)
-    dailyMeteo.addWebhook(webhookServeurTest1)
-    #dailyMeteo.addWebhook(webhookServeurTest2)
-    dailyMeteo.start()
-    print("Webhook daily météo prêt")
-    print("SunBot est chaud patate!")
+	webhookServeurCUPGE = discord.Webhook.from_url(
+    'https://discord.com/api/webhooks/921547043196002324/NJohjH9dduqidXHvV4Ei9V4KuIUvOiAPnbMEVPf_x06CUStZou0TlTapQi3B1i_zuLfp',adapter=discord.RequestsWebhookAdapter())
+	alerteMeteo = Meteo.AlerteMeteo()
+	alerteMeteo.addWebhook(webhookServeurTest1)
+	alerteMeteo.start()
+	print("Webhook alerte météo prêt")
+	#Création du thread écoutant les informations météo quotidiennes :
+	dailyMeteo = Meteo.DailyMeteo()
+	dailyMeteo.addWebhook(webhookServeurCUPGE)
+	dailyMeteo.addWebhook(webhookServeurTest1)
+	#dailyMeteo.addWebhook(webhookServeurTest2)
+	dailyMeteo.start()
+	print("Webhook daily météo prêt")
+	print("SunBot est chaud patate!")
 
 
 @sunBot.event
