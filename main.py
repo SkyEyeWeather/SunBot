@@ -99,7 +99,7 @@ async def on_ready():
 				print("Chargement des données de l'utilisateur n°{}".format(member.id))
 				try:
 					dataUser = json.load(userFile)
-					dictUsersBot[member.id] = BotUser.BotUser( dataUser["emojis"], dataUser["favMeteo"])
+					dictUsersBot[member.id] = BotUser.BotUser(member.id, dataUser["emojis"], dataUser["favMeteo"])
 					print(dictUsersBot[member.id])
 				except json.decoder.JSONDecodeError:
 					print("Une erreur est survenue lors du chargement de l'utilisateur n°{} : le fichier est soit vide soit corrompu. Suppression du fichier".format(member.id))
@@ -108,11 +108,11 @@ async def on_ready():
 		#Sinon création d'un nouvel utilisateur :
 		else:
 			print("Création de l'utilisateur n°{}".format(member.id))
-			dictUsersBot[member.id] = BotUser.BotUser()
+			dictUsersBot[member.id] = BotUser.BotUser(member.id)
 	print("Chargement des données utilisateur : {}".format(userLoadIsOK))
 	print("Initialisation du gestionnaire de requête Visual Crossing")
 	vcRequestHandler = VisualCrossingHandler()
-	#print(vcRequestHandler.performRequestTest(f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/Toulouse?unitGroup=metric&key={os.environ['idVisualCrossing']}&contentType=json"))
+#print(vcRequestHandler.performRequestTest(f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/Toulouse?unitGroup=metric&key={os.environ['idVisualCrossing']}&contentType=json"))
 
 	#Création du thread écoutant les alertes météos:
 	print("Génération des webhooks...")
@@ -188,18 +188,11 @@ async def on_message(message):
 
 @sunBot.event
 async def on_disconnect():
-    print("Déconnexion du bot...")
-    #Si le répertoire de sauvegarde des données utilisateurs n'existe pas, le créer:
-    if not os.path.exists(PATH_SAVE_USER_REP):
-        print("on_disconnect : Répertoire de sauvegarde des utilisateurs inexistant.")
-        os.makedirs(PATH_SAVE_USER_REP, exist_ok=True)
-    #Enregistrement des données des utilisateurs (un fichier par utilisateur) :
-    for userId in dictUsersBot.keys():
-        print("Sauvegarde des données de l'utilisateur n°{}".format(userId))
-        with open("{}/{}.txt".format(PATH_SAVE_USER_REP, userId), 'w') as userFile:
-            dataJson = json.dumps(dictUsersBot[userId].__dict__)
-            userFile.write(dataJson)
-    print("Déconnexion terminée")
+	print("Déconnexion du bot...")
+	#Enregistrement des données des utilisateurs (un fichier par utilisateur) :
+	for userId in dictUsersBot :
+		dictUsersBot[userId].saveUser(PATH_SAVE_USER_REP)
+	print("Déconnexion terminée")
 
 
 

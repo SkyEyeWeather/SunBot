@@ -12,7 +12,6 @@ class VisualCrossingHandler(metaclass = MetaSingleton) :
 	"""Classe singleton permettant de centraliser et de gérer les requêtes vers l'API
 	de Visual Crossing ainsi que les réponses obtenues"""
 	
-	request = ""
 
 	def performRequestTest(cls, request) -> dict :
 		"""Perform request contains in request attribute"""

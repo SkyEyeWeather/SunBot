@@ -1,1 +1,0 @@
-{"emojis": {"0": ["\ud83d\ude0e", 1.0]}, "favMeteo": "Bordeaux"}
