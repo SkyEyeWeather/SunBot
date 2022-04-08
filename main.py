@@ -1,12 +1,12 @@
-#Importation des différents modules
+3#Importation des différents modules
 import os
 import discord
 from discord.ext import commands
+import threading
 import json
 import requests
 import numpy as np
 import time
-
 from WebServer import keep_alive
 from VisualCrossingHandler import VisualCrossingHandler
 
@@ -99,7 +99,7 @@ async def on_ready():
 				print("Chargement des données de l'utilisateur n°{}".format(member.id))
 				try:
 					dataUser = json.load(userFile)
-					dictUsersBot[member.id] = BotUser.BotUser(member.id, dataUser["emojis"], dataUser["favMeteo"])
+					dictUsersBot[member.id] = BotUser.BotUser(member.id, dataUser["emojis"], dataUser["favMeteo"], dataUser["mp"])
 					print(dictUsersBot[member.id])
 				except json.decoder.JSONDecodeError:
 					print("Une erreur est survenue lors du chargement de l'utilisateur n°{} : le fichier est soit vide soit corrompu. Suppression du fichier".format(member.id))
@@ -121,18 +121,19 @@ async def on_ready():
     #webhookServeurTest2 = discord.Webhook.from_url('https://discord.com/api/webhooks/927208384946638898/zRq8mLQT2aEV4GqufzrEYOFAdOdaTVxNypOuXDc4mgpnZCBNaQXpZbl1zqmwXS8pp4hC', adapter=discord.RequestsWebhookAdapter())
 	webhookServeurCUPGE = discord.Webhook.from_url(
     'https://discord.com/api/webhooks/921547043196002324/NJohjH9dduqidXHvV4Ei9V4KuIUvOiAPnbMEVPf_x06CUStZou0TlTapQi3B1i_zuLfp',adapter=discord.RequestsWebhookAdapter())
-	alerteMeteo = Meteo.AlerteMeteo()
-	alerteMeteo.addWebhook(webhookServeurTest1)
-	alerteMeteo.start()
+	#alerteMeteo = Meteo.AlerteMeteo()
+	#alerteMeteo.addWebhook(webhookServeurTest1)
+	#alerteMeteo.start()
 	print("Webhook alerte météo prêt")
 	#Création du thread écoutant les informations météo quotidiennes :
-	dailyMeteo = Meteo.DailyMeteo()
+	dailyMeteo = Meteo.DailyMeteo(vcRequestHandler)
 	dailyMeteo.addWebhook(webhookServeurCUPGE)
 	dailyMeteo.addWebhook(webhookServeurTest1)
 	#dailyMeteo.addWebhook(webhookServeurTest2)
 	dailyMeteo.start()
 	print("Webhook daily météo prêt")
 	print("SunBot est chaud patate!")
+	print("Nombre de threads en cours :", threading.active_count())
 
 
 @sunBot.event
@@ -186,22 +187,18 @@ async def on_message(message):
             await message.reply(listeGifKernelDead[indiceGifToSend])
 
 
-@sunBot.event
-async def on_disconnect():
-	print("Déconnexion du bot...")
-	#Enregistrement des données des utilisateurs (un fichier par utilisateur) :
-	for userId in dictUsersBot :
-		dictUsersBot[userId].saveUser(PATH_SAVE_USER_REP)
-	print("Déconnexion terminée")
-
-
-
 async def deleteCommand(ctx : discord.ext.commands.Context):
   await ctx.message.delete()
 
 #====================
 #    BOT'S COMMANDS 
 #====================
+
+@adminFunction
+@sunBot.command(name="mp", brief="Fonction de test pour envoyer un mp à un utilisateur")
+async def mp(ctx):
+	""""""
+	await ctx.author.send("Hello world")
 
 @adminFunction
 async def adminSetEmoji(ctx, userId :int, emoji : str, freq : float):
@@ -222,8 +219,7 @@ async def ping(ctx):
 
 
 
-@sunBot.command(name="meteo",
-                brief="Pour obtenir la météo actuelle d'une localité")
+@sunBot.command(name="meteo", brief="Pour obtenir la météo actuelle d'une localité")
 async def meteo(ctx : discord.ext.commands.Context, *args):
   nomLocalite = " ".join(args)
   #Si une localité n'est pas spécificiée dans la commande :
@@ -277,7 +273,12 @@ async def setEmoji(ctx, userId : int, emoji : str, freq : float) -> None:
 @sunBot.command(name="disconnect", brief="Vous voulez vraiment me tuer ?!! [Admin]")
 @adminFunction
 async def disconnect(ctx):
-  await sunBot.logout()
+	print("Déconnexion du bot...")
+	#Enregistrement des données des utilisateurs (un fichier par utilisateur) :
+	for userId in dictUsersBot :
+		dictUsersBot[userId].saveUser(PATH_SAVE_USER_REP)
+	print("Déconnexion terminée")
+	await sunBot.logout()
 
 
 #####################################################################################################

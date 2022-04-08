@@ -1,0 +1,1 @@
+{"id": 655021949579427841, "emojis": {}, "favMeteo": "Toulouse", "mp": false}

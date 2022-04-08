@@ -1,0 +1,1 @@
+{"id": 690593377250443374, "emojis": {"0": ["🌞", 0.25]}, "favMeteo": "Toulouse", "mp": false}

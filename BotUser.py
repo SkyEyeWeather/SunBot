@@ -13,22 +13,23 @@ class BotUser:
 
 
 	#Constructeur de la classe
-	def __init__(self, id, emojis=None, favMeteo="Toulouse") -> None:
+	def __init__(self, id, emojis=None, favMeteo="Toulouse", mp=False) -> None:
 		"""Constructeur de la classe BotUser. Permet de générer un nouvel utilisateur du SunBot.
 	    Paramètres :
 						- id : identifiant discord de l'utilisateur
 	                	- emoji : [Optionnel] reaction par défaut que le bot va ajouter aux messages envoyés par l'utilisateur
-		- favMeteo : localisation favorite de l'utilisateur pour la météo courante"""
+		- favMeteo : localisation favorite de l'utilisateur pour la météo courante
+		- mp : autorise le bot à envoyer des mp à l'utilisateur"""
 		self.id = id
 		if emojis is None:
 			emojis = {}
 		self.emojis = emojis
 		self.favMeteo = favMeteo
+		self.mp = mp
 
 	
 	def __str__(self):
-		return " emoji = {}, favori météo = {}".format(self.emojis,
-													   self.favMeteo)
+		return f"emoji = {self.emojis}, favori météo = {self.favMeteo}, mp = {self.mp}"
 
 
 	def saveUser(self, pathSaveRep : str) -> None :
