@@ -1,9 +1,17 @@
+
+#=================================
+# Modules utilisés par la classe
+#=================================
+
 import discord
 import os
-import requests
 import json
 from numpy.random import uniform
 
+
+#=================================
+#	Déclaration de la classe
+#==================================
 
 class BotUser:
 	"""Classe représentant un utilisateur du SunBot. Est considéré comme utilisateur du bot tout membre étant présent sur un des serveurs sur lequel se trouve SunBot. Cette classe permet ainsi de gérer les différents paramètres utilisateurs (émoji, favoris ...) et la sauvegarde de ceux-ci."""
@@ -13,18 +21,20 @@ class BotUser:
 
 
 	#Constructeur de la classe
-	def __init__(self, id, emojis=None, favMeteo="Toulouse", mp=False) -> None:
+	def __init__(self, userDiscord : discord.Member, emojis=None, favMeteo="Toulouse", offSet : int = 2,  mp=False) -> None:
 		"""Constructeur de la classe BotUser. Permet de générer un nouvel utilisateur du SunBot.
 	    Paramètres :
-						- id : identifiant discord de l'utilisateur
+						- userDiscord : Référence vers l'utilisateur Discord
 	                	- emoji : [Optionnel] reaction par défaut que le bot va ajouter aux messages envoyés par l'utilisateur
 		- favMeteo : localisation favorite de l'utilisateur pour la météo courante
+		- offSetFav : décalage horaire de la localisation favorite par rapport à UTC
 		- mp : autorise le bot à envoyer des mp à l'utilisateur"""
-		self.id = id
+		self.userDiscord = userDiscord
 		if emojis is None:
 			emojis = {}
 		self.emojis = emojis
 		self.favMeteo = favMeteo
+		self.offSetFav = offSet
 		self.mp = mp
 
 	
@@ -43,10 +53,14 @@ class BotUser:
 		if not os.path.exists(pathSaveRep):
 			print("Création du répertoire : {}".format(pathSaveRep))
 			os.makedirs(pathSaveRep, exist_ok=True)
-		print(f"Sauvegarde des données de l'utilisateur n°{self.id}")
+		print(f"Sauvegarde des données de l'utilisateur n°{self.userDiscord.id}")
 		#Sauvegarde des données de l'utilisateur dans le fichier :
-		with open(f"{pathSaveRep}/{self.id}.txt", 'w') as saveFile:
-			dataJson = json.dumps(self.__dict__, ensure_ascii=False)
+		with open(f"{pathSaveRep}/{self.userDiscord.id}.txt", 'w') as saveFile:
+			#Création variable temporaire pour rendre l'attribut userDiscord transcient :
+			tempUser = self.userDiscord
+			self.userDiscord = None
+			dataJson = json.dumps(self.__dict__, ensure_ascii=False, indent = 2)
+			self.userDiscord = tempUser
 			saveFile.write(dataJson)
 
 
@@ -59,24 +73,6 @@ class BotUser:
 			raise ValueError("BotUser.setEmoji :  Freq must be between 0 and 1 !")
 		self.emojis[str(typeMessage)] = (emoji, freq)
 		
-
-	async def setFavMeteo(self, ctx, nomLocalite) -> None:
-		print("Test favori : recherche de la météo pour la localité {} par {}".
-			  format(nomLocalite, ctx.author.name))
-		url = "http://api.openweathermap.org/data/2.5/weather?q={}&appid={}&lang=fr&units=metric".format(
-			nomLocalite, os.environ['idOpenWeather'])
-		reponse = requests.get(url)
-		#Si la localité n'existe pas dans l'API d'OpenWeather
-		if reponse.status_code != 200:
-			print(
-				"Echec de lors de la récupération de l'API. Code erreur : {}".
-				format(reponse.status_code))
-			await ctx.channel.send(
-				"Désolé, je ne reconnais par la localité...\U0001f972")
-		else:
-			await ctx.channel.send("Favori modifié avec succès !")
-			self.favMeteo = nomLocalite
-			
 
 	async def addReaction(self, msg: discord.Message, typeMessage=0) -> None:
 		"""Ajoute une réaction au message msg envoyé par l'utilisateur.

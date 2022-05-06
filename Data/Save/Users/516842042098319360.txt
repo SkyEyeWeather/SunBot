@@ -1,1 +1,7 @@
-{"id": 516842042098319360, "emojis": {"0": ["🌪️", 0.25]}, "favMeteo": "Toulouse", "mp": false}
+{
+  "userDiscord": null,
+  "emojis": {},
+  "favMeteo": "Toulouse",
+  "offSetFav": 2,
+  "mp": false
+}
