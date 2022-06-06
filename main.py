@@ -290,4 +290,4 @@ async def disconnect(ctx):
 #####################################################################################################
 
 keep_alive()
-sunBot.run(os.environ["token"])
+sunBot.run("ODk2MTMwNzY5MTE2ODg5MDg4.YWCo0A.D85z93cfwKwfcHSkeGdPW7PJpJo")
