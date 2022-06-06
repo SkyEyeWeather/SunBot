@@ -4,7 +4,6 @@ astunparse==1.6.3
 async-timeout==3.0.1
 backports.entry-points-selectable==1.1.0
 certifi==2021.5.30
-cffi @ file:///home/runner/.cache/pypoetry/artifacts/62/c3/29/c16154cce4786b02879598f3745b0a55c96f76bec9c5c8175be8d5cd71/cffi-1.15.0-cp38-cp38-manylinux_2_12_x86_64.manylinux2010_x86_64.whl
 chardet @ file:///home/runner/.cache/pypoetry/artifacts/c2/02/35/0d93b80c730b360c5e3d9bdc1b8d1929dbd784ffa8e3db025c14c045e4/chardet-3.0.4-py2.py3-none-any.whl
 charset-normalizer==2.0.4
 cleo==0.8.1
