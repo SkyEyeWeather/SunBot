@@ -1,1 +1,7 @@
-{"emojis": {"0": ["\ud83e\udd78", 1.0], "0": ["\ud83d\ude0e", 1.0]}, "favMeteo": "Bordeaux"}
+{
+  "userDiscord": null,
+  "emojis": {},
+  "favMeteo": "Wavre",
+  "offSetFav": 2.0,
+  "mp": true
+}

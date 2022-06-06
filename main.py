@@ -1,16 +1,17 @@
-#Importation des différents modules
+3#Importation des différents modules
 import os
 import discord
+from discord.ext import commands
+import threading
 import json
+import requests
 import numpy as np
-
+import time
 from WebServer import keep_alive
+from VisualCrossingHandler import VisualCrossingHandler
 
 import BotUser
 import Meteo
-import time
-import requests
-from discord.ext import commands
 
 from SunBotHelpCommand import SunBotHelpCommand
 
@@ -43,7 +44,9 @@ listeGifKernelDead = [
 ]
 
 sunBot = commands.Bot(command_prefix='+', intents=discord.Intents.all(), help_command=SunBotHelpCommand())
+vcRequestHandler = VisualCrossingHandler()
 dictUsersBot = {}
+dailyMeteo = Meteo.DailyMeteo(vcRequestHandler, dictUsersBot)
 
 messageTeteDePomme = 0  #Nombre de messages "tête de pomme" consécutifs (on suppose que l'invocation n'est faite que sur un erveur à la fois)
 
@@ -72,7 +75,7 @@ def adminFunction(function):
   async def fonctionModifie(*args, **kwargs):
     if args[0].author.id not in (691614947280551936, 690593377250443374):
       await args[0].channel.send(
-            "Il faut être ravagé ou complètement chèvre pour utiliser cette commande !")
+            "Il faut être ravagé pour utiliser cette commande !")
     else:
         await function(*args, **kwargs)
   return fonctionModifie
@@ -84,53 +87,55 @@ def adminFunction(function):
 
 @sunBot.event
 async def on_ready():
-    #Création du dictionnaire des membres :
-    print("Initialisation du bot...")
-    print("Chargement des données des utilisateurs...")
-    userLoadIsOK = True
-    #Pour chaque utilisateur présent sur un des serveurs du bot :
-    for member in sunBot.get_all_members():
-        userFilePath = "{}/{}.txt".format(PATH_SAVE_USER_REP, member.id)
-        #Teste si l'utilisateur est dans la base de données du bot:
-        if os.path.isfile(userFilePath):
-            #Si l'utilisateur existe, chargement de ses données à partir du fichier correspondant:
-            with open("{}/{}.txt".format(PATH_SAVE_USER_REP, member.id),'r') as userFile:
-                print("Chargement des données de l'utilisateur n°{}".format(member.id))
-                try:
-                    dataUser = json.load(userFile)
-                    dictUsersBot[member.id] = BotUser.BotUser( dataUser["emojis"], dataUser["favMeteo"])
-                    print(dictUsersBot[member.id])
-                except json.decoder.JSONDecodeError:
-                    print("Une erreur est survenue lors du chargement de l'utilisateur n°{} : le fichier est soit vide soit corrompu. Suppression du fichier".format(member.id))
-                    os.system("rm {}{}.txt".format(PATH_SAVE_USER_REP,member.id))
-                    userLoadIsOK = False
-        #Sinon création d'un nouvel utilisateur :
-        else:
-            print("Création de l'utilisateur n°{}".format(member.id))
-            dictUsersBot[member.id] = BotUser.BotUser()
-    print("Chargement des données utilisateur : {}".format(userLoadIsOK))
+	#Création du dictionnaire des membres :
+	print("Initialisation du bot...")
+	print("Chargement des données des utilisateurs...")
+	userLoadIsOK = True
+	#Pour chaque utilisateur présent sur un des serveurs du bot :
+	for member in sunBot.get_all_members():
+		userFilePath = "{}/{}.txt".format(PATH_SAVE_USER_REP, member.id)
+		#Teste si l'utilisateur est dans la base de données du bot:
+		if os.path.isfile(userFilePath):
+			#Si l'utilisateur existe, chargement de ses données à partir du fichier correspondant:
+			with open("{}/{}.txt".format(PATH_SAVE_USER_REP, member.id),'r') as userFile:
+				print("Chargement des données de l'utilisateur n°{}".format(member.id))
+				try:
+					dataUser = json.load(userFile)
+					dictUsersBot[member.id] = BotUser.BotUser(member, dataUser["emojis"], dataUser["favMeteo"], dataUser["offSetFav"], dataUser["mp"])
+					print(dictUsersBot[member.id])
+				except json.decoder.JSONDecodeError:
+					print("Une erreur est survenue lors du chargement de l'utilisateur n°{} : le fichier est soit vide soit corrompu. Suppression du fichier".format(member.id))
+					os.system("rm {}{}.txt".format(PATH_SAVE_USER_REP,member.id))
+					userLoadIsOK = False
+		#Sinon création d'un nouvel utilisateur :
+		else:
+			print("Création de l'utilisateur n°{}".format(member.id))
+			dictUsersBot[member.id] = BotUser.BotUser(member)
+	print("Chargement des données utilisateur : {}".format(userLoadIsOK))
+#print(vcRequestHandler.performRequestTest(f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/Toulouse?unitGroup=metric&key={os.environ['idVisualCrossing']}&contentType=json"))
 
-    #Création du thread écoutant les alertes météos:
-    print("Génération des webhooks...")
-    webhookServeurTest1 = discord.Webhook.from_url(
-        'https://discord.com/api/webhooks/923863299270013018/6jfjT1QtrZ8UCXM1aEUhUD7z5G5Or9S3loFvlQs34Age8hX7VPfrD4UUQvGXCzmDN0Oo',
-        adapter=discord.RequestsWebhookAdapter())
+	#Création du thread écoutant les alertes météos:
+	print("Génération des webhooks...")
+	webhookServeurTest1 = discord.Webhook.from_url(
+    'https://discord.com/api/webhooks/923863299270013018/6jfjT1QtrZ8UCXM1aEUhUD7z5G5Or9S3loFvlQs34Age8hX7VPfrD4UUQvGXCzmDN0Oo', adapter=discord.RequestsWebhookAdapter())
     #webhookServeurTest2 = discord.Webhook.from_url('https://discord.com/api/webhooks/927208384946638898/zRq8mLQT2aEV4GqufzrEYOFAdOdaTVxNypOuXDc4mgpnZCBNaQXpZbl1zqmwXS8pp4hC', adapter=discord.RequestsWebhookAdapter())
-    webhookServeurCUPGE = discord.Webhook.from_url(
-        'https://discord.com/api/webhooks/921547043196002324/NJohjH9dduqidXHvV4Ei9V4KuIUvOiAPnbMEVPf_x06CUStZou0TlTapQi3B1i_zuLfp',
-        adapter=discord.RequestsWebhookAdapter())
-    alerteMeteo = Meteo.AlerteMeteo()
-    alerteMeteo.addWebhook(webhookServeurTest1)
-    alerteMeteo.start()
-    print("Webhook alerte météo prêt")
-    #Création du thread écoutant les informations météo quotidiennes :
-    dailyMeteo = Meteo.DailyMeteo()
-    dailyMeteo.addWebhook(webhookServeurCUPGE)
-    dailyMeteo.addWebhook(webhookServeurTest1)
-    #dailyMeteo.addWebhook(webhookServeurTest2)
-    dailyMeteo.start()
-    print("Webhook daily météo prêt")
-    print("SunBot est chaud patate!")
+	webhookServeurCUPGE = discord.Webhook.from_url(
+    'https://discord.com/api/webhooks/921547043196002324/NJohjH9dduqidXHvV4Ei9V4KuIUvOiAPnbMEVPf_x06CUStZou0TlTapQi3B1i_zuLfp',adapter=discord.RequestsWebhookAdapter())
+	webhookServeurPrive = discord.Webhook.from_url(
+    'https://discord.com/api/webhooks/965521867026866196/M_nmSDjgplk8a6DAbzAD8qZVEMBoVvR1FF9Mcts_-NQRg3Qc5lvXmFSSgUJxgDcAOQb5', adapter=discord.RequestsWebhookAdapter())
+	#alerteMeteo = Meteo.AlerteMeteo()
+	#alerteMeteo.addWebhook(webhookServeurTest1)
+	#alerteMeteo.start()
+	print("Webhook alerte météo prêt")
+	#Création du thread écoutant les informations météo quotidiennes :
+	dailyMeteo.addWebhook(webhookServeurCUPGE)
+	dailyMeteo.addWebhook(webhookServeurTest1)
+	dailyMeteo.addWebhook(webhookServeurPrive)
+	#dailyMeteo.addWebhook(webhookServeurTest2)
+	dailyMeteo.start()
+	print("Webhook daily météo prêt")
+	print("SunBot est chaud patate!")
+	print("Nombre de threads en cours :", threading.active_count())
 
 
 @sunBot.event
@@ -184,30 +189,27 @@ async def on_message(message):
             await message.reply(listeGifKernelDead[indiceGifToSend])
 
 
-@sunBot.event
-async def on_disconnect():
-    print("Déconnexion du bot...")
-    #Si le répertoire de sauvegarde des données utilisateurs n'existe pas, le créer:
-    if not os.path.exists(PATH_SAVE_USER_REP):
-        print("on_disconnect : Répertoire de sauvegarde des utilisateurs inexistant.")
-        os.makedirs(PATH_SAVE_USER_REP, exist_ok=True)
-    #Enregistrement des données des utilisateurs (un fichier par utilisateur) :
-    for userId in dictUsersBot.keys():
-        print("Sauvegarde des données de l'utilisateur n°{}".format(userId))
-        with open("{}/{}.txt".format(PATH_SAVE_USER_REP, userId), 'w') as userFile:
-            dataJson = json.dumps(dictUsersBot[userId].__dict__)
-            userFile.write(dataJson)
-    print("Déconnexion terminée")
-
-
-
 async def deleteCommand(ctx : discord.ext.commands.Context):
   await ctx.message.delete()
 
+	
 #====================
 #    BOT'S COMMANDS 
 #====================
 
+@sunBot.command(name="setMP", brief="Autorise / Interdit les MP du bot (dailyMeteo...)")
+async def mp(ctx):
+	"""Enable / Disable private message for the user that call this command"""
+	dictUsersBot[ctx.author.id].mp = not dictUsersBot[ctx.author.id].mp
+	if dictUsersBot[ctx.author.id].mp:
+		dailyMeteo.addUserToList(ctx.author.id)
+		await ctx.channel.send("Je vous enverrai maintenant les bulletins météo par message privé \U0001f973 !")
+	else:
+		if not dailyMeteo.delUserFromList(ctx.author.id):
+			print(f"MP : L'identifiant {ctx.author.id} n'est pas dans la liste des ID")
+		await ctx.channel.send("Je ne vous enverrai plus de message privé !")
+
+		
 @adminFunction
 async def adminSetEmoji(ctx, userId :int, emoji : str, freq : float):
   try :
@@ -227,8 +229,7 @@ async def ping(ctx):
 
 
 
-@sunBot.command(name="meteo",
-                brief="Pour obtenir la météo actuelle d'une localité")
+@sunBot.command(name="meteo", brief="Pour obtenir la météo actuelle d'une localité")
 async def meteo(ctx : discord.ext.commands.Context, *args):
   nomLocalite = " ".join(args)
   #Si une localité n'est pas spécificiée dans la commande :
@@ -247,8 +248,22 @@ async def meteo(ctx : discord.ext.commands.Context, *args):
 
 
 @sunBot.command(name="favMeteo", brief="Envie de connaître la météo d'une localité sans te casser la tête ? Cette commande est pour toi !")
-async def favMeteo(ctx, nomLocalte):
-  await dictUsersBot[ctx.author.id].setFavMeteo(ctx, nomLocalte)
+async def favMeteo(ctx, nomLocalite):
+	print(f"Tentative de modification du favori météo de {ctx.author.name} vers {nomLocalite}")
+	print(f"Vérification de l'existence de la localité {nomLocalite} dans l'API...")
+	#Réalise une requête pour s'assurer de l'existence de la localité souhaitée :
+	reponseRequest = vcRequestHandler.performRequest(f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{nomLocalite}/today?unitGroup=metric&include=days&key={os.environ['idVisualCrossing']}&contentType=json&lang=fr")
+	#Si la requête a échoué :
+	if reponseRequest == {}:
+		print(f"La localité {nomLocalite} ne semble pas exister dans la base de données de l'API")
+		await ctx.channel.send(f"Je n'arrive pas à trouver une localité correspondant à {nomLocalite} \U0001f914")
+	#Sinon, modifier la localité favorite et le time offset :
+	else :
+		dictUsersBot[ctx.author.id].favMeteo = nomLocalite
+		dictUsersBot[ctx.author.id].offSetFav = reponseRequest["tzoffset"]
+		print("Favori mis à jour avec succès")
+		#Envoie un message de confirmation de modification à l'utilisateur :
+		await ctx.channel.send(f"Ta localité favorite a bien été mise à jour et est désormais {nomLocalite} \U0001f604 !")
 
 
 @sunBot.command(name="vocalConnect", brief="Vous m'avez appelez ? Je vous réponds (vraiment) ! [admin]")
@@ -282,7 +297,12 @@ async def setEmoji(ctx, userId : int, emoji : str, freq : float) -> None:
 @sunBot.command(name="disconnect", brief="Vous voulez vraiment me tuer ?!! [Admin]")
 @adminFunction
 async def disconnect(ctx):
-  await sunBot.logout()
+	print("Déconnexion du bot...")
+	#Enregistrement des données des utilisateurs (un fichier par utilisateur) :
+	for userId in dictUsersBot :
+		dictUsersBot[userId].saveUser(PATH_SAVE_USER_REP)
+	print("Déconnexion terminée")
+	await sunBot.logout()
 
 
 #####################################################################################################
