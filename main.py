@@ -9,6 +9,7 @@ import numpy as np
 import time
 from WebServer import keep_alive
 from VisualCrossingHandler import VisualCrossingHandler
+from discordHandler import DiscordHandler
 
 import BotUser
 import Meteo
@@ -45,8 +46,9 @@ listeGifKernelDead = [
 
 sunBot = commands.Bot(command_prefix='+', intents=discord.Intents.all(), help_command=SunBotHelpCommand())
 vcRequestHandler = VisualCrossingHandler()
+discordAPI_handler = DiscordHandler()
 dictUsersBot = {}
-dailyMeteo = Meteo.DailyMeteo(vcRequestHandler, dictUsersBot)
+dailyMeteo = Meteo.DailyMeteo(vcRequestHandler, discordAPI_handler, dictUsersBot)
 
 messageTeteDePomme = 0  #Nombre de messages "tête de pomme" consécutifs (on suppose que l'invocation n'est faite que sur un erveur à la fois)
 
@@ -128,7 +130,7 @@ async def on_ready():
 	#alerteMeteo.start()
 	print("Webhook alerte météo prêt")
 	#Création du thread écoutant les informations météo quotidiennes :
-	dailyMeteo.addWebhook(webhookServeurCUPGE)
+	#dailyMeteo.addWebhook(webhookServeurCUPGE)
 	dailyMeteo.addWebhook(webhookServeurTest1)
 	dailyMeteo.addWebhook(webhookServeurPrive)
 	#dailyMeteo.addWebhook(webhookServeurTest2)
@@ -234,9 +236,8 @@ async def meteo(ctx : discord.ext.commands.Context, *args):
   nomLocalite = " ".join(args)
   #Si une localité n'est pas spécificiée dans la commande :
   if nomLocalite in (" ", ""):
-    print("ok")
     nomLocalite = dictUsersBot[ctx.author.id].favMeteo
-  print("Recherche de la météo pour la localité {} par {}".format(nomLocalite, ctx.author.name))
+  print(f"Recherche de la météo pour la localité {nomLocalite} par {ctx.author.name}")
   url = "http://api.openweathermap.org/data/2.5/weather?q={}&appid={}&lang=fr&units=metric".format(nomLocalite, os.environ['idOpenWeather'])
   reponse = requests.get(url)
   if reponse.status_code != 200:
@@ -246,6 +247,23 @@ async def meteo(ctx : discord.ext.commands.Context, *args):
       (embed, image) = Meteo.jsonToMeteoCourante(reponse.json())
       await ctx.channel.send(embed=embed, file=image)
 
+
+@sunBot.command(name="pluie", brief="A quelle heure va-t-il pleuvoir aujourd'hui ?")
+async def pluie(ctx : discord.ext.commands.Context, *args):
+	localityName = " ".join(args)
+	#If city not specified by the caller, use his favorite city:
+	if localityName in (" ", ""):
+		localityName = dictUsersBot[ctx.author.id].favMeteo
+	print(f"Exécution de la commande pluie pour la localité {localityName} par {ctx.author.name}")
+	requestResponse = vcRequestHandler.dailyRainRequest(localityName)
+	#If request failed :
+	if requestResponse == {}:
+		print(f"Une erreur est survenue lors de la recherche des conditions de pluie pour La localité {localityName}")
+		await ctx.channel.send(f"Je ne suis pas en capacité de répondre à la requête, désolé...")
+		return
+	#Building of the embed to send in response of command :
+	embedToSend = Meteo.createEmbedRainEmbed(requestResponse)
+	await ctx.channel.send(embed=embedToSend)
 
 @sunBot.command(name="favMeteo", brief="Envie de connaître la météo d'une localité sans te casser la tête ? Cette commande est pour toi !")
 async def favMeteo(ctx, nomLocalite):
@@ -309,5 +327,5 @@ async def disconnect(ctx):
 #ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES - ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES
 #####################################################################################################
 
-keep_alive()
-sunBot.run(os.environ["token"])
+#keep_alive()
+#sunBot.run(os.environ["token"])
