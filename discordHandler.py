@@ -27,5 +27,5 @@ class DiscordHandler(metaclass = MetaSingleton):
 				with open("./error.txt", 'w') as file:
 					file.write(e.text)
 				time.sleep(300)
-		
-		
+
+

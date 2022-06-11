@@ -12,7 +12,7 @@ from MetaSingleton import MetaSingleton
 class VisualCrossingHandler(metaclass = MetaSingleton) :
 	"""Classe singleton permettant de centraliser et de gérer les requêtes vers l'API
 	de Visual Crossing ainsi que les réponses obtenues"""
-	
+
 
 	def performRequest(cls, request) -> dict :
 		"""Perform request contains in request attribute"""
@@ -22,7 +22,7 @@ class VisualCrossingHandler(metaclass = MetaSingleton) :
 			return {}
 		print(reponse.json())
 		return reponse.json()
-		
+
 	def dailyMeteoRequest(cls, nomLieu) -> dict :
 		"""Réalise une requete auprès de l'API Visual Crossing pour récupérer
 		la météo du jour pour la localité dont le nom est passé en paramètre

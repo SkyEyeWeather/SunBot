@@ -10,14 +10,14 @@ class WebhookEvent(threading.Thread):
 		#Initialisation du thread :
 		threading.Thread.__init__(self)
 		self.daemon = True
-	  
+
 		self.webhooksList = []    		#Liste des webhooks à l'écoute d'un événement
 		self.url = url            		#Url contenant la requête à envoyer à l'API
 		self.apiHandler = apiHandler	#Référence vers le gestionnaire de l'API Visual Crossing
 		self.discordHandler = discordHandler
-	  
+
 
 	def addWebhook(self, webhook : discord.Webhook):
 		"""Ajout un listener à la liste des webhooks à l'écoute d'un événement"""
 		self.webhooksList.append(webhook)
-		
+
