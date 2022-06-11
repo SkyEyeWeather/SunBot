@@ -258,7 +258,7 @@ async def pluie(ctx : discord.ext.commands.Context, *args):
 	#If request failed :
 	if requestResponse == {}:
 		print(f"Une erreur est survenue lors de la recherche des conditions de pluie pour La localité {localityName}")
-		await ctx.channel.send(f"Je ne suis pas en capacité de répondre à la requête, désolé...")
+		await ctx.channel.send("Je ne suis pas en capacité de répondre à la requête, désolé...")
 		return
 	#Building of the embed to send in response of command :
 	embedToSend = Meteo.createEmbedRainEmbed(requestResponse)
