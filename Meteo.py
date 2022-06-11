@@ -263,10 +263,10 @@ class DailyMeteo(WebhookEvent):
         #Domaines de l'Embed
         dayInfo = requestResponse["days"][0]
         dailyMeteoToSend.add_field(name="Temps :", value="{}".format(dayInfo["description"]), inline=False)
-        dailyMeteoToSend.add_field(name="Température max :",value="{}°C".format(round(dayInfo["tempmax"], 1)))
+        dailyMeteoToSend.add_field(name="Température max :", value="{}°C".format(round(dayInfo["tempmax"], 1)))
         dailyMeteoToSend.add_field(name="Température min :", value="{}°C".format(round(dayInfo["tempmin"], 1)))
         dailyMeteoToSend.add_field(name="Température moyenne :", value="{}°C".format(round(dayInfo["temp"], 1)))
-        dailyMeteoToSend.add_field(name="Température ressentie :",value="{}°C".format(round(dayInfo["feelslike"], 1)))
+        dailyMeteoToSend.add_field(name="Température ressentie :", value="{}°C".format(round(dayInfo["feelslike"], 1)))
         dailyMeteoToSend.add_field(name="Pression au niveau de la mer :", value="{}hPa".format(dayInfo["pressure"]), inline=False)
         dailyMeteoToSend.add_field(name="Humidité :", value="{}%".format(dayInfo["humidity"]), inline=False)
         directionVent = degToStrDirectVent(dayInfo["winddir"])

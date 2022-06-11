@@ -98,7 +98,7 @@ async def on_ready():
     #Teste si l'utilisateur est dans la base de données du bot:
     if os.path.isfile(userFilePath):
       #Si l'utilisateur existe, chargement de ses données à partir du fichier correspondant:
-      with open("{}/{}.txt".format(PATH_SAVE_USER_REP, member.id),'r') as userFile:
+      with open("{}/{}.txt".format(PATH_SAVE_USER_REP, member.id), 'r') as userFile:
         print("Chargement des données de l'utilisateur n°{}".format(member.id))
         try:
           dataUser = json.load(userFile)
@@ -106,7 +106,7 @@ async def on_ready():
           print(dictUsersBot[member.id])
         except json.decoder.JSONDecodeError:
           print("Une erreur est survenue lors du chargement de l'utilisateur n°{} : le fichier est soit vide soit corrompu. Suppression du fichier".format(member.id))
-          os.system("rm {}{}.txt".format(PATH_SAVE_USER_REP,member.id))
+          os.system("rm {}{}.txt".format(PATH_SAVE_USER_REP, member.id))
           userLoadIsOK = False
     #Sinon création d'un nouvel utilisateur :
     else:
@@ -121,7 +121,7 @@ async def on_ready():
     'https://discord.com/api/webhooks/923863299270013018/6jfjT1QtrZ8UCXM1aEUhUD7z5G5Or9S3loFvlQs34Age8hX7VPfrD4UUQvGXCzmDN0Oo', adapter=discord.RequestsWebhookAdapter())
     #webhookServeurTest2 = discord.Webhook.from_url('https://discord.com/api/webhooks/927208384946638898/zRq8mLQT2aEV4GqufzrEYOFAdOdaTVxNypOuXDc4mgpnZCBNaQXpZbl1zqmwXS8pp4hC', adapter=discord.RequestsWebhookAdapter())
   webhookServeurCUPGE = discord.Webhook.from_url(
-    'https://discord.com/api/webhooks/921547043196002324/NJohjH9dduqidXHvV4Ei9V4KuIUvOiAPnbMEVPf_x06CUStZou0TlTapQi3B1i_zuLfp',adapter=discord.RequestsWebhookAdapter())
+    'https://discord.com/api/webhooks/921547043196002324/NJohjH9dduqidXHvV4Ei9V4KuIUvOiAPnbMEVPf_x06CUStZou0TlTapQi3B1i_zuLfp', adapter=discord.RequestsWebhookAdapter())
   webhookServeurPrive = discord.Webhook.from_url(
     'https://discord.com/api/webhooks/965521867026866196/M_nmSDjgplk8a6DAbzAD8qZVEMBoVvR1FF9Mcts_-NQRg3Qc5lvXmFSSgUJxgDcAOQb5', adapter=discord.RequestsWebhookAdapter())
   alerteMeteo = Meteo.AlerteMeteo(vcRequestHandler)
@@ -213,7 +213,7 @@ async def mp(ctx):
 
     
 @adminFunction
-async def adminSetEmoji(ctx, userId :int, emoji : str, freq : float):
+async def adminSetEmoji(ctx, userId :int, emoji : str, freq : float) :
   try :
     dictUsersBot[userId].setEmoji(emoji, freq)
   except KeyError:
