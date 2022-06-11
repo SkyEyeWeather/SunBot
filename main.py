@@ -313,7 +313,7 @@ async def setEmoji(ctx, userId : int, emoji : str, freq : float) -> None:
 
 @sunBot.command(name="disconnect", brief="Vous voulez vraiment me tuer ?!! [Admin]")
 @adminFunction
-async def disconnect(ctx):
+async def disconnect(unused_ctx):
   print("Déconnexion du bot...")
   #Enregistrement des données des utilisateurs (un fichier par utilisateur) :
   for userId in dictUsersBot.keys() :
