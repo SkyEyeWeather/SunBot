@@ -1,4 +1,4 @@
-3#Importation des différents modules
+#Importation des différents modules
 import os
 import discord
 from discord.ext import commands
