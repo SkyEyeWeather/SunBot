@@ -3,10 +3,6 @@ from discord.ext import commands
 
 class SunBotHelpCommand(commands.HelpCommand):
 
-  #Constructeur
-  def __init__(self):
-    super().__init__()
-
   async def send_bot_help(self, mapping):
     messageToSend = discord.Embed(title="Voici la liste de mes commandes :", color=0x77b5fe)
     for commande in mapping[None]:
