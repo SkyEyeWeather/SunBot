@@ -162,11 +162,11 @@ def createEmbedRainEmbed(requestResponse : dict):
 class AlerteMeteo(WebhookEvent):
     """Classe permettant de récupérer les alertes météo générées par l'API et de les transmettre sous forme
   de Webhook aux serveurs Discord reliés"""
-    def __init__(self):
+    def __init__(self, apiHandler : VisualCrossingHandler):
         WebhookEvent.__init__(
             self,
             "https://api.openweathermap.org/data/2.5/onecall?lat=43.604259&lon=1.44367&exclude=current,minutely,hourly,daily&appid={}&lang=fr"
-            .format(os.environ['idOpenWeather']))
+            .format(os.environ['idOpenWeather']), apiHandler)
 
         #Attributs de la classe
         self.decompteurStopAlerte = 0  #Nombre de requêtes consécutives ne renvoyant pas d'alerte en cours avant de considérer la levée de l'alerte.
