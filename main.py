@@ -326,5 +326,5 @@ async def disconnect(ctx):
 #ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES - ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES
 #####################################################################################################
 
-#keep_alive()
-#sunBot.run(os.environ["token"])
+keep_alive()
+sunBot.run(os.environ["token"])
