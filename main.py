@@ -192,7 +192,7 @@ async def on_message(message):
 async def deleteCommand(ctx : discord.ext.commands.Context):
   await ctx.message.delete()
 
-  
+
 #====================
 #    BOT'S COMMANDS 
 #====================
@@ -209,7 +209,7 @@ async def mp(ctx):
       print(f"MP : L'identifiant {ctx.author.id} n'est pas dans la liste des ID")
     await ctx.channel.send("Je ne vous enverrai plus de message privé !")
 
-    
+
 @adminFunction
 async def adminSetEmoji(ctx, userId :int, emoji : str, freq : float) :
   try :

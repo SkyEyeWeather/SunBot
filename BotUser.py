@@ -37,7 +37,7 @@ class BotUser:
         self.offSetFav = offSet
         self.mp = mp
 
-    
+
     def __str__(self):
         return f"emoji = {self.emojis}, favori météo = {self.favMeteo}, mp = {self.mp}"
 
@@ -72,7 +72,7 @@ class BotUser:
         if freq < 0 or freq > 1:
             raise ValueError("BotUser.setEmoji :  Freq must be between 0 and 1 !")
         self.emojis[str(typeMessage)] = (emoji, freq)
-        
+
 
     async def addReaction(self, msg: discord.Message, typeMessage=0) -> None:
         """Ajoute une réaction au message msg envoyé par l'utilisateur.
