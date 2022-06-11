@@ -124,9 +124,10 @@ async def on_ready():
     'https://discord.com/api/webhooks/921547043196002324/NJohjH9dduqidXHvV4Ei9V4KuIUvOiAPnbMEVPf_x06CUStZou0TlTapQi3B1i_zuLfp',adapter=discord.RequestsWebhookAdapter())
   webhookServeurPrive = discord.Webhook.from_url(
     'https://discord.com/api/webhooks/965521867026866196/M_nmSDjgplk8a6DAbzAD8qZVEMBoVvR1FF9Mcts_-NQRg3Qc5lvXmFSSgUJxgDcAOQb5', adapter=discord.RequestsWebhookAdapter())
-  #alerteMeteo = Meteo.AlerteMeteo()
-  #alerteMeteo.addWebhook(webhookServeurTest1)
-  #alerteMeteo.start()
+  alerteMeteo = Meteo.AlerteMeteo(vcRequestHandler)
+  alerteMeteo.addWebhook(webhookServeurTest1)
+  alerteMeteo.addWebhook(webhookServeurPrive)
+  alerteMeteo.start()
   print("Webhook alerte météo prêt")
   #Création du thread écoutant les informations météo quotidiennes :
   dailyMeteo.addWebhook(webhookServeurCUPGE)
