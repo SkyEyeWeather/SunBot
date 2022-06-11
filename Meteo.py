@@ -4,8 +4,8 @@ import time
 import os
 from datetime import datetime
 import requests
-import asyncio
 from VisualCrossingHandler import VisualCrossingHandler
+from discordHandler import DiscordHandler
 
 #Constantes direction vent :
 VENT_NORD = "\u2B07"
@@ -139,6 +139,24 @@ def jsonToMeteoCourante(messageJson: dict) -> tuple:
     #Pied de l'embed
     messageToSend.set_footer(text="Data from OpenWeather ({})".format(messageJson["base"]), icon_url="https://openweathermap.org/themes/openweathermap/assets/img/logo_white_cropped.png")
     return (messageToSend, thumbnail)
+
+
+def createEmbedRainEmbed(requestResponse : dict):
+	""""""
+	dictRainType = {"rain" : "averse", "snow" : "neige", "freezing rain " : "pluie verglaçante", "ice" : "grêle"}
+	embedToSend = discord.Embed(title="Pluie prévue aujourd'hui", description="Voici la pluie prévue aujourd'hui sur {}".format(requestResponse["address"]), color=0x77b5fe)
+	fieldAdded = False
+	for hour in requestResponse["days"][0]["hours"]:
+		preciptype = hour["preciptype"]
+		#If there is rain announced for the current hour, add it to the embed :
+		if hour["precipprob"] > 0. and preciptype is not None:
+			fieldAdded = True
+			embedToSend.add_field(name="Pluie prévue à {} : ".format(hour["datetime"]), value="Probabilité de {} à {} %, attendu {} mm".format(dictRainType.get(preciptype[0], "pluie"), hour["precipprob"], hour["precip"]), inline=False)
+	#If there is not rain announced for the day :
+	if not fieldAdded:
+		embedToSend.add_field(name="Pas de pluie prévue aujourd'hui !", value="\u2600\uFE0F", inline=False)
+	embedToSend.set_footer(text="Données de l'API Visual Crossing")
+	return embedToSend
 
 
 class AlerteMeteo(WebhookEvent):

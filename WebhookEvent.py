@@ -1,6 +1,7 @@
 import discord
 import threading
 from VisualCrossingHandler import VisualCrossingHandler
+from discordHandler import DiscordHandler
 
 
 class WebhookEvent(threading.Thread):
