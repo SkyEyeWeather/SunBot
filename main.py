@@ -47,7 +47,7 @@ sunBot = commands.Bot(command_prefix='+', intents=discord.Intents.all(), help_co
 vcRequestHandler = VisualCrossingHandler()
 discordAPI_handler = DiscordHandler()
 dictUsersBot = {}
-dailyMeteo = Meteo.DailyMeteo(vcRequestHandler, discordAPI_handler, dictUsersBot)
+dailyMeteo = Meteo.DailyMeteo(vcRequestHandler, dictUsersBot)
 
 messageTeteDePomme = 0  #Nombre de messages "tête de pomme" consécutifs (on suppose que l'invocation n'est faite que sur un erveur à la fois)
 
