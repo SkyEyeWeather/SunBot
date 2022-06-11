@@ -257,7 +257,7 @@ class DailyMeteo(WebhookEvent):
         * requestResponse : string corresponding to the response of the request to API
         # Return :
         Discord embed of the request response"""
-        
+
         #Creation of the embed
         dailyMeteoToSend = discord.Embed(title="Météo du jour", description= "Voici la météo prévue aujourd'hui à {}".format(requestResponse["address"]), color=0x77b5fe)
 
@@ -319,7 +319,7 @@ class DailyMeteo(WebhookEvent):
                             embedMessage = self.createEmbedMessage(jsonResponse)
                         else:
                             self.dictUsersBot[userId].userDiscord.send("Aïe, il y a eu un problème avec la requête à l'API \U0001f625")
-                            
+
                 if (hour == 5) and (minute >= 0 and minute <= 1) and not self.alreadySend:
                     jsonResponse = self.apiHandler.dailyMeteoRequest("Toulouse")
                     #Si la requête n'a pas échoué :
@@ -331,4 +331,4 @@ class DailyMeteo(WebhookEvent):
                             time.sleep(1)
                             webhook.send(embed=dailyMeteoToSend)
 
-    
+
