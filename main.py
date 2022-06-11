@@ -113,13 +113,11 @@ async def on_ready():
       print("Création de l'utilisateur n°{}".format(member.id))
       dictUsersBot[member.id] = BotUser.BotUser(member)
   print("Chargement des données utilisateur : {}".format(userLoadIsOK))
-  #print(vcRequestHandler.performRequestTest(f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/Toulouse?unitGroup=metric&key={os.environ['idVisualCrossing']}&contentType=json"))
 
   #Création du thread écoutant les alertes météos:
   print("Génération des webhooks...")
   webhookServeurTest1 = discord.Webhook.from_url(
     'https://discord.com/api/webhooks/923863299270013018/6jfjT1QtrZ8UCXM1aEUhUD7z5G5Or9S3loFvlQs34Age8hX7VPfrD4UUQvGXCzmDN0Oo', adapter=discord.RequestsWebhookAdapter())
-    #webhookServeurTest2 = discord.Webhook.from_url('https://discord.com/api/webhooks/927208384946638898/zRq8mLQT2aEV4GqufzrEYOFAdOdaTVxNypOuXDc4mgpnZCBNaQXpZbl1zqmwXS8pp4hC', adapter=discord.RequestsWebhookAdapter())
   webhookServeurCUPGE = discord.Webhook.from_url(
     'https://discord.com/api/webhooks/921547043196002324/NJohjH9dduqidXHvV4Ei9V4KuIUvOiAPnbMEVPf_x06CUStZou0TlTapQi3B1i_zuLfp', adapter=discord.RequestsWebhookAdapter())
   webhookServeurPrive = discord.Webhook.from_url(
@@ -327,5 +325,4 @@ async def disconnect(unused_ctx):
 #ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES - ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES
 #####################################################################################################
 
-#keep_alive()
 sunBot.run(os.environ["token"])

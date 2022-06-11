@@ -316,7 +316,6 @@ class DailyMeteo(WebhookEvent):
                             dictAlreadySendFlag[userId] = True
                             #Creation of the embed message :
                             embedMessage = self.createEmbedMessage(jsonResponse)
-                            #asyncio.run_coroutine_threadsafe(self.dictUsersBot[userId].userDiscord.send(embed=embedMessage), asyncio.new_event_loop())
                         else:
                             self.dictUsersBot[userId].userDiscord.send("Aïe, il y a eu un problème avec la requête à l'API \U0001f625")
                             
