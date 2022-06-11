@@ -250,7 +250,8 @@ class DailyMeteo(WebhookEvent):
         except ValueError:
             return False
 
-    def createEmbedMessage(self, requestResponse : str) -> discord.Embed:
+    @staticmethod
+    def createEmbedMessage(requestResponse : str) -> discord.Embed:
         """Creates an embed message from the requestResponse of API passed in parameter.
         # Parameter :
         * requestResponse : string corresponding to the response of the request to API
