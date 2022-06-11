@@ -150,7 +150,7 @@ def createEmbedRainEmbed(requestResponse : dict):
 	for hour in requestResponse["days"][0]["hours"]:
 		preciptype = hour["preciptype"]
 		#If there is rain announced for the current hour, add it to the embed :
-		if hour["precipprob"] > 0. and preciptype != None:
+		if hour["precipprob"] > 0. and preciptype is not None:
 			fieldAdded = True
 			embedToSend.add_field(name="Pluie prévue à {} : ".format(hour["datetime"]), value="Probabilité de {} à {} %, attendu {} mm".format(dictRainType.get(preciptype[0], "pluie"), hour["precipprob"], hour["precip"]), inline=False)
 	#If there is not rain announced for the day :
