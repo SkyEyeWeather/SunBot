@@ -237,8 +237,8 @@ async def meteo(ctx : discord.ext.commands.Context, *args):
   #Si une localité n'est pas spécificiée dans la commande :
   if nomLocalite in (" ", ""):
     nomLocalite = dictUsersBot[ctx.author.id].favMeteo
-  print(f"Recherche de la météo pour la localité {nomLocalite} par {ctx.author.name}")
-  url = "http://api.openweathermap.org/data/2.5/weather?q={}&appid={}&lang=fr&units=metric".format(nomLocalite, os.environ['idOpenWeather'])
+  print("Recherche de la météo pour la localité {} par {}".format(nomLocalite, ctx.author.name))
+  url = "http://api.openweathermap.org/data/2.5/weather?q={}&appid={}&lang=fr&units=metric".format(nomLocalite, os.environ["idOpenWeather"])
   reponse = requests.get(url)
   if reponse.status_code != 200:
       print("Echec de lors de la récupération de l'API. Code erreur : {}".format(reponse.status_code))
