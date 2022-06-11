@@ -6,6 +6,7 @@ from datetime import datetime
 import requests
 import asyncio
 from VisualCrossingHandler import VisualCrossingHandler
+from discordHandler import DiscordHandler
 
 #Constantes direction vent :
 VENT_NORD = "\u2B07"
@@ -141,6 +142,24 @@ def jsonToMeteoCourante(messageJson: dict) -> tuple:
     return (messageToSend, thumbnail)
 
 
+def createEmbedRainEmbed(requestResponse : dict):
+	""""""
+	dictRainType = {"rain" : "averse", "snow" : "neige", "freezing rain " : "pluie verglaçante", "ice" : "grêle"}
+	embedToSend = discord.Embed(title="Pluie prévue aujourd'hui", description="Voici la pluie prévue aujourd'hui sur {}".format(requestResponse["address"]), color=0x77b5fe)
+	fieldAdded = False
+	for hour in requestResponse["days"][0]["hours"]:
+		preciptype = hour["preciptype"]
+		#If there is rain announced for the current hour, add it to the embed :
+		if hour["precipprob"] > 0. and preciptype != None:
+			fieldAdded = True
+			embedToSend.add_field(name="Pluie prévue à {} : ".format(hour["datetime"]), value="Probabilité de {} à {} %, attendu {} mm".format(dictRainType.get(preciptype[0], "pluie"), hour["precipprob"], hour["precip"]), inline=False)
+	#If there is not rain announced for the day :
+	if not fieldAdded:
+		embedToSend.add_field(name="Pas de pluie prévue aujourd'hui !", value="\u2600\uFE0F", inline=False)
+	embedToSend.set_footer(text="Données de l'API Visual Crossing")
+	return embedToSend
+
+
 class AlerteMeteo(WebhookEvent):
     """Classe permettant de récupérer les alertes météo générées par l'API et de les transmettre sous forme
   de Webhook aux serveurs Discord reliés"""
@@ -207,8 +226,8 @@ class AlerteMeteo(WebhookEvent):
 
 class DailyMeteo(WebhookEvent):
 	"""Classe permettant de générer un thread ayant pour objectif de récupérer la météo du jour via l'API de 	openweather et de d'envoyer un webHook sur les serveurs connectés"""
-	def __init__(self, apiHandler : VisualCrossingHandler, dictUsersBot : dict):
-		WebhookEvent.__init__(self, "", apiHandler)
+	def __init__(self, apiHandler : VisualCrossingHandler, discordHandler : DiscordHandler, dictUsersBot : dict):
+		WebhookEvent.__init__(self, "", apiHandler, discordHandler)
 		#Fields of the class :
 		self.dictUsersBot = dictUsersBot
 		self.alreadySend = False	#Booleen to indicate if daily message has already been sent
@@ -291,14 +310,13 @@ class DailyMeteo(WebhookEvent):
 				for userId in self.listUserToSend:
 					#Check if it is time to send newsletter (at 7:00 am local):
 					userOffSetFav = self.dictUsersBot[userId].offSetFav
-					if (hour + userOffSetFav == 16) and (minute >= 4 and minute <= 5) and not dictAlreadySendFlag[userId]:
+					if (hour + userOffSetFav == 7) and (minute >= 0 and minute <= 1) and not dictAlreadySendFlag[userId]:
 						jsonResponse = self.apiHandler.dailyMeteoRequest(self.dictUsersBot[userId].favMeteo)
 						#If request received a response from API:
 						if jsonResponse != {}:
 							dictAlreadySendFlag[userId] = True
 							#Creation of the embed message :
 							embedMessage = self.createEmbedMessage(jsonResponse)
-							#asyncio.run_coroutine_threadsafe(self.dictUsersBot[userId].userDiscord.send(embed=embedMessage), asyncio.new_event_loop())
 						else:
 							self.dictUsersBot[userId].userDiscord.send("Aïe, il y a eu un problème avec la requête à l'API \U0001f625")
 							
@@ -311,6 +329,6 @@ class DailyMeteo(WebhookEvent):
 						#Envoie l'embed sur les différents serveurs reliés au bot :
 						for webhook in self.webhooksList:
 							time.sleep(1)
-							webhook.send(embed=dailyMeteoToSend)
+							self.discordHandler.sendWebhookMessage(webhook, embedMsg = dailyMeteoToSend)
 
 	
