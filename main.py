@@ -317,7 +317,7 @@ async def setEmoji(ctx, userId : int, emoji : str, freq : float) -> None:
 async def disconnect(unused_ctx):
   print("Déconnexion du bot...")
   #Enregistrement des données des utilisateurs (un fichier par utilisateur) :
-  for userId in dictUsersBot.keys() :
+  for userId in dictUsersBot :
     dictUsersBot[userId].saveUser(PATH_SAVE_USER_REP)
   print("Déconnexion terminée")
   await sunBot.logout()
