@@ -4,7 +4,6 @@ import time
 import os
 from datetime import datetime
 import requests
-import asyncio
 from VisualCrossingHandler import VisualCrossingHandler
 from discordHandler import DiscordHandler
 

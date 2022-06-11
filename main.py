@@ -7,7 +7,6 @@ import json
 import requests
 import numpy as np
 import time
-from WebServer import keep_alive
 from VisualCrossingHandler import VisualCrossingHandler
 from discordHandler import DiscordHandler
 
