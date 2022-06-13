@@ -128,8 +128,8 @@ async def on_ready():
   alerteMeteo.start()
   print("Webhook alerte météo prêt")
   #Création du thread écoutant les informations météo quotidiennes :
-  dailyMeteo.addWebhook(webhookServeurCUPGE)
-  dailyMeteo.addWebhook(webhookServeurTest1)
+  #dailyMeteo.addWebhook(webhookServeurCUPGE)
+  #dailyMeteo.addWebhook(webhookServeurTest1)
   dailyMeteo.addWebhook(webhookServeurPrive)
   #dailyMeteo.addWebhook(webhookServeurTest2)
   dailyMeteo.start()
