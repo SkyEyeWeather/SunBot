@@ -113,13 +113,11 @@ async def on_ready():
       print("Création de l'utilisateur n°{}".format(member.id))
       dictUsersBot[member.id] = BotUser.BotUser(member)
   print("Chargement des données utilisateur : {}".format(userLoadIsOK))
-  #print(vcRequestHandler.performRequestTest(f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/Toulouse?unitGroup=metric&key={os.environ['idVisualCrossing']}&contentType=json"))
 
   #Création du thread écoutant les alertes météos:
   print("Génération des webhooks...")
   webhookServeurTest1 = discord.Webhook.from_url(
     'https://discord.com/api/webhooks/923863299270013018/6jfjT1QtrZ8UCXM1aEUhUD7z5G5Or9S3loFvlQs34Age8hX7VPfrD4UUQvGXCzmDN0Oo', adapter=discord.RequestsWebhookAdapter())
-    #webhookServeurTest2 = discord.Webhook.from_url('https://discord.com/api/webhooks/927208384946638898/zRq8mLQT2aEV4GqufzrEYOFAdOdaTVxNypOuXDc4mgpnZCBNaQXpZbl1zqmwXS8pp4hC', adapter=discord.RequestsWebhookAdapter())
   webhookServeurCUPGE = discord.Webhook.from_url(
     'https://discord.com/api/webhooks/921547043196002324/NJohjH9dduqidXHvV4Ei9V4KuIUvOiAPnbMEVPf_x06CUStZou0TlTapQi3B1i_zuLfp', adapter=discord.RequestsWebhookAdapter())
   webhookServeurPrive = discord.Webhook.from_url(
@@ -130,8 +128,8 @@ async def on_ready():
   alerteMeteo.start()
   print("Webhook alerte météo prêt")
   #Création du thread écoutant les informations météo quotidiennes :
-  dailyMeteo.addWebhook(webhookServeurCUPGE)
-  dailyMeteo.addWebhook(webhookServeurTest1)
+  #dailyMeteo.addWebhook(webhookServeurCUPGE)
+  #dailyMeteo.addWebhook(webhookServeurTest1)
   dailyMeteo.addWebhook(webhookServeurPrive)
   #dailyMeteo.addWebhook(webhookServeurTest2)
   dailyMeteo.start()
@@ -194,7 +192,7 @@ async def on_message(message):
 async def deleteCommand(ctx : discord.ext.commands.Context):
   await ctx.message.delete()
 
-  
+
 #====================
 #    BOT'S COMMANDS 
 #====================
@@ -211,7 +209,7 @@ async def mp(ctx):
       print(f"MP : L'identifiant {ctx.author.id} n'est pas dans la liste des ID")
     await ctx.channel.send("Je ne vous enverrai plus de message privé !")
 
-    
+
 @adminFunction
 async def adminSetEmoji(ctx, userId :int, emoji : str, freq : float) :
   try :
@@ -317,7 +315,7 @@ async def setEmoji(ctx, userId : int, emoji : str, freq : float) -> None:
 async def disconnect(unused_ctx):
   print("Déconnexion du bot...")
   #Enregistrement des données des utilisateurs (un fichier par utilisateur) :
-  for userId in dictUsersBot.keys() :
+  for userId in dictUsersBot :
     dictUsersBot[userId].saveUser(PATH_SAVE_USER_REP)
   print("Déconnexion terminée")
   await sunBot.logout()
@@ -327,5 +325,4 @@ async def disconnect(unused_ctx):
 #ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES - ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES
 #####################################################################################################
 
-#keep_alive()
 sunBot.run(os.environ["token"])
