@@ -7,13 +7,15 @@ import json
 import requests
 import numpy as np
 import time
-from VisualCrossingHandler import VisualCrossingHandler
-from discordHandler import DiscordHandler
+from PIL import Image
 
-import BotUser
-import Meteo
+from sunbot.apiHandler.VisualCrossingHandler import VisualCrossingHandler
+from sunbot.apiHandler.discordHandler import DiscordHandler
 
-from SunBotHelpCommand import SunBotHelpCommand
+import sunbot.BotUser as BotUser
+import sunbot.Meteo as Meteo
+
+from sunbot.SunBotHelpCommand import SunBotHelpCommand
 
 
 #=======================
@@ -309,6 +311,18 @@ async def setEmoji(ctx, userId : int, emoji : str, freq : float) -> None:
   """
   await adminSetEmoji(ctx, userId, emoji, freq)
 
+@sunBot.command(name="test", brief="Commande de test [Admin]")
+async def test(ctx : commands.Context) -> None:
+  """"""
+  im = Image.open("./Data/Images/Background/brouillard.png")
+  blackMask = Image.new("RGBA", (int(im.size[0] / 2), im.size[1]))
+  blackMask.putalpha(128)
+  im = im.convert("RGBA")
+  blackMask.save("blackmask.png")
+  foreground = Image.open("./blackmask.png")
+  foreground = foreground.convert("RGBA")
+  im.paste(blackMask, blackMask.size, blackMask)
+  im.show()
 
 @sunBot.command(name="disconnect", brief="Vous voulez vraiment me tuer ?!! [Admin]")
 @adminFunction
