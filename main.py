@@ -13,7 +13,7 @@ from sunbot.apiHandler.VisualCrossingHandler import VisualCrossingHandler
 from sunbot.apiHandler.discordHandler import DiscordHandler
 
 import sunbot.BotUser as BotUser
-import sunbot.Meteo as Meteo
+import sunbot.weather.Meteo as Meteo
 
 from sunbot.SunBotHelpCommand import SunBotHelpCommand
 
@@ -73,7 +73,7 @@ def betaFunction(function):
 
 
 def adminFunction(function):
-  """Decorator used to indicate that function can only be call by an adminstrator of 
+  """Decorator used to indicate that function can only be call by an adminstrator of
   the bot. Other users will receive an error message."""
   async def fonctionModifie(*args, **kwargs):
     if args[0].author.id not in (691614947280551936, 690593377250443374):
@@ -124,6 +124,8 @@ async def on_ready():
     'https://discord.com/api/webhooks/921547043196002324/NJohjH9dduqidXHvV4Ei9V4KuIUvOiAPnbMEVPf_x06CUStZou0TlTapQi3B1i_zuLfp', adapter=discord.RequestsWebhookAdapter())
   webhookServeurPrive = discord.Webhook.from_url(
     'https://discord.com/api/webhooks/965521867026866196/M_nmSDjgplk8a6DAbzAD8qZVEMBoVvR1FF9Mcts_-NQRg3Qc5lvXmFSSgUJxgDcAOQb5', adapter=discord.RequestsWebhookAdapter())
+  webhookServeurTest2 = discord.Webhook.from_url(
+    'https://discord.com/api/webhooks/990651246643929158/S75JOEUf-_clJXMhp22x2QCmgJd-W40U7FTGUtIvODWZteKqrBkKo2MnRAJ2hOojSMSx', adapter=discord.RequestsWebhookAdapter())
   alerteMeteo = Meteo.AlerteMeteo(vcRequestHandler)
   alerteMeteo.addWebhook(webhookServeurTest1)
   alerteMeteo.addWebhook(webhookServeurPrive)
@@ -132,8 +134,8 @@ async def on_ready():
   #Création du thread écoutant les informations météo quotidiennes :
   #dailyMeteo.addWebhook(webhookServeurCUPGE)
   #dailyMeteo.addWebhook(webhookServeurTest1)
-  dailyMeteo.addWebhook(webhookServeurPrive)
-  #dailyMeteo.addWebhook(webhookServeurTest2)
+  #dailyMeteo.addWebhook(webhookServeurPrive)
+  dailyMeteo.addWebhook(webhookServeurTest2)
   dailyMeteo.start()
   print("Webhook daily météo prêt")
   print("SunBot est chaud patate!")
@@ -314,15 +316,7 @@ async def setEmoji(ctx, userId : int, emoji : str, freq : float) -> None:
 @sunBot.command(name="test", brief="Commande de test [Admin]")
 async def test(ctx : commands.Context) -> None:
   """"""
-  im = Image.open("./Data/Images/Background/brouillard.png")
-  blackMask = Image.new("RGBA", (int(im.size[0] / 2), im.size[1]))
-  blackMask.putalpha(128)
-  im = im.convert("RGBA")
-  blackMask.save("blackmask.png")
-  foreground = Image.open("./blackmask.png")
-  foreground = foreground.convert("RGBA")
-  im.paste(blackMask, blackMask.size, blackMask)
-  im.show()
+  Meteo.DailyMeteo.createDailyWeatherImage("")
 
 @sunBot.command(name="disconnect", brief="Vous voulez vraiment me tuer ?!! [Admin]")
 @adminFunction
