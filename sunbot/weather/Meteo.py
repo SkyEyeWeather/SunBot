@@ -5,10 +5,11 @@ import time
 import os
 from datetime import datetime
 import requests
-from sunbot.apiHandler.VisualCrossingHandler import VisualCrossingHandler
-from sunbot.apiHandler.discordHandler import DiscordHandler
 from PIL import Image, ImageFont, ImageDraw
 
+from sunbot.apiHandler.VisualCrossingHandler import VisualCrossingHandler
+from sunbot.apiHandler.discordHandler import DiscordHandler
+from sunbot.SunImager import SunImager
 
 #===========================================================#
 #           CONSTANTES VARIABLES DECLARATIONS               #
@@ -17,6 +18,8 @@ from PIL import Image, ImageFont, ImageDraw
 #CONSTANTES FOR IMAGE GENERATION:
 
 FONT_PATH = "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf"
+ICON_DIR_PATH = "ICON_DIR_PATH"
+
 DAILY_IMAGE_PATH = "./Data/Images"
 DAILY_IMAGE_NAME = "dailyImage.png"
 
@@ -123,49 +126,49 @@ dictWeatherCode = {
 }
 
 dictWeatherType = {
-    "type_1" : ("Poudrerie",                    "./Data/Images/Backgrounds/snow.png",       "./Data/Images/Icons/WeatherIcons/snowFlackIcon.png"),
-    "type_2" : ("bruine",                       "./Data/Images/Backgrounds/drizzle.png",    "./Data/Images/Icons/WeatherIcons/mediuùDrizzleIcon.png"),
-    "type_3" : ("bruine lourde",                "./Data/Images/Backgrounds/drizzle.png",    "./Data/Images/Icons/WeatherIcons/mediumDrizzleIcon.png"),
-    "type_4" : ("bruine légère",                "./Data/Images/Backgrounds/drizzle.png",    "./Data/Images/Icons/WeatherIcons/lightDrizzleIcon.png"),
-    "type_5" : ("forte bruine",                 "./Data/Images/Backgrounds/drizzle.png",    "./Data/Images/Icons/WeatherIcons/heavyDrizzleIcon.png"),
-    "type_6" : ("légère bruine",                "./Data/Images/Backgrounds/drizzle.png",    "./Data/Images/Icons/WeatherIcons/lightDrizzleIcon.png"),
-    "type_7" : ("tempête de poussière",         "./Data/Images/Backgrounds/dustStorm.png",  "./Data/Images/Icons/WeatherIcons/hurrycaneIcon.png"),
-    "type_8" : ("Brouillard",                   "./Data/Images/Backgrounds/fog.png",        "./Data/Images/Icons/WeatherIcons/fogIcon.png"),
-    "type_9" : ("Bruine verglaçante",           "./Data/Images/Backgrounds/blackIce.png",   "./Data/Images/Icons/WeatherIcons/fogIcon.png"),
-    "type_10" : ("Forte bruine verglaçante",    "./Data/Images/Backgrounds/blackIce.png",   "./Data/Images/Icons/WeatherIcons/snowFlackIcon.png"),
-    "type_11" : ("Légère bruine verglaçante",   "./Data/Images/Backgrounds/blackIce.png",   "./Data/Images/Icons/WeatherIcons/snowFlackIcon.png"),
-    "type_12" : ("Brouillard verglaçant",       "./Data/Images/Backgrounds/fog.png",        "./Data/Images/Icons/WeatherIcons/fogIcon.png"),
-    "type_13" : ("Forte pluie verglaçante",     "./Data/Images/Backgrounds/blackIce.png",   "./Data/Images/Icons/WeatherIcons/heavyRainIcon.png"),
-    "type_14" : ("Légère pluie verglaçante",    "./Data/Images/Backgrounds/blackIce.png",   "./Data/Images/Icons/WeatherIcons/lightRainIcon.png"),
-    "type_15" : ("Tornade",                     "./Data/Images/Backgrounds/tornado.png",    "./Data/Images/Icons/WeatherIcons/hurrycaneIcon.png"),
-    "type_16" : ("Chute de grêle",              "./Data/Images/Backgrounds/storm.png",      "./Data/Images/Icons/WeatherIcons/stormIcon.png"),
-    "type_17" : ("Grezzil",                     "./Data/Images/Backgrounds/snow.png",       "./Data/Images/Icons/WeatherIcons/stormIcon.png"),
-    "type_18" : ("foudre sans tonnerre",        "./Data/Images/Backgrounds/storm.png",      "./Data/Images/Icons/WeatherIcons/stormIcon.png"),
-    "type_19" : ("Brume",                       "./Data/Images/Backgrounds/fog.png",        "./Data/Images/Icons/WeatherIcons/fogIcon.png"),
-    "type_20" : ("Précipations à proximité",    "./Data/Images/Backgrounds/rain.png",       "./Data/Images/Icons/WeatherIcons/mediumRainIcon.png"),
-    "type_21" : ("Pluie",                       "./Data/Images/Backgrounds/rain.png",       "./Data/Images/Icons/WeatherIcons/mediumRainIcon.png"),
-    "type_22" : ("Forte pluie et neige",        "./Data/Images/Backgrounds/snow.png",       "./Data/Images/Icons/WeatherIcons/heavyRainIcon.png"),
-    "type_23" : ("Légère pluie et neige",       "./Data/Images/Backgrounds/snow.png",       "./Data/Images/Icons/WeatherIcons/lightRainIcon.png"),
-    "type_24" : ("Averse",                      "./Data/Images/Backgrounds/rain.png",       "./Data/Images/Icons/WeatherIcons/heavyRainIcon.png"),
-    "type_25" : ("Forte pluie",                 "./Data/Images/Backgrounds/rain.png",       "./Data/Images/Icons/WeatherIcons/heavyRainIcon.png"),
-    "type_26" : ("Légère pluie",                "./Data/Images/Backgrounds/rain.png",       "./Data/Images/Icons/WeatherIcons/lightRainIcon.png"),
-    "type_27" : ("Eclaircissement",             "./Data/Images/Backgrounds/thinning.png",   "./Data/Images/Icons/WeatherIcons/sunAndCloudIcon.png"),
-    "type_28" : ("Assombrissement",             "./Data/Images/Backgrounds/cloudy.png",     "./Data/Images/Icons/WeatherIcons/cloudyIcon.png"),
-    "type_29" : ("Ciel inchangé",               "./Data/Images/Backgrounds/thinning.png",   "./Data/Images/Icons/WeatherIcons/sunAndCloudIcon.png"),
-    "type_30" : ("Fumée",                       "./Data/Images/Backgrounds/smoke.png",      "./Data/Images/Icons/WeatherIcons/fogIcon.png"),
-    "type_31" : ("Neige",                       "./Data/Images/Backgrounds/snow.png",       "./Data/Images/Icons/WeatherIcons/mediumSnowFallIcon.png"),
-    "type_32" : ("Pluie et neige mêlée",        "./Data/Images/Backgrounds/snow.png",       "./Data/Images/Icons/WeatherIcons/mediumSnowFallIcon.png"),
-    "type_33" : ("Chutes de neige",             "./Data/Images/Backgrounds/snow.png",       "./Data/Images/Icons/WeatherIcons/heavySnowFallIcon.png"),
-    "type_34" : ("Averses de neige",            "./Data/Images/Backgrounds/snow.png",       "./Data/Images/Icons/WeatherIcons/heavySnowFallIcon.png"),
-    "type_35" : ("Quelques flocons",            "./Data/Images/Backgrounds/snow.png",       "./Data/Images/Icons/WeatherIcons/lightSnowFallIcon.png"),
-    "type_36" : ("Grains",                      "./Data/Images/Backgrounds/snow.png",       "./Data/Images/Icons/WeatherIcons/lightSnowFallIcon.png"),
-    "type_37" : ("Orage",                       "./Data/Images/Backgrounds/storm.png",      "./Data/Images/Icons/WeatherIcons/stormIcon.png"),
-    "type_38" : ("Orage sans précipitation",    "./Data/Images/Backgrounds/storm.png",      "./Data/Images/Icons/WeatherIcons/stormIcon.png"),
-    "type_39" : ("Voilé",                       "./Data/Images/Backgrounds/cloudyHaze.png", "./Data/Images/Icons/WeatherIcons/hazeIcon.png"),
-    "type_40" : ("Blizzard",                    "./Data/Images/Backgrounds/snow.png",       "./Data/Images/Icons/WeatherIcons/hurrycaneIcon.png"),
-    "type_41" : ("Couvert",                     "./Data/Images/Backgrounds/cloudy.png",     "./Data/Images/Icons/WeatherIcons/cloudyIcon.png"),
-    "type_42" : ("Partiellement nuageux",       "./Data/Images/Backgrounds/thinning.png",   "./Data/Images/Icons/WeatherIcons/sunAndCloud.png"),
-    "type_43" : ("Ensoleillé",                  "./Data/Images/Backgrounds/sun.png",        "./Data/Images/Icons/WeatherIcons/sunIcon.png"),
+    "type_1" : ("Poudrerie",                    "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/snowFlackIcon.png"),
+    "type_2" : ("bruine",                       "./Data/Images/Backgrounds/drizzle.png",    "ICON_DIR_PATHWeatherIcons/mediuùDrizzleIcon.png"),
+    "type_3" : ("bruine lourde",                "./Data/Images/Backgrounds/drizzle.png",    "ICON_DIR_PATHWeatherIcons/mediumDrizzleIcon.png"),
+    "type_4" : ("bruine légère",                "./Data/Images/Backgrounds/drizzle.png",    "ICON_DIR_PATHWeatherIcons/lightDrizzleIcon.png"),
+    "type_5" : ("forte bruine",                 "./Data/Images/Backgrounds/drizzle.png",    "ICON_DIR_PATHWeatherIcons/heavyDrizzleIcon.png"),
+    "type_6" : ("légère bruine",                "./Data/Images/Backgrounds/drizzle.png",    "ICON_DIR_PATHWeatherIcons/lightDrizzleIcon.png"),
+    "type_7" : ("tempête de poussière",         "./Data/Images/Backgrounds/dustStorm.png",  "ICON_DIR_PATHWeatherIcons/hurrycaneIcon.png"),
+    "type_8" : ("Brouillard",                   "./Data/Images/Backgrounds/fog.png",        "ICON_DIR_PATHWeatherIcons/fogIcon.png"),
+    "type_9" : ("Bruine verglaçante",           "./Data/Images/Backgrounds/blackIce.png",   "ICON_DIR_PATHWeatherIcons/fogIcon.png"),
+    "type_10" : ("Forte bruine verglaçante",    "./Data/Images/Backgrounds/blackIce.png",   "ICON_DIR_PATHWeatherIcons/snowFlackIcon.png"),
+    "type_11" : ("Légère bruine verglaçante",   "./Data/Images/Backgrounds/blackIce.png",   "ICON_DIR_PATHWeatherIcons/snowFlackIcon.png"),
+    "type_12" : ("Brouillard verglaçant",       "./Data/Images/Backgrounds/fog.png",        "ICON_DIR_PATHWeatherIcons/fogIcon.png"),
+    "type_13" : ("Forte pluie verglaçante",     "./Data/Images/Backgrounds/blackIce.png",   "ICON_DIR_PATHWeatherIcons/heavyRainIcon.png"),
+    "type_14" : ("Légère pluie verglaçante",    "./Data/Images/Backgrounds/blackIce.png",   "ICON_DIR_PATHWeatherIcons/lightRainIcon.png"),
+    "type_15" : ("Tornade",                     "./Data/Images/Backgrounds/tornado.png",    "ICON_DIR_PATHWeatherIcons/hurrycaneIcon.png"),
+    "type_16" : ("Chute de grêle",              "./Data/Images/Backgrounds/storm.png",      "ICON_DIR_PATHWeatherIcons/stormIcon.png"),
+    "type_17" : ("Grezzil",                     "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/stormIcon.png"),
+    "type_18" : ("foudre sans tonnerre",        "./Data/Images/Backgrounds/storm.png",      "ICON_DIR_PATHWeatherIcons/stormIcon.png"),
+    "type_19" : ("Brume",                       "./Data/Images/Backgrounds/fog.png",        "ICON_DIR_PATHWeatherIcons/fogIcon.png"),
+    "type_20" : ("Précipations à proximité",    "./Data/Images/Backgrounds/rain.png",       "ICON_DIR_PATHWeatherIcons/mediumRainIcon.png"),
+    "type_21" : ("Pluie",                       "./Data/Images/Backgrounds/rain.png",       "ICON_DIR_PATHWeatherIcons/mediumRainIcon.png"),
+    "type_22" : ("Forte pluie et neige",        "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/heavyRainIcon.png"),
+    "type_23" : ("Légère pluie et neige",       "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/lightRainIcon.png"),
+    "type_24" : ("Averse",                      "./Data/Images/Backgrounds/rain.png",       "ICON_DIR_PATHWeatherIcons/heavyRainIcon.png"),
+    "type_25" : ("Forte pluie",                 "./Data/Images/Backgrounds/rain.png",       "ICON_DIR_PATHWeatherIcons/heavyRainIcon.png"),
+    "type_26" : ("Légère pluie",                "./Data/Images/Backgrounds/rain.png",       "ICON_DIR_PATHWeatherIcons/lightRainIcon.png"),
+    "type_27" : ("Eclaircissement",             "./Data/Images/Backgrounds/thinning.png",   "ICON_DIR_PATHWeatherIcons/sunAndCloudIcon.png"),
+    "type_28" : ("Assombrissement",             "./Data/Images/Backgrounds/cloudy.png",     "ICON_DIR_PATHWeatherIcons/cloudyIcon.png"),
+    "type_29" : ("Ciel inchangé",               "./Data/Images/Backgrounds/thinning.png",   "ICON_DIR_PATHWeatherIcons/sunAndCloudIcon.png"),
+    "type_30" : ("Fumée",                       "./Data/Images/Backgrounds/smoke.png",      "ICON_DIR_PATHWeatherIcons/fogIcon.png"),
+    "type_31" : ("Neige",                       "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/mediumSnowFallIcon.png"),
+    "type_32" : ("Pluie et neige mêlée",        "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/mediumSnowFallIcon.png"),
+    "type_33" : ("Chutes de neige",             "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/heavySnowFallIcon.png"),
+    "type_34" : ("Averses de neige",            "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/heavySnowFallIcon.png"),
+    "type_35" : ("Quelques flocons",            "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/lightSnowFallIcon.png"),
+    "type_36" : ("Grains",                      "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/lightSnowFallIcon.png"),
+    "type_37" : ("Orage",                       "./Data/Images/Backgrounds/storm.png",      "ICON_DIR_PATHWeatherIcons/stormIcon.png"),
+    "type_38" : ("Orage sans précipitation",    "./Data/Images/Backgrounds/storm.png",      "ICON_DIR_PATHWeatherIcons/stormIcon.png"),
+    "type_39" : ("Voilé",                       "./Data/Images/Backgrounds/cloudyHaze.png", "ICON_DIR_PATHWeatherIcons/hazeIcon.png"),
+    "type_40" : ("Blizzard",                    "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/hurrycaneIcon.png"),
+    "type_41" : ("Couvert",                     "./Data/Images/Backgrounds/cloudy.png",     "ICON_DIR_PATHWeatherIcons/cloudyIcon.png"),
+    "type_42" : ("Partiellement nuageux",       "./Data/Images/Backgrounds/thinning.png",   "ICON_DIR_PATHWeatherIcons/sunAndCloud.png"),
+    "type_43" : ("Ensoleillé",                  "./Data/Images/Backgrounds/sun.png",        "ICON_DIR_PATHWeatherIcons/sunIcon.png"),
 }
 
 def getPathImageWeatherType(weatherCondition : str) -> str :
@@ -175,7 +178,7 @@ def getPathImageWeatherType(weatherCondition : str) -> str :
     path to the image as a string"""
 
     firstType = weatherCondition.split(",")[0]
-    return dictWeatherType.get(firstType, ("Ciel inchangé", "./Data/Images/Backgrounds/thinning.png", "./Data/Images/Icons/WeatherIcons/sunAndCloud.png"))[1]
+    return dictWeatherType.get(firstType, ("Ciel inchangé", "./Data/Images/Backgrounds/thinning.png", "ICON_DIR_PATHWeatherIcons/sunAndCloud.png"))[1]
 
 
 def getDescriptionWeatherType(weatherCondition : str) -> str :
@@ -185,7 +188,7 @@ def getDescriptionWeatherType(weatherCondition : str) -> str :
     """
 
     firstType = weatherCondition.split(",")[0]
-    return dictWeatherType.get(firstType, ("Ciel inchangé", "./Data/Images/Backgrounds/thinning.png", "./Data/Images/Icons/WeatherIcons/sunAndCloud.png"))[0]
+    return dictWeatherType.get(firstType, ("Ciel inchangé", "./Data/Images/Backgrounds/thinning.png", "ICON_DIR_PATHWeatherIcons/sunAndCloud.png"))[0]
 
 
 def getIconPathWeatherType(weatherCondition : str) -> str :
@@ -194,7 +197,7 @@ def getIconPathWeatherType(weatherCondition : str) -> str :
     weather icon path as string"""
 
     firstType = weatherCondition.split(",")[0]
-    return dictWeatherType.get(firstType, ("Ciel inchangé", "./Data/Images/Backgrounds/thinning.png", "./Data/Images/Icons/WeatherIcons/sunAndCloud.png"))[2]
+    return dictWeatherType.get(firstType, ("Ciel inchangé", "./Data/Images/Backgrounds/thinning.png", "ICON_DIR_PATHWeatherIcons/sunAndCloud.png"))[2]
 
 
 def degToStrDirectVent(directionVent: int) -> tuple:
@@ -377,61 +380,40 @@ class DailyMeteo(WebhookEvent):
         dayInfo = requestResponse["days"][0]
 
         #Create background image according to weather condition for the day :
-        backgroundImage = Image.open(getPathImageWeatherType(dayInfo['conditions']))
-        drawTool = ImageDraw.Draw(backgroundImage)
-
-        #Load or create images used to build daily weather image :
-        #Create black mask to apply on background image :
-        blackMask = Image.new("RGB", (backgroundImage.width // 2 + 40, backgroundImage.height))
-        blackMask.putalpha(180)
-        #Load weather icon according to weather conditions for the day :
-        weatherIcon = Image.open(getIconPathWeatherType(dayInfo['conditions'])).convert("RGBA").resize(MAIN_ICON_SIZE)
-        #Load all icons needed in order to generate daily weather image :
-        waterDropIcon = Image.open("./Data/Images/Icons/water-drops.png").convert("RGBA").resize(ICON_SIZE)
-        pluviometerIcon = Image.open("./Data/Images/Icons/pluviometer.png").convert("RGBA").resize(ICON_SIZE)
-        windIcon = Image.open("./Data/Images/Icons/wind.png").convert("RGBA").resize(ICON_SIZE)
-        windDirectionIcon = Image.open("./Data/Images/Icons/windDirection.png").convert("RGBA").resize(ICON_SIZE)
-        pressureIcon = Image.open("./Data/Images/Icons/pressure.png").convert("RGBA").resize(ICON_SIZE)
-        humidityIcon = Image.open("./Data/Images/Icons/humidity.png").convert("RGBA").resize(ICON_SIZE)
-        raysIcon = Image.open("./Data/Images/Icons/rays.png").convert("RGBA").resize(ICON_SIZE)
-        sunriseIcon = Image.open("./Data/Images/Icons/sunrise.png").convert("RGBA").resize(ICON_SIZE)
-        sunSetIcon = Image.open("./Data/Images/Icons/sunset.png").convert("RGBA").resize(ICON_SIZE)
-        logoVC = Image.open("./Data/Images/logoVC.jpeg")
-
-        #Build daily weather image with loaded images :
-        backgroundImage.paste(blackMask, (0, 0), blackMask)
-        backgroundImage.paste(weatherIcon, (350, UP_ALIGNMENT), weatherIcon)
-        backgroundImage.paste(waterDropIcon, (LEFT_ALIGNMENT, ITEMS_UP_ALIGNMENT), waterDropIcon)
-        backgroundImage.paste(pluviometerIcon, (CENTRE_ALIGNMENT, ITEMS_UP_ALIGNMENT), pluviometerIcon)
-        backgroundImage.paste(windIcon, (LEFT_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT), windIcon)
-        windDirectionIcon = windDirectionIcon.rotate(dayInfo['winddir'])
-        backgroundImage.paste(windDirectionIcon, (CENTRE_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT), windDirectionIcon)
-        backgroundImage.paste(pressureIcon, (LEFT_ALIGNMENT, 2 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT), pressureIcon)
-        backgroundImage.paste(humidityIcon, (LEFT_ALIGNMENT, 3 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT), humidityIcon)
-        backgroundImage.paste(raysIcon, (LEFT_ALIGNMENT, 4 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT), raysIcon)
-        backgroundImage.paste(sunriseIcon, (LEFT_ALIGNMENT,  5 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT), sunriseIcon)
-        backgroundImage.paste(sunSetIcon, (CENTRE_ALIGNMENT, 5 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT), sunSetIcon)
-        backgroundImage.paste(logoVC, (5, backgroundImage.height - 45))
-
-        #Write text on it :
-        drawTool.text((LEFT_ALIGNMENT, UP_ALIGNMENT), f"{round(dayInfo['temp'], 1)}°C", "WHITE", font=bigFont)
-        drawTool.text((LEFT_ALIGNMENT, MIN_MAX_TEMP_ALIGNMENT), f"{round(dayInfo['tempmin'], 1)}°C", (0, 63, 255), font=mediumFont)
-        drawTool.text((200, MIN_MAX_TEMP_ALIGNMENT), f"{round(dayInfo['tempmax'], 1)}°C", "ORANGE", font=mediumFont)
-        drawTool.text((TXT_VERTICAL_ALIGNMENT, ITEMS_UP_ALIGNMENT), f"{dayInfo['precipprob']}%", "WHITE", font=mediumFont)
+        weatherImage = SunImager(getPathImageWeatherType(dayInfo['conditions']))
+        #Add mask to the image :
+        weatherImage.addMask("BLACK", 180, (weatherImage.width // 2 + 40, weatherImage.height), (0, 0))
+        #Add weather icon according announced daily weather :
+        weatherImage.addIcon(getIconPathWeatherType(dayInfo['conditions']), MAIN_ICON_SIZE, (350, UP_ALIGNMENT))
+        #Add icons to the daily weather image :
+        weatherImage.addIcon(f"{ICON_DIR_PATH}water-drops.png", ICON_SIZE, (LEFT_ALIGNMENT, ITEMS_UP_ALIGNMENT))
+        weatherImage.addIcon(f"{ICON_DIR_PATH}pluviometer.png", ICON_SIZE, (CENTRE_ALIGNMENT, ITEMS_UP_ALIGNMENT))
+        weatherImage.addIcon(f"{ICON_DIR_PATH}wind.png", ICON_SIZE, (LEFT_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+        weatherImage.addIcon(f"{ICON_DIR_PATH}windDirection.png", ICON_SIZE, (CENTRE_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT), dayInfo['winddir'])
+        weatherImage.addIcon(f"{ICON_DIR_PATH}pressure.png", ICON_SIZE, (LEFT_ALIGNMENT, 2 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+        weatherImage.addIcon(f"{ICON_DIR_PATH}humidity.png", ICON_SIZE, (LEFT_ALIGNMENT, 3 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+        weatherImage.addIcon(f"{ICON_DIR_PATH}rays.png", ICON_SIZE, (LEFT_ALIGNMENT, 4 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+        weatherImage.addIcon(f"{ICON_DIR_PATH}sunrise.png", ICON_SIZE, (LEFT_ALIGNMENT,  5 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+        weatherImage.addIcon(f"{ICON_DIR_PATH}sunset.png", ICON_SIZE, (CENTRE_ALIGNMENT, 5 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+        weatherImage.addIcon(f"{ICON_DIR_PATH}logoVC.jpeg", ICON_SIZE, (5, weatherImage.height - 45))
+        #Write text on the image :
+        weatherImage.drawText(f"{round(dayInfo['temp'], 1)}°C", bigFont, (LEFT_ALIGNMENT, UP_ALIGNMENT))
+        weatherImage.drawText(f"{round(dayInfo['tempmin'], 1)}°C", mediumFont, (LEFT_ALIGNMENT, MIN_MAX_TEMP_ALIGNMENT), (0, 63, 255))
+        weatherImage.drawText(f"{round(dayInfo['tempmax'], 1)}°C", mediumFont, (200, MIN_MAX_TEMP_ALIGNMENT), "ORANGE")
+        weatherImage.drawText(f"{dayInfo['precipprob']}%", mediumFont, (TXT_VERTICAL_ALIGNMENT, ITEMS_UP_ALIGNMENT))
         precip = dayInfo["precip"]
         if precip > 0 :
-            drawTool.text((TXT_CENTRAL_VERTICAL_ALIGNMENT, ITEMS_UP_ALIGNMENT), f"{precip}mm", "WHITE", font=mediumFont)
-        drawTool.text((TXT_VERTICAL_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT), f"{round(dayInfo['windspeed'], 2)}km/h", "WHITE", font=mediumFont)
-        drawTool.text((TXT_CENTRAL_VERTICAL_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT), f"{degToStrDirectVent(dayInfo['winddir'])[1]}", "WHITE", font=mediumFont)
-        drawTool.text((TXT_VERTICAL_ALIGNMENT, 2 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT + TXT_HORIZONTAL_ALIGNMENT), f"{dayInfo['pressure']}hPa", "WHITE", font=mediumFont)
-        drawTool.text((TXT_VERTICAL_ALIGNMENT, 3 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT + TXT_HORIZONTAL_ALIGNMENT), f"{dayInfo['humidity']}%", "WHITE", font=mediumFont)
-        drawTool.text((TXT_VERTICAL_ALIGNMENT, 4 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT + TXT_HORIZONTAL_ALIGNMENT), f"{dayInfo['uvindex']}", "WHITE", font=mediumFont)
-        drawTool.text((TXT_VERTICAL_ALIGNMENT, 5 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT + TXT_HORIZONTAL_ALIGNMENT), f"{dayInfo['sunrise'][0 : 5]}", "WHITE", font=mediumFont)
-        drawTool.text((TXT_CENTRAL_VERTICAL_ALIGNMENT, 5 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT + TXT_HORIZONTAL_ALIGNMENT), f"{dayInfo['sunset'][0 : 5]}", "WHITE", font=mediumFont)
-        drawTool.text((60, backgroundImage.height - 40), "Données de l'API VisualCrossing", "WHITE", font=smallFont)
-
+            weatherImage.drawText(f"{precip}mm", mediumFont, (TXT_CENTRAL_VERTICAL_ALIGNMENT, ITEMS_UP_ALIGNMENT))
+        weatherImage.drawText(f"{round(dayInfo['windspeed'], 2)}km/h", mediumFont, (TXT_VERTICAL_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+        weatherImage.drawText(f"{degToStrDirectVent(dayInfo['winddir'])[1]}", mediumFont, (TXT_CENTRAL_VERTICAL_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+        weatherImage.drawText(f"{dayInfo['pressure']}hPa", mediumFont, (TXT_VERTICAL_ALIGNMENT, 2 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT + TXT_HORIZONTAL_ALIGNMENT))
+        weatherImage.drawText(f"{dayInfo['humidity']}%", mediumFont, (TXT_VERTICAL_ALIGNMENT, 3 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT + TXT_HORIZONTAL_ALIGNMENT))
+        weatherImage.drawText(f"{dayInfo['uvindex']}", mediumFont, (TXT_VERTICAL_ALIGNMENT, 4 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT + TXT_HORIZONTAL_ALIGNMENT))
+        weatherImage.drawText(f"{dayInfo['sunrise'][0 : 5]}", mediumFont, (TXT_VERTICAL_ALIGNMENT, 5 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT + TXT_HORIZONTAL_ALIGNMENT))
+        weatherImage.drawText(f"{dayInfo['sunset'][0 : 5]}", mediumFont, (TXT_CENTRAL_VERTICAL_ALIGNMENT, 5 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT + TXT_HORIZONTAL_ALIGNMENT))
+        weatherImage.drawText("Données de l'API VisualCrossing", mediumFont, (60, weatherImage.height - 40))
         #Save the image:
-        backgroundImage.save(f"{path}/{DAILY_IMAGE_NAME}")
+        weatherImage.saveImage(f"{path}/{DAILY_IMAGE_NAME}")
 
     @staticmethod
     def createEmbedMessage(requestResponse : str) -> discord.Embed:

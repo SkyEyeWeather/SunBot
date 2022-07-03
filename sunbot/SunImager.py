@@ -27,6 +27,7 @@ class SunImager() :
         * backgroundImagePath [in] : string representing path to the image
         * width [in, opt] : if specified, new width for the loaded image
         * height [in, opt]": if specified, new height for the loaded image
+
         ### Return : not applicable"""
         if width < -1 or height < -1 :
             raise ValueError(f"Width or height must have positive value. Given value w = {width}, h = {height}")
@@ -53,6 +54,7 @@ class SunImager() :
         ### Parameters :
         * width [in] : new width for this image
         * height [in] : new height for this image
+
         ### Return : not applicable"""
         self.backgroundImage.resize((width, height))
 
@@ -65,6 +67,7 @@ class SunImager() :
         * size [in] :  size of the mask to be generated as a tuple, with first width and then height
         * position [in] : coordinates where place the mask to be generated as a tuple
         * rotationAngle [in, opt] : angle rotation for the mask, if specified
+
         ### Return : not applicable"""
 
         #Arguments checks :
@@ -92,6 +95,7 @@ class SunImager() :
         * size [in] : icon size on the image as a tuple (width, height)
         * position [in]: position where placed icon on this image, as a tuple (x, y)
         * rotationAngle [in] : rotation angle for the icon on this image
+
         ### Return : not applicable"""
         #Arguments checks :
         if len(size) != 2 or size[0] < 0 or size[1] < 0:
@@ -114,6 +118,7 @@ class SunImager() :
         * textFont [in] : font used to write the text on this image
         * position [in] : position where write the text on this image, as a tuple (x, y)
         * color [in, opt] : color of the text to write, default color is white
+
         ### Return : not applicable"""
         #Arguments checks :
 
@@ -131,6 +136,7 @@ class SunImager() :
         ### Parameters :
         * saveLocationPath [in] : path where save this image, as a string
         * format [in, opt] : save format for this image, default is png
+
         ### Return : not applicable"""
 
         self.backgroundImage.save(saveLocationPath, format)
