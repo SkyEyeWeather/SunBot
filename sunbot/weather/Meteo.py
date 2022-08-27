@@ -17,7 +17,7 @@ from sunbot.SunImager import SunImager
 
 #CONSTANTES FOR IMAGE GENERATION:
 
-FONT_PATH = "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf"
+FONT_PATH = "./Data/Font/Ubuntu-R.ttf"
 ICON_DIR_PATH = "ICON_DIR_PATH"
 
 DAILY_IMAGE_PATH = "./Data/Images"
