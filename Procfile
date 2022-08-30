@@ -1,1 +1,2 @@
-worker: python3 main.py
+# Modify this Procfile to fit your needs
+web: gunicorn server:app
