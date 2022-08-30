@@ -40,6 +40,8 @@ class SunImager() :
             #resize image height :
             self.backgroundImage.resize(self.backgroundImage.width, height)
         self.drawTool = ImageDraw.ImageDraw(self.backgroundImage)
+        self.height = self.backgroundImage.height
+        self.width = self.backgroundImage.width
 
 
 

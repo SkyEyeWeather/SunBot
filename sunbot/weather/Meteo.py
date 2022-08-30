@@ -18,7 +18,7 @@ from sunbot.SunImager import SunImager
 #CONSTANTES FOR IMAGE GENERATION:
 
 FONT_PATH = "./Data/Font/Ubuntu-R.ttf"
-ICON_DIR_PATH = "ICON_DIR_PATH"
+ICON_DIR_PATH = "./Data/Images/Icons/"
 
 DAILY_IMAGE_PATH = "./Data/Images"
 DAILY_IMAGE_NAME = "dailyImage.png"
@@ -126,49 +126,49 @@ dictWeatherCode = {
 }
 
 dictWeatherType = {
-    "type_1" : ("Poudrerie",                    "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/snowFlackIcon.png"),
-    "type_2" : ("bruine",                       "./Data/Images/Backgrounds/drizzle.png",    "ICON_DIR_PATHWeatherIcons/mediuùDrizzleIcon.png"),
-    "type_3" : ("bruine lourde",                "./Data/Images/Backgrounds/drizzle.png",    "ICON_DIR_PATHWeatherIcons/mediumDrizzleIcon.png"),
-    "type_4" : ("bruine légère",                "./Data/Images/Backgrounds/drizzle.png",    "ICON_DIR_PATHWeatherIcons/lightDrizzleIcon.png"),
-    "type_5" : ("forte bruine",                 "./Data/Images/Backgrounds/drizzle.png",    "ICON_DIR_PATHWeatherIcons/heavyDrizzleIcon.png"),
-    "type_6" : ("légère bruine",                "./Data/Images/Backgrounds/drizzle.png",    "ICON_DIR_PATHWeatherIcons/lightDrizzleIcon.png"),
-    "type_7" : ("tempête de poussière",         "./Data/Images/Backgrounds/dustStorm.png",  "ICON_DIR_PATHWeatherIcons/hurrycaneIcon.png"),
-    "type_8" : ("Brouillard",                   "./Data/Images/Backgrounds/fog.png",        "ICON_DIR_PATHWeatherIcons/fogIcon.png"),
-    "type_9" : ("Bruine verglaçante",           "./Data/Images/Backgrounds/blackIce.png",   "ICON_DIR_PATHWeatherIcons/fogIcon.png"),
-    "type_10" : ("Forte bruine verglaçante",    "./Data/Images/Backgrounds/blackIce.png",   "ICON_DIR_PATHWeatherIcons/snowFlackIcon.png"),
-    "type_11" : ("Légère bruine verglaçante",   "./Data/Images/Backgrounds/blackIce.png",   "ICON_DIR_PATHWeatherIcons/snowFlackIcon.png"),
-    "type_12" : ("Brouillard verglaçant",       "./Data/Images/Backgrounds/fog.png",        "ICON_DIR_PATHWeatherIcons/fogIcon.png"),
-    "type_13" : ("Forte pluie verglaçante",     "./Data/Images/Backgrounds/blackIce.png",   "ICON_DIR_PATHWeatherIcons/heavyRainIcon.png"),
-    "type_14" : ("Légère pluie verglaçante",    "./Data/Images/Backgrounds/blackIce.png",   "ICON_DIR_PATHWeatherIcons/lightRainIcon.png"),
-    "type_15" : ("Tornade",                     "./Data/Images/Backgrounds/tornado.png",    "ICON_DIR_PATHWeatherIcons/hurrycaneIcon.png"),
-    "type_16" : ("Chute de grêle",              "./Data/Images/Backgrounds/storm.png",      "ICON_DIR_PATHWeatherIcons/stormIcon.png"),
-    "type_17" : ("Grezzil",                     "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/stormIcon.png"),
-    "type_18" : ("foudre sans tonnerre",        "./Data/Images/Backgrounds/storm.png",      "ICON_DIR_PATHWeatherIcons/stormIcon.png"),
-    "type_19" : ("Brume",                       "./Data/Images/Backgrounds/fog.png",        "ICON_DIR_PATHWeatherIcons/fogIcon.png"),
-    "type_20" : ("Précipations à proximité",    "./Data/Images/Backgrounds/rain.png",       "ICON_DIR_PATHWeatherIcons/mediumRainIcon.png"),
-    "type_21" : ("Pluie",                       "./Data/Images/Backgrounds/rain.png",       "ICON_DIR_PATHWeatherIcons/mediumRainIcon.png"),
-    "type_22" : ("Forte pluie et neige",        "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/heavyRainIcon.png"),
-    "type_23" : ("Légère pluie et neige",       "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/lightRainIcon.png"),
-    "type_24" : ("Averse",                      "./Data/Images/Backgrounds/rain.png",       "ICON_DIR_PATHWeatherIcons/heavyRainIcon.png"),
-    "type_25" : ("Forte pluie",                 "./Data/Images/Backgrounds/rain.png",       "ICON_DIR_PATHWeatherIcons/heavyRainIcon.png"),
-    "type_26" : ("Légère pluie",                "./Data/Images/Backgrounds/rain.png",       "ICON_DIR_PATHWeatherIcons/lightRainIcon.png"),
-    "type_27" : ("Eclaircissement",             "./Data/Images/Backgrounds/thinning.png",   "ICON_DIR_PATHWeatherIcons/sunAndCloudIcon.png"),
-    "type_28" : ("Assombrissement",             "./Data/Images/Backgrounds/cloudy.png",     "ICON_DIR_PATHWeatherIcons/cloudyIcon.png"),
-    "type_29" : ("Ciel inchangé",               "./Data/Images/Backgrounds/thinning.png",   "ICON_DIR_PATHWeatherIcons/sunAndCloudIcon.png"),
-    "type_30" : ("Fumée",                       "./Data/Images/Backgrounds/smoke.png",      "ICON_DIR_PATHWeatherIcons/fogIcon.png"),
-    "type_31" : ("Neige",                       "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/mediumSnowFallIcon.png"),
-    "type_32" : ("Pluie et neige mêlée",        "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/mediumSnowFallIcon.png"),
-    "type_33" : ("Chutes de neige",             "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/heavySnowFallIcon.png"),
-    "type_34" : ("Averses de neige",            "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/heavySnowFallIcon.png"),
-    "type_35" : ("Quelques flocons",            "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/lightSnowFallIcon.png"),
-    "type_36" : ("Grains",                      "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/lightSnowFallIcon.png"),
-    "type_37" : ("Orage",                       "./Data/Images/Backgrounds/storm.png",      "ICON_DIR_PATHWeatherIcons/stormIcon.png"),
-    "type_38" : ("Orage sans précipitation",    "./Data/Images/Backgrounds/storm.png",      "ICON_DIR_PATHWeatherIcons/stormIcon.png"),
-    "type_39" : ("Voilé",                       "./Data/Images/Backgrounds/cloudyHaze.png", "ICON_DIR_PATHWeatherIcons/hazeIcon.png"),
-    "type_40" : ("Blizzard",                    "./Data/Images/Backgrounds/snow.png",       "ICON_DIR_PATHWeatherIcons/hurrycaneIcon.png"),
-    "type_41" : ("Couvert",                     "./Data/Images/Backgrounds/cloudy.png",     "ICON_DIR_PATHWeatherIcons/cloudyIcon.png"),
-    "type_42" : ("Partiellement nuageux",       "./Data/Images/Backgrounds/thinning.png",   "ICON_DIR_PATHWeatherIcons/sunAndCloud.png"),
-    "type_43" : ("Ensoleillé",                  "./Data/Images/Backgrounds/sun.png",        "ICON_DIR_PATHWeatherIcons/sunIcon.png"),
+    "type_1" : ("Poudrerie",                    "./Data/Images/Backgrounds/snow.png",       f"{ICON_DIR_PATH}WeatherIcons/snowFlackIcon.png"),
+    "type_2" : ("bruine",                       "./Data/Images/Backgrounds/drizzle.png",    f"{ICON_DIR_PATH}WeatherIcons/mediuùDrizzleIcon.png"),
+    "type_3" : ("bruine lourde",                "./Data/Images/Backgrounds/drizzle.png",    f"{ICON_DIR_PATH}WeatherIcons/mediumDrizzleIcon.png"),
+    "type_4" : ("bruine légère",                "./Data/Images/Backgrounds/drizzle.png",    f"{ICON_DIR_PATH}WeatherIcons/lightDrizzleIcon.png"),
+    "type_5" : ("forte bruine",                 "./Data/Images/Backgrounds/drizzle.png",    f"{ICON_DIR_PATH}WeatherIcons/heavyDrizzleIcon.png"),
+    "type_6" : ("légère bruine",                "./Data/Images/Backgrounds/drizzle.png",    f"{ICON_DIR_PATH}WeatherIcons/lightDrizzleIcon.png"),
+    "type_7" : ("tempête de poussière",         "./Data/Images/Backgrounds/dustStorm.png",  f"{ICON_DIR_PATH}WeatherIcons/hurrycaneIcon.png"),
+    "type_8" : ("Brouillard",                   "./Data/Images/Backgrounds/fog.png",        f"{ICON_DIR_PATH}WeatherIcons/fogIcon.png"),
+    "type_9" : ("Bruine verglaçante",           "./Data/Images/Backgrounds/blackIce.png",   f"{ICON_DIR_PATH}WeatherIcons/fogIcon.png"),
+    "type_10" : ("Forte bruine verglaçante",    "./Data/Images/Backgrounds/blackIce.png",   f"{ICON_DIR_PATH}WeatherIcons/snowFlackIcon.png"),
+    "type_11" : ("Légère bruine verglaçante",   "./Data/Images/Backgrounds/blackIce.png",   f"{ICON_DIR_PATH}WeatherIcons/snowFlackIcon.png"),
+    "type_12" : ("Brouillard verglaçant",       "./Data/Images/Backgrounds/fog.png",        f"{ICON_DIR_PATH}WeatherIcons/fogIcon.png"),
+    "type_13" : ("Forte pluie verglaçante",     "./Data/Images/Backgrounds/blackIce.png",   f"{ICON_DIR_PATH}WeatherIcons/heavyRainIcon.png"),
+    "type_14" : ("Légère pluie verglaçante",    "./Data/Images/Backgrounds/blackIce.png",   f"{ICON_DIR_PATH}WeatherIcons/lightRainIcon.png"),
+    "type_15" : ("Tornade",                     "./Data/Images/Backgrounds/tornado.png",    f"{ICON_DIR_PATH}WeatherIcons/hurrycaneIcon.png"),
+    "type_16" : ("Chute de grêle",              "./Data/Images/Backgrounds/storm.png",      f"{ICON_DIR_PATH}WeatherIcons/stormIcon.png"),
+    "type_17" : ("Grezzil",                     "./Data/Images/Backgrounds/snow.png",       f"{ICON_DIR_PATH}WeatherIcons/stormIcon.png"),
+    "type_18" : ("foudre sans tonnerre",        "./Data/Images/Backgrounds/storm.png",      f"{ICON_DIR_PATH}WeatherIcons/stormIcon.png"),
+    "type_19" : ("Brume",                       "./Data/Images/Backgrounds/fog.png",        f"{ICON_DIR_PATH}WeatherIcons/fogIcon.png"),
+    "type_20" : ("Précipations à proximité",    "./Data/Images/Backgrounds/rain.png",       f"{ICON_DIR_PATH}WeatherIcons/mediumRainIcon.png"),
+    "type_21" : ("Pluie",                       "./Data/Images/Backgrounds/rain.png",       f"{ICON_DIR_PATH}WeatherIcons/mediumRainIcon.png"),
+    "type_22" : ("Forte pluie et neige",        "./Data/Images/Backgrounds/snow.png",       f"{ICON_DIR_PATH}WeatherIcons/heavyRainIcon.png"),
+    "type_23" : ("Légère pluie et neige",       "./Data/Images/Backgrounds/snow.png",       f"{ICON_DIR_PATH}WeatherIcons/lightRainIcon.png"),
+    "type_24" : ("Averse",                      "./Data/Images/Backgrounds/rain.png",       f"{ICON_DIR_PATH}WeatherIcons/heavyRainIcon.png"),
+    "type_25" : ("Forte pluie",                 "./Data/Images/Backgrounds/rain.png",       f"{ICON_DIR_PATH}WeatherIcons/heavyRainIcon.png"),
+    "type_26" : ("Légère pluie",                "./Data/Images/Backgrounds/rain.png",       f"{ICON_DIR_PATH}WeatherIcons/lightRainIcon.png"),
+    "type_27" : ("Eclaircissement",             "./Data/Images/Backgrounds/thinning.png",   f"{ICON_DIR_PATH}WeatherIcons/sunAndCloudIcon.png"),
+    "type_28" : ("Assombrissement",             "./Data/Images/Backgrounds/cloudy.png",     f"{ICON_DIR_PATH}WeatherIcons/cloudyIcon.png"),
+    "type_29" : ("Ciel inchangé",               "./Data/Images/Backgrounds/thinning.png",   f"{ICON_DIR_PATH}WeatherIcons/sunAndCloudIcon.png"),
+    "type_30" : ("Fumée",                       "./Data/Images/Backgrounds/smoke.png",      f"{ICON_DIR_PATH}WeatherIcons/fogIcon.png"),
+    "type_31" : ("Neige",                       "./Data/Images/Backgrounds/snow.png",       f"{ICON_DIR_PATH}WeatherIcons/mediumSnowFallIcon.png"),
+    "type_32" : ("Pluie et neige mêlée",        "./Data/Images/Backgrounds/snow.png",       f"{ICON_DIR_PATH}WeatherIcons/mediumSnowFallIcon.png"),
+    "type_33" : ("Chutes de neige",             "./Data/Images/Backgrounds/snow.png",       f"{ICON_DIR_PATH}WeatherIcons/heavySnowFallIcon.png"),
+    "type_34" : ("Averses de neige",            "./Data/Images/Backgrounds/snow.png",       f"{ICON_DIR_PATH}WeatherIcons/heavySnowFallIcon.png"),
+    "type_35" : ("Quelques flocons",            "./Data/Images/Backgrounds/snow.png",       f"{ICON_DIR_PATH}WeatherIcons/lightSnowFallIcon.png"),
+    "type_36" : ("Grains",                      "./Data/Images/Backgrounds/snow.png",       f"{ICON_DIR_PATH}WeatherIcons/lightSnowFallIcon.png"),
+    "type_37" : ("Orage",                       "./Data/Images/Backgrounds/storm.png",      f"{ICON_DIR_PATH}WeatherIcons/stormIcon.png"),
+    "type_38" : ("Orage sans précipitation",    "./Data/Images/Backgrounds/storm.png",      f"{ICON_DIR_PATH}WeatherIcons/stormIcon.png"),
+    "type_39" : ("Voilé",                       "./Data/Images/Backgrounds/cloudyHaze.png", f"{ICON_DIR_PATH}WeatherIcons/hazeIcon.png"),
+    "type_40" : ("Blizzard",                    "./Data/Images/Backgrounds/snow.png",       f"{ICON_DIR_PATH}WeatherIcons/hurrycaneIcon.png"),
+    "type_41" : ("Couvert",                     "./Data/Images/Backgrounds/cloudy.png",     f"{ICON_DIR_PATH}WeatherIcons/cloudyIcon.png"),
+    "type_42" : ("Partiellement nuageux",       "./Data/Images/Backgrounds/thinning.png",   f"{ICON_DIR_PATH}WeatherIcons/sunAndCloudIcon.png"),
+    "type_43" : ("Ensoleillé",                  "./Data/Images/Backgrounds/sun.png",        f"{ICON_DIR_PATH}WeatherIcons/sunIcon.png"),
 }
 
 def getPathImageWeatherType(weatherCondition : str) -> str :
@@ -178,7 +178,7 @@ def getPathImageWeatherType(weatherCondition : str) -> str :
     path to the image as a string"""
 
     firstType = weatherCondition.split(",")[0]
-    return dictWeatherType.get(firstType, ("Ciel inchangé", "./Data/Images/Backgrounds/thinning.png", "ICON_DIR_PATHWeatherIcons/sunAndCloud.png"))[1]
+    return dictWeatherType.get(firstType, ("Ciel inchangé", "./Data/Images/Backgrounds/thinning.png", f"{ICON_DIR_PATH}WeatherIcons/sunAndCloud.png"))[1]
 
 
 def getDescriptionWeatherType(weatherCondition : str) -> str :
@@ -188,7 +188,7 @@ def getDescriptionWeatherType(weatherCondition : str) -> str :
     """
 
     firstType = weatherCondition.split(",")[0]
-    return dictWeatherType.get(firstType, ("Ciel inchangé", "./Data/Images/Backgrounds/thinning.png", "ICON_DIR_PATHWeatherIcons/sunAndCloud.png"))[0]
+    return dictWeatherType.get(firstType, ("Ciel inchangé", "./Data/Images/Backgrounds/thinning.png", f"{ICON_DIR_PATH}WeatherIcons/sunAndCloud.png"))[0]
 
 
 def getIconPathWeatherType(weatherCondition : str) -> str :
@@ -197,7 +197,7 @@ def getIconPathWeatherType(weatherCondition : str) -> str :
     weather icon path as string"""
 
     firstType = weatherCondition.split(",")[0]
-    return dictWeatherType.get(firstType, ("Ciel inchangé", "./Data/Images/Backgrounds/thinning.png", "ICON_DIR_PATHWeatherIcons/sunAndCloud.png"))[2]
+    return dictWeatherType.get(firstType, ("Ciel inchangé", "./Data/Images/Backgrounds/thinning.png", f"{ICON_DIR_PATH}WeatherIcons/sunAndCloud.png"))[2]
 
 
 def degToStrDirectVent(directionVent: int) -> tuple:
@@ -485,7 +485,7 @@ class DailyMeteo(WebhookEvent):
                         else:
                             self.dictUsersBot[userId].userDiscord.send("Aïe, il y a eu un problème avec la requête à l'API \U0001f625")
 
-                if (hour == 21) and (minute >= 52 and minute <= 53) and not self.alreadySend:
+                if (hour == 5) and (minute >= 0 and minute <= 1) and not self.alreadySend:
                     jsonResponse = self.apiHandler.dailyMeteoRequest("Toulouse")
                     #Si la requête n'a pas échoué :
                     if jsonResponse != {}:

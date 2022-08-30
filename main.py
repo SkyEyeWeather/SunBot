@@ -127,14 +127,14 @@ async def on_ready():
   webhookServeurTest2 = discord.Webhook.from_url(
     'https://discord.com/api/webhooks/990651246643929158/S75JOEUf-_clJXMhp22x2QCmgJd-W40U7FTGUtIvODWZteKqrBkKo2MnRAJ2hOojSMSx', adapter=discord.RequestsWebhookAdapter())
   alerteMeteo = Meteo.AlerteMeteo(vcRequestHandler)
-  alerteMeteo.addWebhook(webhookServeurTest1)
-  alerteMeteo.addWebhook(webhookServeurPrive)
+  #alerteMeteo.addWebhook(webhookServeurTest1)
+  #alerteMeteo.addWebhook(webhookServeurPrive)
   alerteMeteo.start()
   print("Webhook alerte météo prêt")
   #Création du thread écoutant les informations météo quotidiennes :
   #dailyMeteo.addWebhook(webhookServeurCUPGE)
   #dailyMeteo.addWebhook(webhookServeurTest1)
-  #dailyMeteo.addWebhook(webhookServeurPrive)
+  dailyMeteo.addWebhook(webhookServeurPrive)
   dailyMeteo.addWebhook(webhookServeurTest2)
   dailyMeteo.start()
   print("Webhook daily météo prêt")
@@ -198,7 +198,7 @@ async def deleteCommand(ctx : discord.ext.commands.Context):
 
 
 #====================
-#    BOT'S COMMANDS 
+#    BOT'S COMMANDS
 #====================
 
 @sunBot.command(name="setMP", brief="Autorise / Interdit les MP du bot (dailyMeteo...)")
