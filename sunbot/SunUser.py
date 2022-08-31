@@ -1,0 +1,95 @@
+
+#=================================
+#   LIBRARIES USED BY THIS CLASS
+#=================================
+
+import json
+import os
+import sunbot.sunbot as sunbot
+import logging
+
+
+#================================
+#        CLASS DEFINITION
+#================================
+
+class SunUser:
+    """This class represents a SunBot user. Each user have an ID that allows to identify him
+    in discord API. This can be used to send him a message for example. In this class, an user
+    is also defined by its name."""
+
+
+    def __init__(self, id : int, emoji : str = "", freqEmoji : float = 0.5, favLocation : str = "Toulouse", mp : bool = False) -> None:
+        """Constructor for this class. A SunBot user is defined by its Discord ID. Other
+        informations can be provided in arguments, such as an emoji that is used to react to message
+        sent by this user, if the user authorize private message from the bot, or a specific favorite
+        location for weather notifications. Each instance of this class is associated with a backup file.
+        The link between the user and its backup file is done thanks to ID (so ID is defined as a constant and
+        cannot be modified).
+        ## Parameters:
+        * id    [in] : discord identifiant for the SunBot user to create
+        * emoji [in] : optional, string code corresponding to emoji that will be used to react to messages sent by the user
+        * freqEmoji [in] : optional, float corresponding to frequency at which an emoji is added to a message from the user
+        * favLocation [in] : optional, string indicating the favourite location name for user to create. Default to Toulouse
+        * mp    [in] : optional, boolean indicating if the user allows private messages from SunBot. Default value is False"""
+
+        object.__setattr__(self, "id", id)
+        object.__setattr__(self, "emoji", emoji)
+        object.__setattr__(self, "freqEmoji", freqEmoji)
+        object.__setattr__(self, "favLocation", favLocation)
+        object.__setattr__(self, "mp", mp)
+
+        #Creation of a file corresponding to the user, for data saving purposes:
+        #if backup repertory doesn't exist, create it:
+        if not os.path.exists(sunbot.USER_BACKUP_REPERTORY_PATH):
+            os.makedirs(sunbot.USER_BACKUP_REPERTORY_PATH)
+            logging.info(f"Repertory {sunbot.USER_BACKUP_REPERTORY_PATH} doesn't exist. Creating it.")
+
+        #If user was already created in the past, use data from corresponding file instead of values in arguments in constructor:
+        if os.path.isfile(f"{sunbot.USER_BACKUP_REPERTORY_PATH}{id}.json"):
+            logging.info(f"User n°{id} already exists. Loading data from existing file.")
+            with open(f"{sunbot.USER_BACKUP_REPERTORY_PATH}{id}.json", "r") as userFile:
+                try:
+                    userData = json.load(userFile)
+                    object.__setattr__(self, "emoji", userData["emoji"])
+                    object.__setattr__(self, "freqEmoji", userData["freqEmoji"])
+                    object.__setattr__(self, "favLocation", userData["favLocation"])
+                    object.__setattr__(self, "mp", userData["mp"])
+                except json.decoder.JSONDecodeError:
+                    logging.error(f"An error occured when retrieving data for user n°{id}. File may be corrupted")
+        #Else, create a new user with a new corresponding backup file:
+        else:
+            logging.info(f"Creating user n°{id}")
+            self._saveUserData()
+
+
+    def __setattr__(self, __name: str, __value) -> None:
+        """Special method used to update object attributes
+        ## Parameters:
+        * __name [in] : name of the attribute to update
+        * __value [in] : new value for the attribute to update"""
+
+        #if attribute exist:
+        if __name in self.__dict__:
+            #User id cannot be modified:
+            if __name == "id":
+                logging.error("User identifiant cannot be modified. Abort")
+                return
+            #Value for emoji frequency must be in [0, 1] interval:
+            elif __name == "freqEmoji":
+                if __value < 0 or __value > 1:
+                    raise ValueError
+                object.__setattr__(self, __name, __value)
+            else:
+                object.__setattr__(self, __name, __value)
+            self._saveUserData()
+        else:
+            logging.warning(f"Class {__class__.__name__} haven't got a attribute named {__name}")
+
+
+    def _saveUserData(self) -> None:
+        """Private method used to save user's data to corresponding backup file."""
+
+        with open(f"{sunbot.USER_BACKUP_REPERTORY_PATH}{self.id}.json", "w") as userFile:
+            jsonData = json.dumps(self.__dict__, ensure_ascii=False, indent=2)
+            userFile.write(jsonData)
