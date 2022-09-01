@@ -14,8 +14,8 @@ import logging
 #================================
 
 class SunUser:
-    """This class represents a SunBot user. Each user have an ID that allows to identify him
-    in discord API. This can be used to send him a message for example. In this class, an user
+    """This class represents a SunBot user. Each user has an ID that allows to identify it
+    in discord API. This can be used to send it a message for example. In this class, an user
     is also defined by its name."""
 
 
@@ -69,7 +69,7 @@ class SunUser:
         * __name [in] : name of the attribute to update
         * __value [in] : new value for the attribute to update"""
 
-        #if attribute exist:
+        #if attribute exists:
         if __name in self.__dict__:
             #User id cannot be modified:
             if __name == "id":
@@ -88,7 +88,7 @@ class SunUser:
 
 
     def _saveUserData(self) -> None:
-        """Private method used to save user's data to corresponding backup file."""
+        """Private method used to save user's data into corresponding backup file."""
 
         with open(f"{sunbot.USER_BACKUP_REPERTORY_PATH}{self.id}.json", "w") as userFile:
             jsonData = json.dumps(self.__dict__, ensure_ascii=False, indent=2)
