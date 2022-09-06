@@ -411,7 +411,7 @@ class DailyMeteo(WebhookEvent):
         weatherImage.drawText(f"{dayInfo['uvindex']}", mediumFont, (TXT_VERTICAL_ALIGNMENT, 4 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT + TXT_HORIZONTAL_ALIGNMENT))
         weatherImage.drawText(f"{dayInfo['sunrise'][0 : 5]}", mediumFont, (TXT_VERTICAL_ALIGNMENT, 5 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT + TXT_HORIZONTAL_ALIGNMENT))
         weatherImage.drawText(f"{dayInfo['sunset'][0 : 5]}", mediumFont, (TXT_CENTRAL_VERTICAL_ALIGNMENT, 5 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT + TXT_HORIZONTAL_ALIGNMENT))
-        weatherImage.drawText("Données de l'API VisualCrossing", mediumFont, (60, weatherImage.height - 40))
+        weatherImage.drawText("Données de l'API VisualCrossing", smallFont, (60, weatherImage.height - 40))
         #Save the image:
         weatherImage.saveImage(f"{path}/{DAILY_IMAGE_NAME}")
 
