@@ -389,7 +389,7 @@ class DailyMeteo(WebhookEvent):
         weatherImage.addIcon(f"{ICON_DIR_PATH}water-drops.png", ICON_SIZE, (LEFT_ALIGNMENT, ITEMS_UP_ALIGNMENT))
         weatherImage.addIcon(f"{ICON_DIR_PATH}pluviometer.png", ICON_SIZE, (CENTRE_ALIGNMENT, ITEMS_UP_ALIGNMENT))
         weatherImage.addIcon(f"{ICON_DIR_PATH}wind.png", ICON_SIZE, (LEFT_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
-        weatherImage.addIcon(f"{ICON_DIR_PATH}windDirection.png", ICON_SIZE, (CENTRE_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT), dayInfo['winddir'])
+        weatherImage.addIcon(f"{ICON_DIR_PATH}windDirection.png", ICON_SIZE, (CENTRE_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT), 360 - dayInfo['winddir'])
         weatherImage.addIcon(f"{ICON_DIR_PATH}pressure.png", ICON_SIZE, (LEFT_ALIGNMENT, 2 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
         weatherImage.addIcon(f"{ICON_DIR_PATH}humidity.png", ICON_SIZE, (LEFT_ALIGNMENT, 3 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
         weatherImage.addIcon(f"{ICON_DIR_PATH}rays.png", ICON_SIZE, (LEFT_ALIGNMENT, 4 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
