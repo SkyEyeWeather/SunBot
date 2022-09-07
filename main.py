@@ -232,7 +232,7 @@ async def ping(ctx):
   await deleteCommand(ctx)
 
 
-
+@betaFunction
 @sunBot.command(name="meteo", brief="Pour obtenir la météo actuelle d'une localité")
 async def meteo(ctx : discord.ext.commands.Context, *args):
   nomLocalite = " ".join(args)
