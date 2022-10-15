@@ -16,6 +16,7 @@ import sunbot.BotUser as BotUser
 import sunbot.weather.Meteo as Meteo
 
 from sunbot.SunBotHelpCommand import SunBotHelpCommand
+from sunbot.SunController import SunController
 
 
 #=======================
@@ -46,6 +47,8 @@ listeGifKernelDead = [
 ]
 
 sunBot = commands.Bot(command_prefix='+', intents=discord.Intents.all(), help_command=SunBotHelpCommand())
+sunController = SunController(sunBot)
+sunController.on_ready()
 vcRequestHandler = VisualCrossingHandler()
 discordAPI_handler = DiscordHandler()
 dictUsersBot = {}
@@ -87,35 +90,11 @@ def adminFunction(function):
 #     Evénements liés au bot
 #==================================
 
-
 @sunBot.event
 async def on_ready():
-  #Création du dictionnaire des membres :
-  print("Initialisation du bot...")
-  print("Chargement des données des utilisateurs...")
-  userLoadIsOK = True
-  #Pour chaque utilisateur présent sur un des serveurs du bot :
-  for member in sunBot.get_all_members():
-    userFilePath = "{}/{}.txt".format(PATH_SAVE_USER_REP, member.id)
-    #Teste si l'utilisateur est dans la base de données du bot:
-    if os.path.isfile(userFilePath):
-      #Si l'utilisateur existe, chargement de ses données à partir du fichier correspondant:
-      with open("{}/{}.txt".format(PATH_SAVE_USER_REP, member.id), 'r') as userFile:
-        print("Chargement des données de l'utilisateur n°{}".format(member.id))
-        try:
-          dataUser = json.load(userFile)
-          dictUsersBot[member.id] = BotUser.BotUser(member, dataUser["emojis"], dataUser["favMeteo"], dataUser["offSetFav"], dataUser["mp"])
-          print(dictUsersBot[member.id])
-        except json.decoder.JSONDecodeError:
-          print("Une erreur est survenue lors du chargement de l'utilisateur n°{} : le fichier est soit vide soit corrompu. Suppression du fichier".format(member.id))
-          os.system("rm {}{}.txt".format(PATH_SAVE_USER_REP, member.id))
-          userLoadIsOK = False
-    #Sinon création d'un nouvel utilisateur :
-    else:
-      print("Création de l'utilisateur n°{}".format(member.id))
-      dictUsersBot[member.id] = BotUser.BotUser(member)
-  print("Chargement des données utilisateur : {}".format(userLoadIsOK))
+  sunController.on_ready()
 
+  """
   #Création du thread écoutant les alertes météos:
   print("Génération des webhooks...")
   webhookServeurTest1 = discord.Webhook.from_url(
@@ -140,7 +119,7 @@ async def on_ready():
   print("Webhook daily météo prêt")
   print("SunBot est chaud patate!")
   print("Nombre de threads en cours :", threading.active_count())
-
+"""
 
 @sunBot.event
 async def on_member_join(member):
@@ -333,4 +312,4 @@ async def disconnect(unused_ctx):
 #ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES - ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES
 #####################################################################################################
 
-sunBot.run(os.environ["token"])
+sunBot.run("ODk2MTMwNzY5MTE2ODg5MDg4.YWCo0A.D85z93cfwKwfcHSkeGdPW7PJpJo")
