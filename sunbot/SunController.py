@@ -6,7 +6,6 @@
 import json
 import logging
 import os
-from click import command
 import requests
 import discord
 from discord.ext import commands
