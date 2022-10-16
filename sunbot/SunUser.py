@@ -84,7 +84,7 @@ class SunUser:
                 object.__setattr__(self, __name, __value)
             self._saveUserData()
         else:
-            logging.warning(f"Class {__class__.__name__} haven't got a attribute named {__name}")
+            logging.error(f"Class {__class__.__name__} haven't got a attribute named {__name}")
 
 
     def _saveUserData(self) -> None:

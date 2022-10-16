@@ -93,7 +93,7 @@ def adminFunction(function):
 #==================================
 
 @sunBot.event
-async def on_ready():
+async def on_ready(): 
   sunController.on_ready()
 
   """
@@ -118,64 +118,26 @@ async def on_ready():
   dailyMeteo.addWebhook(webhookServeurPrive)
   dailyMeteo.addWebhook(webhookServeurTest2)
   dailyMeteo.start()
-  print("Webhook daily météo prêt")
-  print("SunBot est chaud patate!")
-  print("Nombre de threads en cours :", threading.active_count())
 """
+
 
 @sunBot.event
 async def on_member_join(member):
-    print("{} a rejoint le serveur {} !".format(member.name, member.guild.name))
-    userBot = BotUser.BotUser(member)
-    dictUsersBot[member.id] = userBot
-    if member.guild.id == 816226592556580865:
-        channel = sunBot.get_channel(816226592556580868)
-        await channel.send("Bienvenue sur le serveur {}! Je suis SunBot, bot spécialiste de la météo (ou pas)! Tu peux utiliser +help dans le channel des bots pour en savoir plus sur moi!".format(member.mention))
+  await sunController.on_member_join(member)
 
 
 @sunBot.event
 async def on_message(message):
-
-    global messageTeteDePomme
-
-    await sunBot.process_commands(message)
-    if not message.author.bot:
-        await dictUsersBot[message.author.id].addReaction(message)
-    messageMin = message.content.lower()
-    #Si le message correspond à l'invocation tête de pomme
-    if messageMin in ["tête de pomme", "tete de pomme", "#tetedepomme"]:
-        messageTeteDePomme += 1
-        #Si le message a été répété 3 fois de suite, on invoque le gif :
-        if messageTeteDePomme == 3:
-            """
-            messageTeteDePomme = 0
-            print("Invocation tête de pomme !")
-            embedToSend = discord.Embed(
-                title="Et tu savais qu'à Jean Jaurès...", color=0xff0000)
-            gifTeteDePomme = discord.File("./Data/TeteDePomme.gif",
-                                          "TeteDePomme.gif")
-            embedToSend.set_image(url="attachment://TeteDePomme.gif")
-            await message.channel.send(embed=embedToSend, file=gifTeteDePomme)"""
-            await message.channel.send("Fonctionnalité suspendue")
-    #Autres type de message :
-    else:
-        messageTeteDePomme = 0
-        if "me foutre au sol" in messageMin and np.random.uniform() > 0.5:
-            await message.reply("Tu sais, il y a des gens qui disaient ça avant toi et qui ont fini ingénieurs aéronautique chez Boeing ! Donc ne te décourage pas \U0001f31e !"
-            )
-        if messageMin == "sinus":
-            await message.channel.send("Tangente")
-        if messageMin in ["patrick", "patou", "patoche", "pata", "patrikou"] and np.random.uniform() > 0.25:
-            indiceGifToSend = int(np.random.uniform(0, len(listeGifMignons)))
-            await message.reply(listeGifMignons[indiceGifToSend])
-            await message.channel.send("Mignon !!")
-        if "kernel is dead" in messageMin:
-            indiceGifToSend = int(np.random.uniform(0, len(listeGifKernelDead)))
-            await message.reply(listeGifKernelDead[indiceGifToSend])
-
-
-async def deleteCommand(ctx : discord.ext.commands.Context):
-  await ctx.message.delete()
+  await sunController.on_message(message)
+  """
+  if messageMin in ["patrick", "patou", "patoche", "pata", "patrikou"] and np.random.uniform() > 0.25:
+      indiceGifToSend = int(np.random.uniform(0, len(listeGifMignons)))
+      await message.reply(listeGifMignons[indiceGifToSend])
+      await message.channel.send("Mignon !!")
+  if "kernel is dead" in messageMin:
+      indiceGifToSend = int(np.random.uniform(0, len(listeGifKernelDead)))
+      await message.reply(listeGifKernelDead[indiceGifToSend])
+  """
 
 
 #====================

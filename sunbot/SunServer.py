@@ -28,6 +28,7 @@ class SunServer:
         object.__setattr__(self, "fun", fun)
         object.__setattr__(self, "usersDict", {})       #In this dict users' ID are the keys and users the values
         object.__setattr__(self, "webhooksDict", {})    #In this dict links to the webhook are the keys and state of this webhooks the values
+        object.__setattr__(self, "appleHead", 0)
 
         #If backup directory doesn't exist, create it:
         if not os.path.exists(f"{sunbot.SERVER_BACKUP_REPERTORY_PATH}"):
@@ -51,7 +52,7 @@ class SunServer:
 
     def __setattr__(self, __name: str, __value) -> None:
         """Special method used to update object attributes. Here, redefinition
-        prohibite all modifications excepted fun status
+        prohibite all modifications excepted fun status and appleHead
         ## Parameters:
         * __name [in] : name of the attribute to update
         * __value [in] : new value for the attribute to update"""
@@ -60,6 +61,8 @@ class SunServer:
             object.__setattr__(self, __name, __value)
             self._saveServer()
             logging.info(f"Fun status for server {self.id} was updated. New value : {self.fun}")
+        if __name == "appleHead":
+            object.__setattr__(self, __name, __value)
         else:
             logging.error("Server attributes cannot directly modified")
 
