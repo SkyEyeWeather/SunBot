@@ -40,8 +40,8 @@ class SunController :
 
     def on_ready(self) -> None:
         """This method specified actions to perform when launching the bot"""
-        print("Starting bot initialisation...")
-        print("Charging users' data")
+        logging.info("Starting bot initialisation...")
+        logging.info("Charging users' data")
         #For all servers where the bot is:
         for server in self.bot.guilds:
             self.serversDict[server.id] = SunServer(server.id)
@@ -51,7 +51,7 @@ class SunController :
                 #else create a new user :
                 self.usersDict[user.id] = currentUser
                 self.serversDict[server.id].addUser(currentUser)
-        print("Bot is ready !")
+        logging.info("Bot is ready !")
         
         #Creation of webhooks used by the bot:
 

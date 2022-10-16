@@ -1,4 +1,5 @@
 #Importation des différents modules
+import logging
 import os
 import discord
 from discord.ext import commands
@@ -46,6 +47,7 @@ listeGifKernelDead = [
     "https://c.tenor.com/X13wwMFZN2YAAAAM/dies-cat.gif"
 ]
 
+logging.basicConfig(level=logging.INFO)
 sunBot = commands.Bot(command_prefix='+', intents=discord.Intents.all(), help_command=SunBotHelpCommand())
 sunController = SunController(sunBot)
 sunController.on_ready()
