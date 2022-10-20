@@ -172,8 +172,6 @@ async def adminSetEmoji(ctx, userId :int, emoji : str, freq : float) :
 @sunBot.command(name="ping", brief="Si je suis réveillé, je réponds pong ! Sinon c'est que je dors...")
 async def ping(ctx):
   await ctx.channel.send("pong !")
-  await deleteCommand(ctx)
-
 
 @betaFunction
 @sunBot.command(name="meteo", brief="Pour obtenir la météo actuelle d'une localité")
@@ -236,7 +234,6 @@ async def vocalConnect(ctx):
   await channel.connect()
   time.sleep(1)
   ctx.voice_client.play(discord.FFmpegPCMAudio("./Data/Source/alpha.mp3"))
-  await deleteCommand(ctx)
 
 
 @sunBot.command(name="vocalDisconnect", brief="Deconnexion serveur vocal [admin]")
