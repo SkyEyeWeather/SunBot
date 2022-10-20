@@ -10,6 +10,7 @@ import numpy as np
 import time
 from PIL import Image
 
+import sunbot.sunbot
 from sunbot.apiHandler.VisualCrossingHandler import VisualCrossingHandler
 from sunbot.apiHandler.discordHandler import DiscordHandler
 
@@ -56,37 +57,7 @@ discordAPI_handler = DiscordHandler()
 dictUsersBot = {}
 dailyMeteo = Meteo.DailyMeteo(vcRequestHandler, dictUsersBot)
 
-messageTeteDePomme = 0  #Nombre de messages "tête de pomme" consécutifs (on suppose que l'invocation n'est faite que sur un erveur à la fois)
 
-
-
-
-#============================
-#        DECORATORS
-#============================
-
-def betaFunction(function):
-  """Decorator used to indicate that a function can only be call by robot's maintainers"""
-  async def fonctionModifie(*args, **opt):
-      if args[0].author.id != 691614947280551936:
-          await args[0].channel.send(
-              "J'aimerais pouvoir t'aider, mais mon créateur (ce ravagé) me l'a interdit car cette fonctionnalité est actuellement en travaux !"
-          )
-      else:
-          await function(*args, **opt)
-  return fonctionModifie
-
-
-def adminFunction(function):
-  """Decorator used to indicate that function can only be call by an adminstrator of
-  the bot. Other users will receive an error message."""
-  async def fonctionModifie(*args, **kwargs):
-    if args[0].author.id not in (691614947280551936, 690593377250443374):
-      await args[0].channel.send(
-            "Il faut être ravagé pour utiliser cette commande !")
-    else:
-        await function(*args, **kwargs)
-  return fonctionModifie
 
 #==================================
 #     Evénements liés au bot
@@ -157,7 +128,7 @@ async def mp(ctx):
     await ctx.channel.send("Je ne vous enverrai plus de message privé !")
 
 
-@adminFunction
+@sunbot.adminFunction
 async def adminSetEmoji(ctx, userId :int, emoji : str, freq : float) :
   try :
     dictUsersBot[userId].setEmoji(emoji, freq)
@@ -173,7 +144,7 @@ async def adminSetEmoji(ctx, userId :int, emoji : str, freq : float) :
 async def ping(ctx):
   await ctx.channel.send("pong !")
 
-@betaFunction
+@sunbot.betaFunction
 @sunBot.command(name="meteo", brief="Pour obtenir la météo actuelle d'une localité")
 async def meteo(ctx : discord.ext.commands.Context, *args):
   nomLocalite = " ".join(args)
@@ -228,7 +199,7 @@ async def favMeteo(ctx, nomLocalite):
 
 
 @sunBot.command(name="vocalConnect", brief="Vous m'avez appelez ? Je vous réponds (vraiment) ! [admin]")
-@adminFunction
+@sunbot.adminFunction
 async def vocalConnect(ctx):
   channel = ctx.author.voice.channel
   await channel.connect()
@@ -237,7 +208,7 @@ async def vocalConnect(ctx):
 
 
 @sunBot.command(name="vocalDisconnect", brief="Deconnexion serveur vocal [admin]")
-@adminFunction
+@sunbot.adminFunction
 async def vocalDisconnect(ctx):
   await ctx.voice_client.disconnect()
 
@@ -259,7 +230,7 @@ async def test(ctx : commands.Context) -> None:
   Meteo.DailyMeteo.createDailyWeatherImage("")
 
 @sunBot.command(name="disconnect", brief="Vous voulez vraiment me tuer ?!! [Admin]")
-@adminFunction
+@sunbot.adminFunction
 async def disconnect(unused_ctx):
   print("Déconnexion du bot...")
   #Enregistrement des données des utilisateurs (un fichier par utilisateur) :
