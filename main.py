@@ -10,7 +10,7 @@ import numpy as np
 import time
 from PIL import Image
 
-import sunbot.sunbot
+import sunbot.sunbot as sunbot
 from sunbot.apiHandler.VisualCrossingHandler import VisualCrossingHandler
 from sunbot.apiHandler.discordHandler import DiscordHandler
 
