@@ -3,6 +3,7 @@ import logging
 import os
 import discord
 from discord.ext import commands
+from discord import app_commands
 import threading
 import json
 import requests
@@ -65,7 +66,7 @@ dailyMeteo = Meteo.DailyMeteo(vcRequestHandler, dictUsersBot)
 
 @sunBot.event
 async def on_ready(): 
-  sunController.on_ready()
+  await sunController.on_ready()
 
   """
   #Création du thread écoutant les alertes météos:
@@ -138,6 +139,11 @@ async def adminSetEmoji(ctx, userId :int, emoji : str, freq : float) :
     await ctx.channel.send("La fréquence doit être dans l'intervalle [0, 1] \U0001f620")
   else:
     await ctx.channel.send("L'emoji a bien été mis à jour \U0001f642")
+
+
+@sunBot.tree.command(name="ping", description="Si je suis réveillé, je réponds pong! Sinon... et bien c'est que je dors 😴", guild=discord.Object(id=1029313313827471413))
+async def ping(interaction : discord.Interaction):
+  await sunController.ping(interaction)
 
 
 @sunBot.command(name="ping", brief="Si je suis réveillé, je réponds pong ! Sinon c'est que je dors...")
