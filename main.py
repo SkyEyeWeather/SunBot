@@ -168,6 +168,11 @@ async def meteo(ctx : discord.ext.commands.Context, *args):
       await ctx.channel.send(embed=embed, file=image)
 
 
+@sunBot.tree.command(name="pluie", description="Quand va-t-il pleuvoir aujourd'hui? ☔",)
+@app_commands.describe(place_name="Nom de la localité")
+async def pluie(interaction : discord.Interaction, place_name : str) -> None:
+  await sunController.pluie(interaction, place_name)
+
 @sunBot.command(name="pluie", brief="A quelle heure va-t-il pleuvoir aujourd'hui ?")
 async def pluie(ctx : discord.ext.commands.Context, *args):
   localityName = " ".join(args)

@@ -17,6 +17,8 @@ from discord import app_commands
 import sunbot.sunbot as sunbot
 from sunbot.SunServer import SunServer
 from sunbot.SunUser import SunUser
+import sunbot.weather.Meteo as weather
+import sunbot.WeatherAPIHandler as weatherAPIHandler
 
 
 #=================================
@@ -141,6 +143,22 @@ class SunController :
         """"""
 
         await interaction.response.send_message("Pong !")
+
+    async def pluie(self, interaction : discord.Interaction, place_name : str) -> None:
+        """"""
+
+        #if no location is provided by the command user, use its favorite one:
+        if place_name == "":
+            place_name = self.usersDict[interaction.user.id].favLocation
+        logging.info(f"{interaction.user.id} called the command 'pluie' for the location {place_name}")
+        requestResponse = weatherAPIHandler.dailyRainRequest(place_name)
+        if requestResponse == {}:
+            logging.error(f"An error occured when trying to get daily rain informations for the place {place_name}")
+            await interaction.response.send_message(f"Humm, quelque chose s'est mal passé en essayant de récupérer les informations de pluie pour {place_name} 😢")
+            return
+        #Build the embed message to send in response to the call of the command:
+        embedToSend = weather.createEmbedRainEmbed(requestResponse)
+        await interaction.response.send_message(embed=embedToSend)
 
     #====================================================================================
     #                                   PRIVATE METHODS PART
