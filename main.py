@@ -146,10 +146,6 @@ async def ping(interaction : discord.Interaction):
   await sunController.ping(interaction)
 
 
-@sunBot.command(name="ping", brief="Si je suis réveillé, je réponds pong ! Sinon c'est que je dors...")
-async def ping(ctx):
-  await ctx.channel.send("pong !")
-
 @sunbot.betaFunction
 @sunBot.command(name="meteo", brief="Pour obtenir la météo actuelle d'une localité")
 async def meteo(ctx : discord.ext.commands.Context, *args):
@@ -173,22 +169,6 @@ async def meteo(ctx : discord.ext.commands.Context, *args):
 async def pluie(interaction : discord.Interaction, place_name : str) -> None:
   await sunController.pluie(interaction, place_name)
 
-@sunBot.command(name="pluie", brief="A quelle heure va-t-il pleuvoir aujourd'hui ?")
-async def pluie(ctx : discord.ext.commands.Context, *args):
-  localityName = " ".join(args)
-  #If city not specified by the caller, use his favorite city:
-  if localityName in (" ", ""):
-    localityName = dictUsersBot[ctx.author.id].favMeteo
-  print(f"Exécution de la commande pluie pour la localité {localityName} par {ctx.author.name}")
-  requestResponse = vcRequestHandler.dailyRainRequest(localityName)
-  #If request failed :
-  if requestResponse == {}:
-    print(f"Une erreur est survenue lors de la recherche des conditions de pluie pour La localité {localityName}")
-    await ctx.channel.send("Je ne suis pas en capacité de répondre à la requête, désolé...")
-    return
-  #Building of the embed to send in response of command :
-  embedToSend = Meteo.createEmbedRainEmbed(requestResponse)
-  await ctx.channel.send(embed=embedToSend)
 
 @sunBot.command(name="favMeteo", brief="Envie de connaître la météo d'une localité sans te casser la tête ? Cette commande est pour toi !")
 async def favMeteo(ctx, nomLocalite):
