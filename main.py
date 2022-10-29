@@ -158,8 +158,8 @@ async def meteo(ctx : discord.ext.commands.Context, *args):
       print("Echec de lors de la récupération de l'API. Code erreur : {}".format(reponse.status_code))
       await ctx.channel.send("Désolé, une erreur est survenue lors de l'exécution de la commande \U0001f972")
   else:
-      (embed, image) = Meteo.jsonToMeteoCourante(reponse.json())
-      await ctx.channel.send(embed=embed, file=image)
+      embed = Meteo.jsonToMeteoCourante(reponse.json())
+      await ctx.channel.send(embed=embed)
 
 
 @sunBot.command(name="pluie", brief="A quelle heure va-t-il pleuvoir aujourd'hui ?")

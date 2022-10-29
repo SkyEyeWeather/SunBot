@@ -38,68 +38,6 @@ mediumFont = ImageFont.truetype(FONT_PATH, MEDIUM_FONT_SIZE)
 smallFont = ImageFont.truetype(FONT_PATH, SMALL_FONT_SIZE)
 
 
-dictWeatherCode = {
-    200: "200.jpg",
-    201: "200.jpg",
-    202: "200.jpg",
-    210: "200.jpg",
-    211: "200.jpg",
-    212: "200.jpg",
-    221: "200.jpg",
-    230: "200.jpg",
-    231: "200.jpg",
-    232: "200.jpg",
-    300: "300.jpg",
-    301: "300.jpg",
-    302: "300.jpg",
-    310: "300.jpg",
-    311: "300.jpg",
-    312: "300.jpg",
-    313: "300.jpg",
-    314: "300.jpg",
-    321: "300.jpg",
-    500: "500.jpg",
-    501: "500.jpg",
-    502: "500.jpg",
-    503: "500.jpg",
-    504: "500.jpg",
-    511: "500.jpg",
-    520: "500.jpg",
-    521: "500.jpg",
-    522: "500.jpg",
-    531: "500.jpg",
-    600: "600.jpg",
-    601: "600.jpg",
-    602: "600.jpg",
-    611: "600.jpg",
-    612: "600.jpg",
-    613: "600.jpg",
-    615: "600.jpg",
-    616: "600.jpg",
-    620: "600.jpg",
-    621: "600.jpg",
-    622: "600.jpg",
-    701: "701.jpg",
-    711: "701.jpg",
-    721: "721.jpg",
-    731: "701.jpg",
-    741: "721.jpg",
-    751: "701.jpg",
-    761: "701.jpg",
-    762: "701.jpg",
-    771: "701.jpg",
-    781: "781.jpg",
-    800: "800d.jpg",
-    #8002  : "800n.jpg",
-    801: "801d.jpg",
-    #8012  : "801n.jpg",
-    802: "802d.jpg",
-    #8022  : "802n.jpg",
-    803: "803d.jpg",
-    #8032  : "803n.jpg",
-    804: "804.jpg"
-}
-
 dictWeatherType = {
     "type_1" : ("Poudrerie",                    "./Data/Images/Backgrounds/snow.png",       f"{ICON_DIR_PATH}WeatherIcons/snowFlackIcon.png"),
     "type_2" : ("bruine",                       "./Data/Images/Backgrounds/drizzle.png",    f"{ICON_DIR_PATH}WeatherIcons/mediuùDrizzleIcon.png"),
@@ -198,7 +136,7 @@ def degToStrDirectVent(directionVent: int) -> tuple:
     return (VENT_NORD_OUEST, "NW")
 
 
-def jsonToMeteoCourante(messageJson: dict) -> tuple:
+def jsonToMeteoCourante(messageJson: dict) :
     """Fonction qui converti un message au format JSON issu d'un appel à l'API d'OpenWeather en 
   message affichable sur Discord pour la météo courante."""
     print(messageJson)
@@ -208,10 +146,6 @@ def jsonToMeteoCourante(messageJson: dict) -> tuple:
             messageJson["name"], messageJson["sys"]["country"]),
         description=messageJson["weather"][0]["description"],
         color=0x77b5fe)
-    thumbnail = discord.File(
-        "./Data/Images/{}".format(dictWeatherCode[int(
-            messageJson["weather"][0]["id"])]), "thumbnail.jpg")
-    messageToSend.set_thumbnail(url="attachment://thumbnail.jpg")
 
     #Ajout des différents domaines :
     messageToSend.add_field(name="Température :",
@@ -233,7 +167,7 @@ def jsonToMeteoCourante(messageJson: dict) -> tuple:
     messageToSend.add_field(name="Visibilité", value=str(messageJson["visibility"]) + "m", inline=False)
     #Pied de l'embed
     messageToSend.set_footer(text="Data from OpenWeather ({})".format(messageJson["base"]), icon_url="https://openweathermap.org/themes/openweathermap/assets/img/logo_white_cropped.png")
-    return (messageToSend, thumbnail)
+    return messageToSend
 
 
 def createEmbedRainEmbed(requestResponse : dict):
