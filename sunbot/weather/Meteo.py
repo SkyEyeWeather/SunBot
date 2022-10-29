@@ -9,7 +9,7 @@ from PIL import Image, ImageFont, ImageDraw
 
 from sunbot.apiHandler.VisualCrossingHandler import VisualCrossingHandler
 from sunbot.apiHandler.discordHandler import DiscordHandler
-from sunbot.SunImager import SunImager
+from sunbot.SunImager import SunImage
 
 #===========================================================#
 #           CONSTANTES VARIABLES DECLARATIONS               #
@@ -380,7 +380,7 @@ class DailyMeteo(WebhookEvent):
         dayInfo = requestResponse["days"][0]
 
         #Create background image according to weather condition for the day :
-        weatherImage = SunImager(getPathImageWeatherType(dayInfo['conditions']))
+        weatherImage = SunImage(getPathImageWeatherType(dayInfo['conditions']))
         #Add mask to the image :
         weatherImage.addMask("BLACK", 180, (weatherImage.width // 2 + 40, weatherImage.height), (0, 0))
         #Add weather icon according announced daily weather :
