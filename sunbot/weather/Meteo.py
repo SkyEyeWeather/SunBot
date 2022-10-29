@@ -7,6 +7,7 @@ from datetime import datetime
 import requests
 from PIL import Image, ImageFont, ImageDraw
 
+from sunbot.sunbot import *
 from sunbot.apiHandler.VisualCrossingHandler import VisualCrossingHandler
 from sunbot.apiHandler.discordHandler import DiscordHandler
 from sunbot.SunImager import SunImage
@@ -14,32 +15,6 @@ from sunbot.SunImager import SunImage
 #===========================================================#
 #           CONSTANTES VARIABLES DECLARATIONS               #
 #===========================================================#
-
-#CONSTANTES FOR IMAGE GENERATION:
-
-FONT_PATH = "./Data/Font/Ubuntu-R.ttf"
-ICON_DIR_PATH = "./Data/Images/Icons/"
-
-DAILY_IMAGE_PATH = "./Data/Images"
-DAILY_IMAGE_NAME = "dailyImage.png"
-
-BIG_FONT_SIZE =     80
-MEDIUM_FONT_SIZE =  40
-SMALL_FONT_SIZE =   20
-ICON_SIZE =         (50, 50)
-
-LEFT_ALIGNMENT = 20
-CENTRE_ALIGNMENT = 320
-UP_ALIGNMENT = 10
-INTER_ALIGNMENT = 30
-MIN_MAX_TEMP_ALIGNMENT = UP_ALIGNMENT + BIG_FONT_SIZE + 10
-ITEMS_UP_ALIGNMENT = MIN_MAX_TEMP_ALIGNMENT + MEDIUM_FONT_SIZE + INTER_ALIGNMENT
-TXT_VERTICAL_ALIGNMENT = LEFT_ALIGNMENT + ICON_SIZE[0] + INTER_ALIGNMENT
-TXT_CENTRAL_VERTICAL_ALIGNMENT = CENTRE_ALIGNMENT + ICON_SIZE[0] + INTER_ALIGNMENT
-TXT_HORIZONTAL_ALIGNMENT = 10
-
-MAIN_ICON_SIZE = (MIN_MAX_TEMP_ALIGNMENT + MEDIUM_FONT_SIZE, MIN_MAX_TEMP_ALIGNMENT + MEDIUM_FONT_SIZE)
-ITEM_HEIGHT = 50 + INTER_ALIGNMENT
 
 
 #CONSTANTES FOR WIND DIRECTION :
@@ -495,6 +470,6 @@ class DailyMeteo(WebhookEvent):
                         #Envoie l'embed sur les différents serveurs reliés au bot :
                         for webhook in self.webhooksList:
                             time.sleep(1)
-                            webhook.send("*Voici la météo prévue aujourd'hui à Toulouse*\n", file = discord.File(f"{DAILY_IMAGE_PATH}/{DAILY_IMAGE_NAME}"))
+                            webhook.send("*Voici la météo prévue aujourd'hui à Toulouse*\n", file = discord.File(f"{DAILY_IMAGE_PATH}{DAILY_IMAGE_NAME}"))
 
 
