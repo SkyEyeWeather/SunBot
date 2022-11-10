@@ -3,6 +3,7 @@ import logging
 import os
 import discord
 from discord.ext import commands
+from discord import app_commands
 import threading
 import json
 import requests
@@ -65,7 +66,7 @@ dailyMeteo = Meteo.DailyMeteo(vcRequestHandler, dictUsersBot)
 
 @sunBot.event
 async def on_ready(): 
-  sunController.on_ready()
+  await sunController.on_ready()
 
   """
   #Création du thread écoutant les alertes météos:
@@ -140,9 +141,10 @@ async def adminSetEmoji(ctx, userId :int, emoji : str, freq : float) :
     await ctx.channel.send("L'emoji a bien été mis à jour \U0001f642")
 
 
-@sunBot.command(name="ping", brief="Si je suis réveillé, je réponds pong ! Sinon c'est que je dors...")
-async def ping(ctx):
-  await ctx.channel.send("pong !")
+@sunBot.tree.command(name="ping", description="Si je suis réveillé, je réponds pong! Sinon... et bien c'est que je dors 😴", guild=discord.Object(id=1029313313827471413))
+async def ping(interaction : discord.Interaction):
+  await sunController.ping(interaction)
+
 
 @sunbot.betaFunction
 @sunBot.command(name="meteo", brief="Pour obtenir la météo actuelle d'une localité")
@@ -162,22 +164,11 @@ async def meteo(ctx : discord.ext.commands.Context, *args):
       await ctx.channel.send(embed=embed)
 
 
-@sunBot.command(name="pluie", brief="A quelle heure va-t-il pleuvoir aujourd'hui ?")
-async def pluie(ctx : discord.ext.commands.Context, *args):
-  localityName = " ".join(args)
-  #If city not specified by the caller, use his favorite city:
-  if localityName in (" ", ""):
-    localityName = dictUsersBot[ctx.author.id].favMeteo
-  print(f"Exécution de la commande pluie pour la localité {localityName} par {ctx.author.name}")
-  requestResponse = vcRequestHandler.dailyRainRequest(localityName)
-  #If request failed :
-  if requestResponse == {}:
-    print(f"Une erreur est survenue lors de la recherche des conditions de pluie pour La localité {localityName}")
-    await ctx.channel.send("Je ne suis pas en capacité de répondre à la requête, désolé...")
-    return
-  #Building of the embed to send in response of command :
-  embedToSend = Meteo.createEmbedRainEmbed(requestResponse)
-  await ctx.channel.send(embed=embedToSend)
+@sunBot.tree.command(name="pluie", description="Quand va-t-il pleuvoir aujourd'hui? ☔",  guild=discord.Object(id=1029313313827471413))
+@app_commands.describe(place_name="Nom de la localité")
+async def pluie(interaction : discord.Interaction, place_name : str) -> None:
+  await sunController.pluie(interaction, place_name)
+
 
 @sunBot.command(name="favMeteo", brief="Envie de connaître la météo d'une localité sans te casser la tête ? Cette commande est pour toi !")
 async def favMeteo(ctx, nomLocalite):

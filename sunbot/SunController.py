@@ -7,14 +7,18 @@ from http.client import HTTPException
 import json
 import logging
 import os
+from click import command
 import numpy as np
 import requests
 import discord
 from discord.ext import commands
+from discord import app_commands
 
 import sunbot.sunbot as sunbot
 from sunbot.SunServer import SunServer
 from sunbot.SunUser import SunUser
+import sunbot.weather.Meteo as weather
+import sunbot.WeatherAPIHandler as weatherAPIHandler
 
 
 #=================================
@@ -35,15 +39,16 @@ class SunController :
         ## Return value :
         Not applicable"""
 
-        self.bot = discordBot       #reference to the discord client for the bot
-        self.usersDict = {}         #Dict that contains all Discord users who can use the bot
-        self.serversDict = {}       #Dict that contains all the servers that the bot belongs
+        self.bot : commands.Bot = discordBot       #reference to the discord client for the bot
+        self.usersDict : dict = {}                 #Dict that contains all Discord users who can use the bot
+        self.serversDict : dict = {}               #Dict that contains all the servers that the bot belongs
 
 
-
-    def on_ready(self) -> None:
+    async def on_ready(self) -> None:
         """This method specified actions to perform when launching the bot"""
         logging.info("Starting bot initialisation...")
+        logging.info("Synchronize bot command tree to discord")
+        await self.bot.tree.sync()
         logging.info("Charging users' data")
         #For all servers where the bot is:
         for server in self.bot.guilds:
@@ -133,6 +138,27 @@ class SunController :
             self.usersDict[userId].emoji = emoji
         except KeyError:
             pass
+    
+    async def ping(self, interaction : discord.Interaction)->None:
+        """"""
+
+        await interaction.response.send_message("Pong !")
+
+    async def pluie(self, interaction : discord.Interaction, place_name : str) -> None:
+        """"""
+
+        #if no location is provided by the command user, use its favorite one:
+        if place_name == "":
+            place_name = self.usersDict[interaction.user.id].favLocation
+        logging.info(f"{interaction.user.id} called the command 'pluie' for the location {place_name}")
+        requestResponse = weatherAPIHandler.dailyRainRequest(place_name)
+        if requestResponse == {}:
+            logging.error(f"An error occured when trying to get daily rain informations for the place {place_name}")
+            await interaction.response.send_message(f"Humm, quelque chose s'est mal passé en essayant de récupérer les informations de pluie pour {place_name} 😢")
+            return
+        #Build the embed message to send in response to the call of the command:
+        embedToSend = weather.createEmbedRainEmbed(requestResponse)
+        await interaction.response.send_message(embed=embedToSend)
 
     #====================================================================================
     #                                   PRIVATE METHODS PART
