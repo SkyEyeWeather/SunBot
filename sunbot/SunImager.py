@@ -41,7 +41,7 @@ class SunImage() :
         try:
             logging.info(f"Loading image from {backgroundImagePath}...")
             self.backgroundImage = img.open(backgroundImagePath)
-            self.backgroundImage = self.backgroundImage.resize(width, height)
+            self.backgroundImage = self.backgroundImage.resize((width, height))
         except (FileNotFoundError, UnidentifiedImageError):
             logging.error(f"Image at {backgroundImagePath} cannot be found. Please check the path")
             logging.info(f"Creating an image with black background")
