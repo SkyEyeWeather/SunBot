@@ -136,40 +136,6 @@ def degToStrDirectVent(directionVent: int) -> tuple:
     return (VENT_NORD_OUEST, "NW")
 
 
-def jsonToMeteoCourante(messageJson: dict) :
-    """Fonction qui converti un message au format JSON issu d'un appel à l'API d'OpenWeather en 
-  message affichable sur Discord pour la météo courante."""
-    print(messageJson)
-    #Création de l'embed :
-    messageToSend = discord.Embed(
-        title="Météo actuelle sur {} [{}]".format(
-            messageJson["name"], messageJson["sys"]["country"]),
-        description=messageJson["weather"][0]["description"],
-        color=0x77b5fe)
-
-    #Ajout des différents domaines :
-    messageToSend.add_field(name="Température :",
-                            value=str(round(messageJson["main"]["temp"], 1)) +
-                            "°C",
-                            inline=True)
-    messageToSend.add_field(
-        name="Température ressentie :",
-        value=str(round(messageJson["main"]["feels_like"], 1)) + "°C",
-        inline=True)
-    messageToSend.add_field(name="Pression au niveau de la mer :", value=str(messageJson["main"]["pressure"]) + "hPa", inline=False)
-    messageToSend.add_field(name="Humidité :", value=str(messageJson["main"]["humidity"]) + "%", inline=False)
-    directionVent = degToStrDirectVent(messageJson["wind"]["deg"])
-    messageToSend.add_field(name="Direction vent :", value=directionVent[0] + "  [**" + directionVent[1] + "**]", inline=True)
-    messageToSend.add_field(name="Vitesse vent :", value=str(round(messageJson["wind"]["speed"] * 3.6, 2)) + "km/h", inline=True)
-    vitesseRafale = messageJson["wind"].get("gust", -1.)
-    if vitesseRafale >= 0.:
-        messageToSend.add_field(name="Rafale :", value=str(round(vitesseRafale * 3.6, 2)) + "km/h", inline=True)
-    messageToSend.add_field(name="Visibilité", value=str(messageJson["visibility"]) + "m", inline=False)
-    #Pied de l'embed
-    messageToSend.set_footer(text="Data from OpenWeather ({})".format(messageJson["base"]), icon_url="https://openweathermap.org/themes/openweathermap/assets/img/logo_white_cropped.png")
-    return messageToSend
-
-
 def generateWeatherImage(weatherConditionCode : str) -> SunImage:
     """Generate a basic image with adapted background and weather icon according 
     to the specified weather condition code

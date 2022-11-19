@@ -146,24 +146,6 @@ async def ping(interaction : discord.Interaction):
   await sunController.ping(interaction)
 
 
-@sunbot.betaFunction
-@sunBot.command(name="meteo", brief="Pour obtenir la météo actuelle d'une localité")
-async def meteo(ctx : discord.ext.commands.Context, *args):
-  nomLocalite = " ".join(args)
-  #Si une localité n'est pas spécificiée dans la commande :
-  if nomLocalite in (" ", ""):
-    nomLocalite = dictUsersBot[ctx.author.id].favMeteo
-  print("Recherche de la météo pour la localité {} par {}".format(nomLocalite, ctx.author.name))
-  url = "http://api.openweathermap.org/data/2.5/weather?q={}&appid={}&lang=fr&units=metric".format(nomLocalite, os.environ["idOpenWeather"])
-  reponse = requests.get(url)
-  if reponse.status_code != 200:
-      print("Echec de lors de la récupération de l'API. Code erreur : {}".format(reponse.status_code))
-      await ctx.channel.send("Désolé, une erreur est survenue lors de l'exécution de la commande \U0001f972")
-  else:
-      embed = Meteo.jsonToMeteoCourante(reponse.json())
-      await ctx.channel.send(embed=embed)
-
-
 @sunBot.tree.command(name="pluie", description="Quand va-t-il pleuvoir aujourd'hui? ☔",  guild=discord.Object(id=1029313313827471413))
 @app_commands.describe(place_name="Nom de la localité")
 async def pluie(interaction : discord.Interaction, place_name : str) -> None:
