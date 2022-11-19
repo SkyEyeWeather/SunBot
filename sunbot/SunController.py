@@ -48,7 +48,7 @@ class SunController :
         """This method specified actions to perform when launching the bot"""
         logging.info("Starting bot initialisation...")
         logging.info("Synchronize bot command tree to discord")
-        await self.bot.tree.sync()
+        await self.bot.tree.sync(guild=discord.Object(id=1029313313827471413))
         logging.info("Charging users' data")
         #For all servers where the bot is:
         for server in self.bot.guilds:
@@ -144,6 +144,20 @@ class SunController :
 
         await interaction.response.send_message("Pong !")
 
+    
+    async def meteo(self, interaction : discord.Interaction, place_name : str) -> None:
+        """"""
+
+        if place_name == "":
+            place_name = self.usersDict[interaction.user.id].favLocation
+        logging.info(f"{interaction.user.id} called the command `meteo` for the location {place_name}")
+        json_current_weather = weatherAPIHandler.currentWeatherRequest(place_name)
+        #Create current weather image:
+        weather.createCurrentWeatherImage(json_current_weather, sunbot.CURRENT_WEATHER_IMAGE_PATH)
+        await interaction.response.send_message(f"Voici la météo actuelle sur {place_name}:", file=discord.File(f"{sunbot.CURRENT_WEATHER_IMAGE_PATH}{sunbot.CURRENT_WEATHER_IMAGE_NAME}"))
+
+
+    @app_commands.command()
     async def pluie(self, interaction : discord.Interaction, place_name : str) -> None:
         """"""
 

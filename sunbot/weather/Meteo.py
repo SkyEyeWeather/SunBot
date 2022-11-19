@@ -91,7 +91,7 @@ def getPathImageWeatherType(weatherCondition : str) -> str :
     path to the image as a string"""
 
     firstType = weatherCondition.split(",")[0]
-    return dictWeatherType.get(firstType, ("Ciel inchangé", "./Data/Images/Backgrounds/thinning.png", f"{ICON_DIR_PATH}WeatherIcons/sunAndCloud.png"))[1]
+    return dictWeatherType.get(firstType, ("Ciel inchangé", "./Data/Images/Backgrounds/thinning.png", f"{ICON_DIR_PATH}WeatherIcons/sunAndCloudIcon.png"))[1]
 
 
 def getDescriptionWeatherType(weatherCondition : str) -> str :
@@ -168,6 +168,111 @@ def jsonToMeteoCourante(messageJson: dict) :
     #Pied de l'embed
     messageToSend.set_footer(text="Data from OpenWeather ({})".format(messageJson["base"]), icon_url="https://openweathermap.org/themes/openweathermap/assets/img/logo_white_cropped.png")
     return messageToSend
+
+
+def generateWeatherImage(weatherConditionCode : str) -> SunImage:
+    """Generate a basic image with adapted background and weather icon according 
+    to the specified weather condition code
+    ## Parameter:
+    * `weatherConditionCode` : weather conditon code, as a string
+    ## Return value:
+    Return basic image with adapted background. This image can be used to add
+    elements on top of it"""
+
+    #Create background image according to current weather conditions:
+    weatherImage = SunImage(getPathImageWeatherType(weatherConditionCode))
+    #Add mask to the image:
+    weatherImage.addMask("BLACK", 180, (weatherImage.width // 2 + 40, weatherImage.height), (0, 0))
+    #Add weather icon according to current weather:
+    weatherImage.addIcon(getIconPathWeatherType(weatherConditionCode), MAIN_ICON_SIZE, (350, UP_ALIGNMENT))
+    weatherImage.addIcon(f"{ICON_DIR_PATH}logoVC.jpeg", ICON_SIZE, (5, weatherImage.height - 45))
+    weatherImage.drawText("Données de l'API VisualCrossing", smallFont, (60, weatherImage.height - 40))
+    return weatherImage
+
+
+def addPrecipData(request_response : dict, weather_image : SunImage) -> SunImage :
+    """Add precipitation information contained in JSON request response to the
+    specified `weather_image`
+    ## Parameters:
+    * `request_response`: JSON response to the request, as a dict
+    * `weather_image`: image where add precipitations data
+    ## Return value:
+    Weather image with added precipitations data, for chained calls"""
+
+    #If excepted precipitation type is rain, freezing or ice:
+    if request_response['preciptype'] in ['rain', 'freezing', 'ice']:
+        weather_image.addIcon(f"{ICON_DIR_PATH}water-drop.png", ICON_SIZE, (LEFT_ALIGNMENT, ITEMS_UP_ALIGNMENT))
+        weather_image.drawText(f"{request_response['precipprob']}%", mediumFont, (TXT_VERTICAL_ALIGNMENT, ITEMS_UP_ALIGNMENT))
+        weather_image.addIcon(f"{ICON_DIR_PATH}pluviometer.png", ICON_SIZE, (CENTRE_ALIGNMENT, ITEMS_UP_ALIGNMENT))
+        precip = request_response['precip']
+        if precip > 0.:
+            weather_image.drawText(f"{precip}mm", mediumFont, (TXT_CENTRAL_VERTICAL_ALIGNMENT, ITEMS_UP_ALIGNMENT))
+   #If excepted precipitation type is snow:
+    elif request_response['preciptype'] == 'snow':
+        weather_image.addIcon(f"{ICON_DIR_PATH}snowflake.png", ICON_SIZE, (LEFT_ALIGNMENT, ITEMS_UP_ALIGNMENT))
+        weather_image.drawText(f"{request_response['precipprob']}%", mediumFont, (TXT_VERTICAL_ALIGNMENT, ITEMS_UP_ALIGNMENT))
+        weather_image.addIcon(f"{ICON_DIR_PATH}snow-depth.png", ICON_SIZE, (CENTRE_ALIGNMENT, ITEMS_UP_ALIGNMENT))
+        weather_image.drawText(f"{request_response['snowdepth']}+{request_response['snow']}", mediumFont, (TXT_CENTRAL_VERTICAL_ALIGNMENT, ITEMS_UP_ALIGNMENT))
+    return weather_image
+
+
+def addWindData(request_response : dict, weather_image : SunImage) -> SunImage:
+    """ Add wind information (speed, gust and direction) contained in JSON `request_response`
+    to the specified `weather_image`
+    ## Parameters:
+    * `request_response`: JSON response to the weather request, as a dict
+    * `weather_image`: image where add wind data
+    ## Return value;
+    Weather image with added wind data, for chained calls"""
+
+    #if there is a specified wind speed:
+    if request_response['windspeed'] is not None:
+        weather_image.addIcon(f"{ICON_DIR_PATH}wind.png", ICON_SIZE, (LEFT_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+        weather_image.drawText(f"{request_response['windspeed']}km/h", mediumFont, (TXT_VERTICAL_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+        weather_image.addIcon(f"{ICON_DIR_PATH}windDirection.png", ICON_SIZE, (LEFT_ALIGNMENT, 2 * ITEM_HEIGHT +  ITEMS_UP_ALIGNMENT), 360 - request_response['winddir'])
+        weather_image.drawText(f"{degToStrDirectVent(request_response['winddir'])[1]}", mediumFont, (TXT_VERTICAL_ALIGNMENT, 2 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+    #If there is a specified wind gust
+    if request_response['windgust'] is not None:
+        weather_image.addIcon(f"{ICON_DIR_PATH}wind.png", ICON_SIZE, (CENTRE_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT), )
+        weather_image.drawText(f"{request_response['windgust']}", mediumFont, (TXT_CENTRAL_VERTICAL_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+    return weather_image
+
+
+def addHumidityData(request_response : dict, weather_image : SunImage) -> None:
+    """"""
+    weather_image.addIcon(f"{ICON_DIR_PATH}humidity.png", ICON_SIZE, (LEFT_ALIGNMENT, 5 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+    weather_image.drawText(f"{request_response['humidity']}%", mediumFont, (TXT_VERTICAL_ALIGNMENT, 5 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+
+
+def createCurrentWeatherImage(currentWeather : dict, path : str) -> None:
+    """Create an image for the API response specified in argument
+    ## Parameters :
+    * `currentWeather` : response return by the weather API, as a dictionnary
+    ## Return value :
+    An image that represents response from weather API"""
+
+    #Create a basic image according to current weather conditions:
+    currentWeatherImage = generateWeatherImage(currentWeather['conditions'])
+    #Add temperature data to the image:
+    currentWeatherImage.drawText(f"{round(currentWeather['temp'], 1)}°C", bigFont, (LEFT_ALIGNMENT, UP_ALIGNMENT))
+    currentWeatherImage.drawText(f"ressenti {round(currentWeather['feelslike'], 1)}°C", mediumFont, (LEFT_ALIGNMENT, MIN_MAX_TEMP_ALIGNMENT))
+    #Add precipitation data to the image :
+    addPrecipData(currentWeather, currentWeatherImage)
+    #Add wind data to the image:
+    addWindData(currentWeather, currentWeatherImage)
+    #Add atmospheric data to the image:
+    currentWeatherImage.addIcon(f"{ICON_DIR_PATH}pressure.png", ICON_SIZE, (LEFT_ALIGNMENT, 3 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+    currentWeatherImage.drawText(f"{currentWeather['pressure']}hPa", mediumFont, (TXT_VERTICAL_ALIGNMENT, 3 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+    currentWeatherImage.addIcon(f"{ICON_DIR_PATH}visibility.png", ICON_SIZE, (CENTRE_ALIGNMENT, 3 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+    currentWeatherImage.drawText(f"{int(currentWeather['visibility'] * 1000)}m", mediumFont, (TXT_CENTRAL_VERTICAL_ALIGNMENT, 3 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+    currentWeatherImage.addIcon(f"{ICON_DIR_PATH}rays.png", ICON_SIZE, (LEFT_ALIGNMENT, 4 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+    currentWeatherImage.drawText(f"{currentWeather['uvindex']}", mediumFont, (TXT_VERTICAL_ALIGNMENT, 4 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+    currentWeatherImage.addIcon(f"{ICON_DIR_PATH}cloudcover.png", ICON_SIZE, (CENTRE_ALIGNMENT, 4 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+    currentWeatherImage.drawText(f"{currentWeather['cloudcover']}%", mediumFont, (TXT_CENTRAL_VERTICAL_ALIGNMENT, 4 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+    #Add humidity data to the image:
+    addHumidityData(currentWeather, currentWeatherImage)
+
+    currentWeatherImage.saveImage(f"{CURRENT_WEATHER_IMAGE_PATH}{CURRENT_WEATHER_IMAGE_NAME}")
 
 
 def createEmbedRainEmbed(requestResponse : dict):

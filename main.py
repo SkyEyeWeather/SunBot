@@ -170,6 +170,12 @@ async def pluie(interaction : discord.Interaction, place_name : str) -> None:
   await sunController.pluie(interaction, place_name)
 
 
+@sunBot.tree.command(name="meteo", description="Donne la météo courante", guild=discord.Object(id=1029313313827471413))
+@app_commands.describe(place_name="Nom de la localité")
+async def meteo(interaction : discord.Interaction, place_name : str) -> None:
+  await sunController.meteo(interaction, place_name)
+
+
 @sunBot.command(name="favMeteo", brief="Envie de connaître la météo d'une localité sans te casser la tête ? Cette commande est pour toi !")
 async def favMeteo(ctx, nomLocalite):
   print(f"Tentative de modification du favori météo de {ctx.author.name} vers {nomLocalite}")

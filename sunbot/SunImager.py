@@ -133,7 +133,7 @@ class SunImage() :
             icon = img.open(iconPath).convert("RGBA")
             icon = icon.resize(size).rotate(rotationAngle)
         except (FileNotFoundError, UnidentifiedImageError):
-            logging.error("Specified icon at {iconPath} doesn't exist. Please check the icon path. Icon can't be added to this image")
+            logging.error(f"Specified icon at {iconPath} doesn't exist. Please check the icon path. Icon can't be added to this image")
         else:
             #Add icon to this background image :
             self.backgroundImage.paste(icon, position, icon)

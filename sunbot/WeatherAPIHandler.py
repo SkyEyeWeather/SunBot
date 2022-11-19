@@ -42,9 +42,9 @@ def currentWeatherRequest(locationName : str) -> dict:
     ## Return:
     JSON response to the request, as a dictionnary"""
 
-    request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{locationName}/today?unitGroup=metric&include=current&key={os.environ['idVisualCrossing']}&contentType=json"
+    request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{locationName}/today?unitGroup=metric&include=current&key={os.environ['idVisualCrossing']}&contentType=json&lang=id"
     logging.info(f"Performing a current weather request for {locationName}")
-    return _performRequest(request)
+    return _performRequest(request)["currentConditions"]
 
 
 def dailyWeatherRequest(locationName : str) -> dict:

@@ -9,12 +9,14 @@ SERVER_BACKUP_REPERTORY_PATH = "./Data/Save/Servers/"
 GIF_REPERTORY_PATH = "./Data/Images/Gifs/"
 ICON_DIR_PATH = "./Data/Images/Icons/"
 DAILY_IMAGE_PATH = "./Data/Images/"
+CURRENT_WEATHER_IMAGE_PATH = "./Data/Images/"
 FONT_PATH = "./Data/Font/Ubuntu-R.ttf"
 
 
 #File name constants:
 APPLE_HEAD_GIF_NAME = "appleHead.gif"
 DAILY_IMAGE_NAME = "dailyImage.png"
+CURRENT_WEATHER_IMAGE_NAME = "currentWeather.png"
 
 
 #Constants for image generation:
@@ -34,7 +36,7 @@ TXT_CENTRAL_VERTICAL_ALIGNMENT = CENTRE_ALIGNMENT + ICON_SIZE[0] + INTER_ALIGNME
 TXT_HORIZONTAL_ALIGNMENT = 10
 
 MAIN_ICON_SIZE = (MIN_MAX_TEMP_ALIGNMENT + MEDIUM_FONT_SIZE, MIN_MAX_TEMP_ALIGNMENT + MEDIUM_FONT_SIZE)
-ITEM_HEIGHT = 50 + INTER_ALIGNMENT
+ITEM_HEIGHT = ICON_SIZE[1] + INTER_ALIGNMENT
 
 
 #===================================
