@@ -60,7 +60,7 @@ python-versions = "*"
 
 [[package]]
 name = "discord"
-version = "1.0.1"
+version = "2.0.0"
 description = "A mirror package for discord.py. Please install that instead."
 category = "main"
 optional = false
