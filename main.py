@@ -118,14 +118,9 @@ async def on_ready():
 
   #Création du thread écoutant les alertes météos:
   print("Génération des webhooks...")
-  webhookServeurTest1 = discord.Webhook.from_url(
-    'https://discord.com/api/webhooks/923863299270013018/6jfjT1QtrZ8UCXM1aEUhUD7z5G5Or9S3loFvlQs34Age8hX7VPfrD4UUQvGXCzmDN0Oo', adapter=discord.RequestsWebhookAdapter())
-  webhookServeurCUPGE = discord.Webhook.from_url(
-    'https://discord.com/api/webhooks/921547043196002324/NJohjH9dduqidXHvV4Ei9V4KuIUvOiAPnbMEVPf_x06CUStZou0TlTapQi3B1i_zuLfp', adapter=discord.RequestsWebhookAdapter())
-  webhookServeurPrive = discord.Webhook.from_url(
-    'https://discord.com/api/webhooks/965521867026866196/M_nmSDjgplk8a6DAbzAD8qZVEMBoVvR1FF9Mcts_-NQRg3Qc5lvXmFSSgUJxgDcAOQb5', adapter=discord.RequestsWebhookAdapter())
-  webhookServeurTest2 = discord.Webhook.from_url(
-    'https://discord.com/api/webhooks/990651246643929158/S75JOEUf-_clJXMhp22x2QCmgJd-W40U7FTGUtIvODWZteKqrBkKo2MnRAJ2hOojSMSx', adapter=discord.RequestsWebhookAdapter())
+  webhookServeurTest1 = discord.SyncWebhook.from_url('https://discord.com/api/webhooks/923863299270013018/6jfjT1QtrZ8UCXM1aEUhUD7z5G5Or9S3loFvlQs34Age8hX7VPfrD4UUQvGXCzmDN0Oo')
+  webhookServeurCUPGE = discord.SyncWebhook.from_url('https://discord.com/api/webhooks/921547043196002324/NJohjH9dduqidXHvV4Ei9V4KuIUvOiAPnbMEVPf_x06CUStZou0TlTapQi3B1i_zuLfp')
+  webhookServeurPrive = discord.SyncWebhook.from_url('https://discord.com/api/webhooks/965521867026866196/M_nmSDjgplk8a6DAbzAD8qZVEMBoVvR1FF9Mcts_-NQRg3Qc5lvXmFSSgUJxgDcAOQb5')
   alerteMeteo = Meteo.AlerteMeteo(vcRequestHandler)
   #alerteMeteo.addWebhook(webhookServeurTest1)
   #alerteMeteo.addWebhook(webhookServeurPrive)
@@ -135,7 +130,6 @@ async def on_ready():
   dailyMeteo.addWebhook(webhookServeurCUPGE)
   #dailyMeteo.addWebhook(webhookServeurTest1)
   dailyMeteo.addWebhook(webhookServeurPrive)
-  dailyMeteo.addWebhook(webhookServeurTest2)
   dailyMeteo.start()
   print("Webhook daily météo prêt")
   print("SunBot est chaud patate!")
