@@ -16,7 +16,7 @@ class WebhookEvent(threading.Thread):
         self.apiHandler = apiHandler	#Référence vers le gestionnaire de l'API Visual Crossing
 
 
-    def addWebhook(self, webhook : discord.Webhook):
+    def addWebhook(self, webhook : discord.SyncWebhook):
         """Ajout un listener à la liste des webhooks à l'écoute d'un événement"""
         self.webhooksList.append(webhook)
 
