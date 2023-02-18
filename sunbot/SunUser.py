@@ -14,24 +14,29 @@ import logging
 #================================
 
 class SunUser:
-    """This class represents a SunBot user. Each user has an ID that allows to identify it
-    in discord API. This can be used to send it a message for example. In this class, an user
-    is also defined by its name."""
+    """This class represents a SunBot user. Each user has an ID that allows to 
+    identify it in discord API. This can be used to send it a message for example. 
+    In this class, an user is also defined by its name."""
 
 
     def __init__(self, id : int, emoji : str = "", freqEmoji : float = 0.5, favLocation : str = "Toulouse", mp : bool = False) -> None:
-        """Constructor for this class. A SunBot user is defined by its Discord ID. Other
-        informations can be provided in arguments, such as an emoji that is used to react to message
-        sent by this user, if the user authorize private message from the bot, or a specific favorite
-        location for weather notifications. Each instance of this class is associated with a backup file.
-        The link between the user and its backup file is done thanks to ID (so ID is defined as a constant and
-        cannot be modified).
+        """Constructor for this class. A SunBot user is defined by its Discord ID. 
+        Other informations can be provided in arguments, such as an emoji that is 
+        used to react to a message sent by this user, if the user authorize private 
+        message from the bot, or a specific favorite location for weather notifications. 
+        Each instance of this class is associated to a backup file. The link 
+        between the user and its backup file is done thanks to the user ID 
+        (so ID is defined as a constant and cannot be modified).
         ## Parameters:
-        * id    [in] : discord identifiant for the SunBot user to create
-        * emoji [in] : optional, string code corresponding to emoji that will be used to react to messages sent by the user
-        * freqEmoji [in] : optional, float corresponding to frequency at which an emoji is added to a message from the user
-        * favLocation [in] : optional, string indicating the favourite location name for user to create. Default to Toulouse
-        * mp    [in] : optional, boolean indicating if the user allows private messages from SunBot. Default value is False"""
+        * `id`: discord identifiant of the SunBot user to create
+        * `emoji`: optional, string code corresponding to the emoji that will be 
+        used to react to messages sent by the user
+        * `freqEmoji`: optional, float corresponding to frequency at which an emoji 
+        is added to a message from the user
+        * `favLocation`: optional, string indicating the favourite location name 
+        for user to create. Default to Toulouse
+        * `mp`: optional, boolean indicating if the user allows private messages 
+        from the SunBot. Default value is `False`"""
 
         object.__setattr__(self, "id", id)
         object.__setattr__(self, "emoji", emoji)
@@ -40,12 +45,13 @@ class SunUser:
         object.__setattr__(self, "mp", mp)
 
         #Creation of a file corresponding to the user, for data saving purposes:
-        #if backup repertory doesn't exist, create it:
+        #if backup repertory does not exist, create it:
         if not os.path.exists(sunbot.USER_BACKUP_REPERTORY_PATH):
             os.makedirs(sunbot.USER_BACKUP_REPERTORY_PATH)
             logging.info(f"Repertory {sunbot.USER_BACKUP_REPERTORY_PATH} doesn't exist. Creating it.")
 
-        #If user was already created in the past, use data from corresponding file instead of values in arguments in constructor:
+        #If this user was already created in the past, use data from corresponding 
+        #file instead of values passed in arguments of the constructor:
         if os.path.isfile(f"{sunbot.USER_BACKUP_REPERTORY_PATH}{id}.json"):
             logging.info(f"User n°{id} already exists. Loading data from existing file.")
             with open(f"{sunbot.USER_BACKUP_REPERTORY_PATH}{id}.json", "r") as userFile:
@@ -66,8 +72,8 @@ class SunUser:
     def __setattr__(self, __name: str, __value) -> None:
         """Special method used to update object attributes
         ## Parameters:
-        * __name [in] : name of the attribute to update
-        * __value [in] : new value for the attribute to update"""
+        * `__name`: name of the attribute to update
+        * `__value`: new value for the attribute to update"""
 
         #if attribute exists:
         if __name in self.__dict__:

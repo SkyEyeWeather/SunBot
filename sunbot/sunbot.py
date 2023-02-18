@@ -44,7 +44,7 @@ ITEM_HEIGHT = ICON_SIZE[1] + INTER_ALIGNMENT
 #===================================
 
 def betaFunction(function):
-  """Decorator used to indicate that a function can only be call by robot's maintainers"""
+  """Decorator used to indicate that a function can only be call by bot's maintainers"""
   async def fonctionModifie(*args, **opt):
       if args[0].author.id != 691614947280551936:
           await args[0].channel.send(
@@ -56,8 +56,8 @@ def betaFunction(function):
 
 
 def adminFunction(function):
-  """Decorator used to indicate that function can only be call by an adminstrator of
-  the bot. Other users will receive an error message."""
+  """Decorator used to indicate that a function can only be call by an 
+  adminstrator of the bot. Other users will receive an error message."""
   async def fonctionModifie(*args, **kwargs):
     if args[0].author.id not in (691614947280551936, 690593377250443374):
       await args[0].channel.send(

@@ -13,33 +13,32 @@ import requests
 #=================================
 
 def _performRequest(request : str) -> dict:
-    """Perform request contained in string specified in argument and return the
-    result provides by the weather API. This is a private function.
+    """Performs the request contained in the string specified as argument and returns 
+    the result provided by the weather API. This is a private function.
     ## Parameter :
-    * request [in]: request to send to the weather API, as a string
-
+    * `request`: request to send to the weather API, as a string
     ## Return value :
-    Dictionnary that contains API response to the specified request. This dictionnary
+    Dictionnary that contains API response for the specified request. This dictionnary
     can be empty if an error occured when querying the API"""
 
     logging.info(f"Sending request {request} to the weather API")
     response = requests.get(request)
     #If an error occured when querying weather API :
     if response.status_code != 200:
-        logging.error(f"An error occured when querying weather API. Code error: {response.status_code}")
+        logging.error(f"An error occured when querying weather API. Error code: {response.status_code}")
         return {}
-    #Return received response in JSON format, in a dictionnary:
+    #Return received response in JSON format, as a dictionnary:
     responseJson = response.json()
     logging.info(f"Response received: {responseJson}")
     return responseJson
 
 
 def currentWeatherRequest(locationName : str) -> dict:
-    """Perform a request to the weather API to get current weather for specified location
+    """Performs a request to the weather API to get the current weather conditions 
+    for the specified location.
     ## Parameter:
-    * locationName [in]: name of the location whose we want know current weather
-
-    ## Return:
+    * `locationName`: name of the location for which we want to know the current weather
+    ## Return value:
     JSON response to the request, as a dictionnary"""
 
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{locationName}/today?unitGroup=metric&include=current&key={os.environ['idVisualCrossing']}&contentType=json&lang=id"
@@ -48,28 +47,26 @@ def currentWeatherRequest(locationName : str) -> dict:
 
 
 def dailyWeatherRequest(locationName : str) -> dict:
-    """Perform a request to the weather API to get daily weather for specified
-    location in argument
+    """Performs a request to the weather API to get the daily weather for the
+    specified location passed in argument
     ## Parameter:
-    * locationName [in]: name of the location which we want know the weather for current day
-
-    # Return value:
+    * `locationName` : name of the location for which we want to know the daily weather
+    ## Return value:
     JSON response to the request, as a dictionnary"""
 
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{locationName}/today?unitGroup=metric&include=days&key={os.environ['idVisualCrossing']}&contentType=json&lang=id"
-    logging.info(f"Performing a daily weather request for {locationName}")
+    logging.info(f"Retrieving the daily weather for the location {locationName}")
     return _performRequest(request)
 
 
 def dailyRainRequest(locationName : str) -> dict :
-    """Perform a request to weather API to retrieve data about hourly rain for
-    current day for the locality whose name is specified into argument.
-    # Parameter :
-    * locationName [in]: name of the locality whose wants get data about rain conditions in the current day
-
-    #Return value:
-    Request response from the weather API, in a dictionnary (JSON format)"""
+    """Performs a request to the weather API to retrieve hourly rainfall data
+    for the current day for the location whose name was specified in argument.
+    ## Parameter :
+    * `locationName`: name of the locality whose we want to get data about rain conditions for the current day
+    ## Return value:
+    JSON request response from the weather API, as a dictionnary"""
 
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{locationName}/today?unitGroup=metric&elements=datetime%2CdatetimeEpoch%2Cprecip%2Cprecipprob%2Cprecipcover%2Cpreciptype%2Csnow%2Csource&include=hours%2Cdays&key={os.environ['idVisualCrossing']}&contentType=json&lang=fr"
-    logging.info(f"Performing a daily rain request for {locationName}")
+    logging.info(f"Performing a daily rainfall request for {locationName}")
     return _performRequest(request)

@@ -1,15 +1,13 @@
 import discord
-from numpy import deprecate
 from sunbot.WebhookEvent import WebhookEvent
 import time
 import os
 from datetime import datetime
 import requests
-from PIL import Image, ImageFont, ImageDraw
+from PIL import ImageFont
 
 from sunbot.sunbot import *
 from sunbot.apiHandler.VisualCrossingHandler import VisualCrossingHandler
-from sunbot.apiHandler.discordHandler import DiscordHandler
 from sunbot.SunImager import SunImage
 
 #===========================================================#
@@ -85,29 +83,36 @@ dictWeatherType = {
 }
 
 def getPathImageWeatherType(weatherCondition : str) -> str :
-    """Get path to the image corresponding to weather conditions type specified in argument
-
-    ### Return :
-    path to the image as a string"""
+    """Returns the path to the image corresponding to the weather conditions type 
+    specified in arguments
+    ## Parameter:
+    * `weatherCondition`: weather condition type, as a string
+    ## Return value:
+    The path to the image, as a string"""
 
     firstType = weatherCondition.split(",")[0]
     return dictWeatherType.get(firstType, ("Ciel inchangé", "./Data/Images/Backgrounds/thinning.png", f"{ICON_DIR_PATH}WeatherIcons/sunAndCloudIcon.png"))[1]
 
 
 def getDescriptionWeatherType(weatherCondition : str) -> str :
-    """Get weather description of the weather condition type specified in argument
-    ### Return :
-    weather description as string
-    """
+    """Returns the weather description for the weather condition type specified 
+    in arguments
+    ## Parameter:
+    * `weatherCondition`: weather condition type, as a string
+    ## Return value:
+    The weather description, as a string"""
 
     firstType = weatherCondition.split(",")[0]
     return dictWeatherType.get(firstType, ("Ciel inchangé", "./Data/Images/Backgrounds/thinning.png", f"{ICON_DIR_PATH}WeatherIcons/sunAndCloud.png"))[0]
 
 
 def getIconPathWeatherType(weatherCondition : str) -> str :
-    """Get weather icon path corresponding to weather condition type specified in argument
-    ### Return :
-    weather icon path as string"""
+    """Returns the weather icon path corresponding to the weather condition type 
+    specified in arguments
+    ## Parameter:
+    * `weatherCondition`: weather condition type, as a string
+    ## Return value:
+    The weather icon path, as a string"""
 
     firstType = weatherCondition.split(",")[0]
     return dictWeatherType.get(firstType, ("Ciel inchangé", "./Data/Images/Backgrounds/thinning.png", f"{ICON_DIR_PATH}WeatherIcons/sunAndCloud.png"))[2]
@@ -119,6 +124,7 @@ def degToStrDirectVent(directionVent: int) -> tuple:
   Paramètre : - directionVent : direction du vent (en degré) à convertir
   Retour : un tuple contenant un émoji flèche donnant la direction du vent, puis une chaîne donnant
   la direction carnidale en suivant la norme."""
+
     if directionVent < 157:
         if directionVent < 67:
             if directionVent < 22:
@@ -137,19 +143,19 @@ def degToStrDirectVent(directionVent: int) -> tuple:
 
 
 def generateWeatherImage(weatherConditionCode : str) -> SunImage:
-    """Generate a basic image with adapted background and weather icon according 
-    to the specified weather condition code
+    """Generates a basic image with adapted background and weather icon according 
+    to the specified weather condition type
     ## Parameter:
-    * `weatherConditionCode` : weather conditon code, as a string
+    * `weatherConditionCode` : weather conditon type, as a string
     ## Return value:
-    Return basic image with adapted background. This image can be used to add
+    Returns basic image with adapted background. This image can be used to add
     elements on top of it"""
 
-    #Create background image according to current weather conditions:
+    #Create background image according to the current weather conditions:
     weatherImage = SunImage(getPathImageWeatherType(weatherConditionCode))
     #Add mask to the image:
     weatherImage.addMask("BLACK", 180, (weatherImage.width // 2 + 40, weatherImage.height), (0, 0))
-    #Add weather icon according to current weather:
+    #Add the weather icon according to the current weather conditions:
     weatherImage.addIcon(getIconPathWeatherType(weatherConditionCode), MAIN_ICON_SIZE, (350, UP_ALIGNMENT))
     weatherImage.addIcon(f"{ICON_DIR_PATH}logoVC.jpeg", ICON_SIZE, (5, weatherImage.height - 45))
     weatherImage.drawText("Données de l'API VisualCrossing", smallFont, (60, weatherImage.height - 40))
@@ -157,11 +163,11 @@ def generateWeatherImage(weatherConditionCode : str) -> SunImage:
 
 
 def addPrecipData(request_response : dict, weather_image : SunImage) -> SunImage :
-    """Add precipitation information contained in JSON request response to the
+    """Adds precipitation data contained in JSON request response to the
     specified `weather_image`
     ## Parameters:
     * `request_response`: JSON response to the request, as a dict
-    * `weather_image`: image where add precipitations data
+    * `weather_image`: image where to add precipitations data
     ## Return value:
     Weather image with added precipitations data, for chained calls"""
 
@@ -187,17 +193,17 @@ def addWindData(request_response : dict, weather_image : SunImage) -> SunImage:
     to the specified `weather_image`
     ## Parameters:
     * `request_response`: JSON response to the weather request, as a dict
-    * `weather_image`: image where add wind data
+    * `weather_image`: image where to add wind data
     ## Return value;
-    Weather image with added wind data, for chained calls"""
+    Weather image with wind data added, for chained calls"""
 
-    #if there is a specified wind speed:
+    #if wind speed data is specified:
     if request_response['windspeed'] is not None:
         weather_image.addIcon(f"{ICON_DIR_PATH}wind.png", ICON_SIZE, (LEFT_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
         weather_image.drawText(f"{request_response['windspeed']}km/h", mediumFont, (TXT_VERTICAL_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
         weather_image.addIcon(f"{ICON_DIR_PATH}windDirection.png", ICON_SIZE, (LEFT_ALIGNMENT, 2 * ITEM_HEIGHT +  ITEMS_UP_ALIGNMENT), 360 - request_response['winddir'])
         weather_image.drawText(f"{degToStrDirectVent(request_response['winddir'])[1]}", mediumFont, (TXT_VERTICAL_ALIGNMENT, 2 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
-    #If there is a specified wind gust
+    #If a wind gust data is specified:
     if request_response['windgust'] is not None:
         weather_image.addIcon(f"{ICON_DIR_PATH}wind.png", ICON_SIZE, (CENTRE_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT), )
         weather_image.drawText(f"{request_response['windgust']}", mediumFont, (TXT_CENTRAL_VERTICAL_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
@@ -205,19 +211,26 @@ def addWindData(request_response : dict, weather_image : SunImage) -> SunImage:
 
 
 def addHumidityData(request_response : dict, weather_image : SunImage) -> None:
-    """"""
+    """Adds humidity data retrieved from `request_response` to the specified weather
+    image
+    ## Parameter:
+    * `request_response`: JSON response from the weather API, as a dict
+    * `weather_image`: image where add humidity data
+    ## Return value:
+    Weather image with humidity data added, for chained calls"""
+
     weather_image.addIcon(f"{ICON_DIR_PATH}humidity.png", ICON_SIZE, (LEFT_ALIGNMENT, 5 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
     weather_image.drawText(f"{request_response['humidity']}%", mediumFont, (TXT_VERTICAL_ALIGNMENT, 5 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
 
 
 def createCurrentWeatherImage(currentWeather : dict, path : str) -> None:
-    """Create an image for the API response specified in argument
+    """Creates an image for the API response specified in arguments
     ## Parameters :
-    * `currentWeather` : response return by the weather API, as a dictionnary
+    * `currentWeather` : response returned by the weather API, as a dictionnary
     ## Return value :
     An image that represents response from weather API"""
 
-    #Create a basic image according to current weather conditions:
+    #Create a basic image according to the current weather conditions:
     currentWeatherImage = generateWeatherImage(currentWeather['conditions'])
     #Add temperature data to the image:
     currentWeatherImage.drawText(f"{round(currentWeather['temp'], 1)}°C", bigFont, (LEFT_ALIGNMENT, UP_ALIGNMENT))
@@ -248,11 +261,11 @@ def createEmbedRainEmbed(requestResponse : dict):
     fieldAdded = False
     for hour in requestResponse["days"][0]["hours"]:
         preciptype = hour["preciptype"]
-        #If there is rain announced for the current hour, add it to the embed :
+        #If rain is forecast for the current hour, add it to the embed message:
         if hour["precipprob"] > 0. and preciptype is not None:
             fieldAdded = True
             embedToSend.add_field(name="Pluie prévue à {} : ".format(hour["datetime"]), value="Probabilité de {} à {} %, attendu {} mm".format(dictRainType.get(preciptype[0], "pluie"), hour["precipprob"], hour["precip"]), inline=False)
-    #If there is not rain announced for the day :
+    #If no rain is forecast for the day :
     if not fieldAdded:
         embedToSend.add_field(name="Pas de pluie prévue aujourd'hui !", value="\u2600\uFE0F", inline=False)
     embedToSend.set_footer(text="Données de l'API Visual Crossing")
@@ -332,40 +345,49 @@ class DailyMeteo(WebhookEvent):
         self.alreadySend = False	#Booleen to indicate if daily message has already been sent
         self.listUserToSend = []	#Liste contenant les identifiants des utilisateurs à qui envoyer le bulletin quotidien
 
+
     def addUserToList(self, idUser : int) -> None :
-        """Add the user whose id is specified to the list to receive daily weather newsletter
-        #Parameter :
-        * idUser : user's id"""
+        """Adds the user whose `idUser` is specified to the list to receive daily 
+        weather newsletter
+        ## Parameter:
+        * idUser : user's id to add to the list"""
+
         self.listUserToSend.append(idUser)
 
+
     def delUserFromList(self, idUser : int) -> bool :
-        """Remove the user whose id is passed as a parameter from the list to receive daily weather newsletter
-        #Parameter :
-        *idUser : id of the user
-        #Return :
-        return True if user successfully deleted from the list, False if id passed doesn't exist in the list"""
+        """Removes the user whose id is passed in arguments from the list to receive 
+        daily weather newsletter
+        ## Parameter:
+        *idUser : id of the user to remove from the list
+        #Return value:
+        Returns `True` if the user was successfully deleted from the list, 
+        `False` if id does not exist in the list"""
+
         try:
             self.listUserToSend.remove(idUser)
             return True
         except ValueError:
             return False
 
+
     @staticmethod
     def createDailyWeatherImage(requestResponse : str, path : str) -> None :
-        """Create image for daily weather according to specified requestResponse passed into argument
-        ## Param :
-         * requestResponse : response to the request for daily weather return by Visual Crossing handler
-         * path            : string that contains path where store generated image """
+        """Creates an image for the daily weather, according to the specified `requestResponse` 
+        passed in arguments.
+        ## Parameters:
+         * `requestResponse` : response to the request for daily weather returned by Visual Crossing handler
+         * `path`            : string that contains path where save generated image"""
 
         dayInfo = requestResponse["days"][0]
 
-        #Create background image according to weather condition for the day :
+        #Create background image according to the weather condition for the day:
         weatherImage = SunImage(getPathImageWeatherType(dayInfo['conditions']))
-        #Add mask to the image :
+        #Add mask to the image:
         weatherImage.addMask("BLACK", 180, (weatherImage.width // 2 + 40, weatherImage.height), (0, 0))
-        #Add weather icon according announced daily weather :
+        #Add weather icon according to the forecast daily weather :
         weatherImage.addIcon(getIconPathWeatherType(dayInfo['conditions']), MAIN_ICON_SIZE, (350, UP_ALIGNMENT))
-        #Add icons to the daily weather image :
+        #Add icons to the daily weather image:
         weatherImage.addIcon(f"{ICON_DIR_PATH}water-drops.png", ICON_SIZE, (LEFT_ALIGNMENT, ITEMS_UP_ALIGNMENT))
         weatherImage.addIcon(f"{ICON_DIR_PATH}pluviometer.png", ICON_SIZE, (CENTRE_ALIGNMENT, ITEMS_UP_ALIGNMENT))
         weatherImage.addIcon(f"{ICON_DIR_PATH}wind.png", ICON_SIZE, (LEFT_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
@@ -376,7 +398,7 @@ class DailyMeteo(WebhookEvent):
         weatherImage.addIcon(f"{ICON_DIR_PATH}sunrise.png", ICON_SIZE, (LEFT_ALIGNMENT,  5 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
         weatherImage.addIcon(f"{ICON_DIR_PATH}sunset.png", ICON_SIZE, (CENTRE_ALIGNMENT, 5 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
         weatherImage.addIcon(f"{ICON_DIR_PATH}logoVC.jpeg", ICON_SIZE, (5, weatherImage.height - 45))
-        #Write text on the image :
+        #Write text on the image:
         weatherImage.drawText(f"{round(dayInfo['temp'], 1)}°C", bigFont, (LEFT_ALIGNMENT, UP_ALIGNMENT))
         weatherImage.drawText(f"{round(dayInfo['tempmin'], 1)}°C", mediumFont, (LEFT_ALIGNMENT, MIN_MAX_TEMP_ALIGNMENT), (0, 63, 255))
         weatherImage.drawText(f"{round(dayInfo['tempmax'], 1)}°C", mediumFont, (200, MIN_MAX_TEMP_ALIGNMENT), "ORANGE")
@@ -395,18 +417,19 @@ class DailyMeteo(WebhookEvent):
         #Save the image:
         weatherImage.saveImage(f"{path}/{DAILY_IMAGE_NAME}")
 
+
     @staticmethod
     def createEmbedMessage(requestResponse : str) -> discord.Embed:
-        """Creates an embed message from the requestResponse of API passed in parameter.
-        # Parameter :
-        * requestResponse : string corresponding to the response of the request to API
-        # Return :
-        Discord embed of the request response"""
+        """Creates an embed message from the `requestResponse` passed in parameter.
+        ## Parameter :
+        * `requestResponse` : string corresponding to the API response to the request
+        ## Return value:
+        Discord embed message of the request response"""
 
-        #Creation of the embed
+        #Create the embed
         dailyMeteoToSend = discord.Embed(title="Météo du jour", description= "Voici la météo prévue aujourd'hui à {}".format(requestResponse["address"]), color=0x77b5fe)
 
-        #Domaines de l'Embed
+        #Add embed fields:
         dayInfo = requestResponse["days"][0]
         dailyMeteoToSend.add_field(name="Temps :", value="{}".format(dayInfo["description"]), inline=False)
         dailyMeteoToSend.add_field(name="Température max :", value="{}°C".format(round(dayInfo["tempmax"], 1)))
@@ -435,13 +458,13 @@ class DailyMeteo(WebhookEvent):
         dictAlreadySendFlag = {}
         for userId in self.dictUsersBot :
             dictAlreadySendFlag[userId] = False
-            #If user allowing mp, add him to list to send daily weather newsletter :
+            #If user allowing mp, add him to the list to send daily weather newsletter :
             if self.dictUsersBot[userId].mp :
                 self.listUserToSend.append(userId)
         #Main loop of the thread :
         while True:
             time.sleep(60)
-            #Getting of UTC time :
+            #Get UTC time :
             currentTime = time.localtime()
             hour = currentTime[3]
             minute = currentTime[4]
@@ -451,7 +474,7 @@ class DailyMeteo(WebhookEvent):
                 for userId in dictAlreadySendFlag :
                     dictAlreadySendFlag[userId] = False
             else :
-                #For each user in list of user to send daily weather newsletter :
+                #For each user in the list of user to send daily weather newsletter :
                 for userId in self.listUserToSend:
                     #Check if it is time to send newsletter (at 7:00 am local):
                     userOffSetFav = self.dictUsersBot[userId].offSetFav

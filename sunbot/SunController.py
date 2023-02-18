@@ -3,16 +3,12 @@
 #   LIBRARIES USED BY THIS CLASS
 #=================================
 
-from http.client import HTTPException
-import json
-import logging
-import os
-from click import command
-import numpy as np
-import requests
 import discord
 from discord.ext import commands
 from discord import app_commands
+from http.client import HTTPException
+import logging
+import numpy as np
 
 import sunbot.sunbot as sunbot
 from sunbot.SunServer import SunServer
@@ -28,35 +24,35 @@ import sunbot.WeatherAPIHandler as weatherAPIHandler
 class SunController :
     """This class is the core class of the SunBot. This is the class that makes
     the link between server that contains users, the discord API, the bot weather part
-    and the weather API"""
+    and the weather API handler"""
 
     def __init__(self, discordBot : commands.Bot) -> None:
-        """Constructor of this class. Link the specified bot to this controller.
-        
+        """Constructor of this class. Bind the specified bot to this controller.
         ## Parameter :
-        * discordBot [in]: bot to link to the new controller 
-        
+        * `discordBot`: bot to bind to the new controller 
         ## Return value :
         Not applicable"""
 
         self.bot : commands.Bot = discordBot       #reference to the discord client for the bot
         self.usersDict : dict = {}                 #Dict that contains all Discord users who can use the bot
-        self.serversDict : dict = {}               #Dict that contains all the servers that the bot belongs
+        self.serversDict : dict = {}               #Dict that contains all the servers to which the bot belongs
 
 
     async def on_ready(self) -> None:
-        """This method specified actions to perform when launching the bot"""
-        logging.info("Starting bot initialisation...")
-        logging.info("Synchronize bot command tree to discord")
+        """This method specifies the actions to be performed when the bot is 
+        launched"""
+
+        logging.info("Starting bot initialization...")
+        logging.info("Synchronize bot commands tree to discord")
         await self.bot.tree.sync(guild=discord.Object(id=1029313313827471413))
-        logging.info("Charging users' data")
-        #For all servers where the bot is:
+        logging.info("Loading user data")
+        #For all servers known by the bot:
         for server in self.bot.guilds:
             self.serversDict[server.id] = SunServer(server.id)
             #For all members in the current server (bot users):
             for user in server.members:
                 currentUser = SunUser(user.id)
-                #Add user, if he is not already added:
+                #If the current user was not already added to the known users dict:
                 if user.id not in self.usersDict :
                     self.usersDict[user.id] = currentUser
                 self.serversDict[server.id].addUser(currentUser)
@@ -64,22 +60,22 @@ class SunController :
     
 
     async def on_member_join(self, member : discord.Member) -> None:
-        """This method is called when a new member joins a server the bot belongs
-        ## Parameters:
-        * `member` : new member that joins a server
-        ##Return value:
+        """This method is called when a new member joins a server where the bot belongs
+        ## Parameter:
+        * `member` : reference to the new member that joined a server known by the bot
+        ## Return value:
         not applicable"""
 
         logging.info(f"{member.name} joins the server {member.guild.name}")
         #Create a new user:
         newUser = SunUser(member.id)
-        #If user is already know by the bot, for example because he / she is present
-        #on another server where the bot is, don't readd him to the list of bot users:
+        #If user is already known by the bot, for example because he / she is present
+        #on another server where the bot is, do not add him to the list of bot users:
         if member.id not in self.usersDict:
             self.usersDict[member.id] = newUser
-        #Add new user to his / her corresponding server:
+        #Add new user to the corresponding server:
         self.serversDict[member.guild.id].addUser(newUser)
-        #Send a welcome message to the new user on system channel:
+        #Send a welcome message to the new user on system channel of the server:
         systemChannel = member.guild.system_channel
         #If no system channel was set on the server, try to find another channel:
         if systemChannel is None:
@@ -94,6 +90,7 @@ class SunController :
         * `message` : discord message sent
         ## Return value:
         not applicable"""
+
         logging.info("A message was received")
         msgServer = self.serversDict[message.guild.id]
         #Firstly process the command (if message is a command):
@@ -101,13 +98,13 @@ class SunController :
 
         #If the server where the message was sent is a "fun" server:
         if msgServer.fun:
-            #Add a reaction to the message:
+            #Randomly add a reaction to the message:
             await self._addReaction(message)
             lowerMsg = message.content.lower()
             #if the message corresponds to the "apple head" invocation and the server is a funny server:
             if lowerMsg in ["tête de pomme", "tete de pomme", "#tetedepomme"]:
                 msgServer.appleHead += 1
-                #If the message was repeted three consecutive time, invoke the gif:
+                #If the message was repeted three consecutive times, send the gif:
                 if msgServer.appleHead == 3:
                     msgServer.appleHead = 0
                     logging.info(f"Invocation of apple head on server {message.guild.name}!")
@@ -138,7 +135,8 @@ class SunController :
             self.usersDict[userId].emoji = emoji
         except KeyError:
             pass
-    
+
+
     async def ping(self, interaction : discord.Interaction)->None:
         """"""
 
@@ -161,7 +159,7 @@ class SunController :
     async def pluie(self, interaction : discord.Interaction, place_name : str) -> None:
         """"""
 
-        #if no location is provided by the command user, use its favorite one:
+        #if no location was provided by the user, use its favorite one:
         if place_name == "":
             place_name = self.usersDict[interaction.user.id].favLocation
         logging.info(f"{interaction.user.id} called the command 'pluie' for the location {place_name}")
@@ -179,7 +177,8 @@ class SunController :
     #====================================================================================
     
     async def _addReaction(self, msg : discord.Message) -> None:
-        """Private method to add a reaction to the specified message published by an user, according to the user probability for this action
+        """Private method to add a reaction to the specified message published 
+        by an user, according to the user probability for this action
         ## Parameters:
         * `msg` : discord message that triggered this method
         ## Return value:
@@ -189,14 +188,14 @@ class SunController :
         if not msg.author.bot:
             #Get the user that sent the message:
             user : SunUser = self.usersDict[msg.author.id]
-            #If an emoji is define for ttis user and probability is under freqEmoji proba:
+            #If an emoji is define for this user and probability is under freqEmoji proba:
             if user.emoji != "" and np.random.uniform() <= user.freqEmoji:
                 try:
                     await msg.add_reaction(user.emoji)
                 except discord.errors.NotFound:
                     logging.error(f"Reaction cannot be added because the message was deleted or the emoji {user.emoji} doesn't exist")
                 except TypeError:
-                    logging.error(f"Emoji {user.emoji}, set for the user n°{user.id} is not at a valid emoji format")
+                    logging.error(f"Emoji {user.emoji}, set for the user n°{user.id} is not in a valid emoji format")
     
 
     async def _deleteMsgCommand(ctx : commands.Context) -> None:
@@ -211,4 +210,4 @@ class SunController :
         except discord.Forbidden:
             logging.error(f"The bot doesn't have the permissions to delete a message on the server {ctx.guild.name}")
         except (discord.NotFound, HTTPException):
-            logging.error(f"The message to be delete was not found on the server {ctx.guild.name}")
+            logging.error(f"The message to be deleted was not found on the server {ctx.guild.name}")
