@@ -15,7 +15,6 @@ import sunbot.sunbot as sunbot
 from sunbot.apiHandler.VisualCrossingHandler import VisualCrossingHandler
 from sunbot.apiHandler.discordHandler import DiscordHandler
 
-import sunbot.BotUser as BotUser
 import sunbot.weather.Meteo as Meteo
 
 from sunbot.SunBotHelpCommand import SunBotHelpCommand
