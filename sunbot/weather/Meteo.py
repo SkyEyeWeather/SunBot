@@ -1,19 +1,19 @@
-import discord
-from sunbot.WebhookEvent import WebhookEvent
-import time
-import os
 from datetime import datetime
-import requests
+import discord
+import os
 from PIL import ImageFont
+import requests
+import time
 
-from sunbot.sunbot import *
 from sunbot.apiHandler.VisualCrossingHandler import VisualCrossingHandler
+from sunbot.sunbot import *
 from sunbot.SunImager import SunImage
+from sunbot.WebhookEvent import WebhookEvent
+
 
 #===========================================================#
 #           CONSTANTES VARIABLES DECLARATIONS               #
 #===========================================================#
-
 
 #CONSTANTES FOR WIND DIRECTION :
 VENT_NORD = "\u2B07"

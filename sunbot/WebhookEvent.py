@@ -1,5 +1,6 @@
 import discord
 import threading
+
 from sunbot.apiHandler.VisualCrossingHandler import VisualCrossingHandler
 from sunbot.apiHandler.discordHandler import DiscordHandler
 

@@ -4,8 +4,8 @@
 #=================================
 
 import discord
-from discord.ext import commands
 from discord import app_commands
+from discord.ext import commands
 from http.client import HTTPException
 import logging
 import numpy as np
@@ -13,8 +13,8 @@ import numpy as np
 import sunbot.sunbot as sunbot
 from sunbot.SunServer import SunServer
 from sunbot.SunUser import SunUser
-import sunbot.weather.Meteo as weather
 import sunbot.WeatherAPIHandler as weatherAPIHandler
+import sunbot.weather.Meteo as weather
 
 
 #=================================

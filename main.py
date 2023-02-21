@@ -1,24 +1,20 @@
-#Importation des différents modules
+#==================================
+#   MODULES USED IN THIS FILE
+#==================================
+
+import discord
+from discord import app_commands
+from discord.ext import commands
 import logging
 import os
-import discord
-from discord.ext import commands
-from discord import app_commands
-import threading
-import json
-import requests
-import numpy as np
 import time
-from PIL import Image
 
-import sunbot.sunbot as sunbot
 from sunbot.apiHandler.VisualCrossingHandler import VisualCrossingHandler
 from sunbot.apiHandler.discordHandler import DiscordHandler
-
-import sunbot.weather.Meteo as Meteo
-
+import sunbot.sunbot as sunbot
 from sunbot.SunBotHelpCommand import SunBotHelpCommand
 from sunbot.SunController import SunController
+import sunbot.weather.Meteo as Meteo
 
 
 #=======================

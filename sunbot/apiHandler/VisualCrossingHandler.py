@@ -3,7 +3,9 @@
 #=====================================
 import requests
 import os
+
 from sunbot.MetaSingleton import MetaSingleton
+
 
 #==============================
 #	Déclaration de la classe

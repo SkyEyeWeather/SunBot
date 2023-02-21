@@ -4,9 +4,10 @@
 #=================================
 
 import json
-import os
-import sunbot.sunbot as sunbot
 import logging
+import os
+
+import sunbot.sunbot as sunbot
 
 
 #================================
