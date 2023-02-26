@@ -1,11 +1,15 @@
 from abc import ABC, abstractmethod
-from copy import deepcopy
 import asyncio
+from copy import deepcopy
 import logging
+import time
 
-from discord import Interaction
+import discord
+from sunbot.weather.Meteo import create_daily_weather_img
+import sunbot.sunbot as sunbot
 from sunbot.SunUser import SunUser
 from sunbot.SunServer import SunServer
+import WeatherAPIHandler as weather_api_handler
 
 
 #One class for all locations in order so do not have too many tasks running in the same time
@@ -29,7 +33,7 @@ class WeatherEvent(ABC):
         dict_to_return = deepcopy(self.__users_location_dict)
         self.__mutex_users_dict.release()
         return dict_to_return
-    
+
 
     async def get_server_location_dict(self) -> dict:
         """"""
@@ -83,7 +87,7 @@ class WeatherEvent(ABC):
         return srv_in_dict
 
 
-    async def add_srv2location(self, server : SunServer, interaction : Interaction, location_name : str) -> bool:
+    async def add_srv2location(self, server : SunServer, interaction : discord.Interaction, location_name : str) -> bool:
         """"""
         if not await self.is_srv_sub2location(server, location_name):
             await self.__mutex_servers_dict.acquire()
@@ -110,7 +114,7 @@ class WeatherEvent(ABC):
 
 
     @abstractmethod
-    def run_event_task(self):
+    async def run_event_task(self):
         pass
 
 
@@ -119,11 +123,51 @@ class DailyWeatherEvent(WeatherEvent):
 
     def __init__(self) -> None:
         super().__init__()
+        self.weather_sent = False
+
+
+    async def run_event_task(self):
+        """"""
+
+        #Run forever:
+        while True:
+            await asyncio.sleep(60)
+            #Get current UTC hour:
+            utc_hour = time.gmtime(time.time())
+            current_hour = utc_hour[3]
+            current_minute = utc_hour[4]
+            #If it is the time to reset:
+            if (current_hour == sunbot.DAILY_WEATHER_RESET_UTC_HOUR) and (current_minute in [0, 1]):
+                self.weather_sent = False
+            #Else, if it is the time to send daily weather:
+            elif (current_hour == sunbot.DAILY_WEATHER_SEND_UTC_HOUR) and (current_minute in[0, 1]):
+                self.weather_sent = True
+                #Send daily weather on all registered servers, for all location:
+                self.__send_daily_weather2srv()
+                #Send daily weather to all the users registered for all location:
+                self.__send_daily_weather2usr()
     
 
-    def run_event_task(self):
+    async def __send_daily_weather2srv(self) -> None:
         """"""
-        pass
+        for location_name, server_dict in await self.get_server_location_dict().items():
+            #Get daily weather response from the API for current location:
+            request_response = weather_api_handler.dailyWeatherRequest(location_name)
+            if request_response != {}:
+                create_daily_weather_img(request_response, "./Data/Images")
+            #Send data for current location on each registered server
+            for server in server_dict:
+                #Get interaction for current server, which contain a channel
+                #where send daily weather:
+                interaction : discord.Interaction = server_dict[server]
+                #Send daily weather:
+                interaction.channel.send(content=f"Voici la météo prévue pour aujourd'hui à {location_name}\n", file=discord.File(f"{sunbot.DAILY_IMAGE_PATH}{sunbot.DAILY_IMAGE_NAME}"))
+                await asyncio.sleep(0.1)
+
+
+    async def __send_daily_weather2usr(self) -> None:
+        """"""
+        pass #TODO : Send daily weather to all registered users, in PM
 
 
 class WeatherAlertEvent(WeatherEvent):
@@ -133,6 +177,6 @@ class WeatherAlertEvent(WeatherEvent):
         super().__init__()
 
 
-    def run_event_task(self):
+    async def run_event_task(self):
         """"""
-        pass 
+        pass
