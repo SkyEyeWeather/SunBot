@@ -38,7 +38,7 @@ class SunController :
         self.bot : commands.Bot = discordBot       #reference to the discord client for the bot
         self.usersDict : dict = {}                 #Dict that contains all Discord users who can use the bot
         self.serversDict : dict = {}               #Dict that contains all the servers to which the bot belongs
-        self.daily_weather_event_handler = DailyWeatherEvent() #Handler for daily weather event
+        self.daily_weather_handler = DailyWeatherEvent() #Handler for daily weather event
 
 
     async def on_ready(self) -> None:
@@ -47,7 +47,7 @@ class SunController :
 
         logging.info("Starting bot initialization...")
         logging.info("Synchronize bot commands tree to discord")
-        await self.bot.tree.sync(guild=discord.Object(id=1029313313827471413))
+        await self.bot.tree.sync(guild=discord.Object(id=726063782606143618))
         logging.info("Loading user data")
         #For all servers known by the bot:
         for server in self.bot.guilds:
@@ -62,7 +62,7 @@ class SunController :
         #Create and launch tasks:
         logging.info("Launching weather tasks...")
         loop = asyncio.get_event_loop()
-        loop.create_task(self.daily_weather_event_handler.run_event_task())
+        loop.create_task(self.daily_weather_handler.run_event_task())
         logging.info("Bot is ready !")
     
 
@@ -162,7 +162,6 @@ class SunController :
         await interaction.response.send_message(f"Voici la météo actuelle sur {place_name}:", file=discord.File(f"{sunbot.CURRENT_WEATHER_IMAGE_PATH}{sunbot.CURRENT_WEATHER_IMAGE_NAME}"))
 
 
-    @app_commands.command()
     async def pluie(self, interaction : discord.Interaction, place_name : str) -> None:
         """"""
 
@@ -178,6 +177,41 @@ class SunController :
         #Build the embed message to send in response to the call of the command:
         embedToSend = weather.createEmbedRainEmbed(requestResponse)
         await interaction.response.send_message(embed=embedToSend)
+
+
+    async def set_daily_weather_channel(self, interaction : discord.Interaction, location_name : str) -> None:
+        """"""
+        #If daily weather for specified location and server was already set:
+        if await self.daily_weather_handler.is_srv_sub2location(interaction.guild_id, location_name):
+            #If specified interaction is the same as the current registered interaction for current server and location name:
+            registered_interaction = await self.daily_weather_handler.get_interaction(interaction.guild_id, location_name)
+            if interaction.channel_id == registered_interaction.channel_id:
+                #Disable daily weather for the current server:
+                res_del = await self.daily_weather_handler.del_srv_from_location(interaction.guild_id, location_name)
+                if res_del:
+                    await interaction.response.send_message(f"Bien compris, je n'enverrai plus la météo quotidienne pour {location_name} 😀")
+                    logging.info(f"Daily weather was disabled for the location {location_name} on the server n°{interaction.guild_id}")
+                else:
+                    await interaction.response.send_message(f"Bonne nouvelle, je n'envoie déjà pas la météo quotidienne pour {location_name}")
+            #Else replace registered interaction with the new one:
+            else:
+                res_del = await self.daily_weather_handler.del_srv_from_location(interaction.guild_id, location_name)
+                res_add = await self.daily_weather_handler.add_srv2location(interaction.guild_id, interaction, location_name)
+                if res_add and res_del:
+                    await interaction.response.send_message(f"Ok, j'enverrai désormais la météo quotidienne pour {location_name} ici!")
+                    logging.info(f"Daily weather for location {location_name} on the server n°{interaction.guild_id} was updated with a new channel")
+                else:
+                    await interaction.response.send_message("Hummm... Je n'arrive pas à mettre les données à jour, désolé...😢")
+                    logging.error(f"An error occured while trying to update channel for daily weather for location {location_name} on the server n°{interaction.guild_id}")
+        #If daily weather for specified location and server is not set:
+        else:
+            res_add = await self.daily_weather_handler.add_srv2location(interaction.guild_id, interaction, location_name)
+            if res_add:
+                await interaction.response.send_message(f"C'est compris, j'enverrai désormais quotidiennement la météo du jour pour {location_name} ici 😉")
+            else:
+                await interaction.response.send_message("Désolé, une erreur est survenue durant l'exécution de la commande...")
+                logging.error(f"An error occured while trying to add daily weather for the server n°{interaction.guild_id} to the location {location_name}")
+                
 
     #====================================================================================
     #                                   PRIVATE METHODS PART
