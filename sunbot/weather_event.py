@@ -9,7 +9,7 @@ from sunbot.weather.Meteo import create_daily_weather_img
 import sunbot.sunbot as sunbot
 from sunbot.SunUser import SunUser
 from sunbot.SunServer import SunServer
-import WeatherAPIHandler as weather_api_handler
+import sunbot.WeatherAPIHandler as weather_api_handler
 
 
 #One class for all locations in order so do not have too many tasks running in the same time
