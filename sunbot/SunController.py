@@ -3,6 +3,7 @@
 #   LIBRARIES USED BY THIS CLASS
 #=================================
 
+import asyncio
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -15,6 +16,7 @@ from sunbot.SunServer import SunServer
 from sunbot.SunUser import SunUser
 import sunbot.WeatherAPIHandler as weatherAPIHandler
 import sunbot.weather.Meteo as weather
+from sunbot.weather_event import DailyWeatherEvent
 
 
 #=================================
@@ -36,6 +38,7 @@ class SunController :
         self.bot : commands.Bot = discordBot       #reference to the discord client for the bot
         self.usersDict : dict = {}                 #Dict that contains all Discord users who can use the bot
         self.serversDict : dict = {}               #Dict that contains all the servers to which the bot belongs
+        self.daily_weather_event_handler = DailyWeatherEvent() #Handler for daily weather event
 
 
     async def on_ready(self) -> None:
@@ -56,6 +59,10 @@ class SunController :
                 if user.id not in self.usersDict :
                     self.usersDict[user.id] = currentUser
                 self.serversDict[server.id].addUser(currentUser)
+        #Create and launch tasks:
+        logging.info("Launching weather tasks...")
+        loop = asyncio.get_event_loop()
+        loop.create_task(self.daily_weather_event_handler.run_event_task())
         logging.info("Bot is ready !")
     
 
