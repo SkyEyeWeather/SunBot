@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import asyncio
+from http import server
 import logging
 import time
 
@@ -149,18 +150,18 @@ class WeatherEvent(ABC):
         return srv_in_dict
 
 
-    async def add_srv2location(self, server_id : int, interaction : discord.Interaction, location_name : str) -> bool:
+    async def add_srv2location(self, interaction : discord.Interaction, location_name : str) -> bool:
         """Add server whose Discord ID is specified to the `location_name` list
         of subscribing servers, with indicated discord `interaction`
 
         ## Parameters:
-        * `user_id`: user ID to add to the list of subscriber
+        * `interaction` : Discord interaction, used to retrieve context data
         * `location_name`: name of the location to which specified user whish
         to subscribe
-        * `interaction` : Discord interaction, used to retrieve context data
         ## Return value:
-        `True` if the user was successfully added, `False` otherwise
+        `True` if the server was successfully added, `False` otherwise
         """
+        server_id = interaction.guild_id
         if not await self.is_srv_sub2location(server_id, location_name):
             await self.__mutex_servers_dict.acquire()
             if not location_name in self.__servers_location_dict:

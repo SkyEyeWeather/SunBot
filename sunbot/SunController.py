@@ -201,7 +201,7 @@ class SunController :
             #Else replace registered interaction with the new one:
             else:
                 res_del = await self.daily_weather_handler.del_srv_from_location(interaction.guild_id, location_name)
-                res_add = await self.daily_weather_handler.add_srv2location(interaction.guild_id, interaction, location_name)
+                res_add = await self.daily_weather_handler.add_srv2location(interaction, location_name)
                 if res_add and res_del:
                     await interaction.response.send_message(f"Ok, j'enverrai désormais la météo quotidienne pour {location_name} ici!")
                     logging.info(f"Daily weather for location {location_name} on the server n°{interaction.guild_id} was updated with a new channel")
@@ -210,7 +210,7 @@ class SunController :
                     logging.error(f"An error occured while trying to update channel for daily weather for location {location_name} on the server n°{interaction.guild_id}")
         #If daily weather for specified location and server is not set:
         else:
-            res_add = await self.daily_weather_handler.add_srv2location(interaction.guild_id, interaction, location_name)
+            res_add = await self.daily_weather_handler.add_srv2location(interaction, location_name)
             if res_add:
                 await interaction.response.send_message(f"C'est compris, j'enverrai désormais quotidiennement la météo du jour pour {location_name} ici 😉")
             else:
