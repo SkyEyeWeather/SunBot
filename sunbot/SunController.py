@@ -180,7 +180,12 @@ class SunController :
 
 
     async def set_daily_weather_channel(self, interaction : discord.Interaction, location_name : str) -> None:
-        """"""
+        """Add or remove a server to / from the list of subscribing servers
+
+        ## Parameters:
+        * `interaction`: discord interaction which contains context data
+        * `location_name`: location to which the server have to be add / remove
+        """
         #If daily weather for specified location and server was already set:
         if await self.daily_weather_handler.is_srv_sub2location(interaction.guild_id, location_name):
             #If specified interaction is the same as the current registered interaction for current server and location name:
@@ -192,7 +197,7 @@ class SunController :
                     await interaction.response.send_message(f"Bien compris, je n'enverrai plus la météo quotidienne pour {location_name} 😀")
                     logging.info(f"Daily weather was disabled for the location {location_name} on the server n°{interaction.guild_id}")
                 else:
-                    await interaction.response.send_message(f"Bonne nouvelle, je n'envoie déjà pas la météo quotidienne pour {location_name}")
+                    await interaction.response.send_message(f"Bonne nouvelle, je n'envoie actuellement pas la météo quotidienne pour {location_name}")
             #Else replace registered interaction with the new one:
             else:
                 res_del = await self.daily_weather_handler.del_srv_from_location(interaction.guild_id, location_name)
