@@ -43,7 +43,7 @@ class SunImage() :
             self.backgroundImage = self.backgroundImage.resize((width, height))
         except (FileNotFoundError, UnidentifiedImageError):
             logging.error(f"Image at {backgroundImagePath} cannot be found. Please check the path")
-            logging.info(f"Creating a default image with black background")
+            logging.info("Creating a default image with black background")
             self.backgroundImage = img.new("RGBA", (width, height))
 
         self.drawTool = ImageDraw.ImageDraw(self.backgroundImage)
@@ -93,7 +93,7 @@ class SunImage() :
             logging.error(f"Tuple size must have a len of 2 : (width, height). Current size: {len(size)}")
             raise ValueError("addMask : tuple specified for mask size is incorrect.")
         if len(position) != 2 or position[0] < 0 or position[1] < 0:
-            logging.error(f"Specified value for width and height must be positive")
+            logging.error("Specified value for width and height must be positive")
             raise ValueError("addMask : tuple specified for mask position is incorrect.")
 
         #Creation of the mask :
