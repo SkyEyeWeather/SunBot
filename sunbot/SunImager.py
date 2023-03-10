@@ -33,7 +33,6 @@ class SunImage() :
         not applicable
         ##Exceptions:
         * `ValueError` : if specified width or height have negative value"""
-
         if width < 0 or height < 0 :
             raise ValueError(f"Width or height must have positive value. Given value w = {width}, h = {height}")
         #Try to load the specified image. If it does not exist, create a new image with black background and default size:
@@ -58,7 +57,6 @@ class SunImage() :
         not applicable
         ## Return value:
         Image dimensions, as a tuple (`width`, `height`)"""
-
         return  self.backgroundImage.size
 
 
@@ -68,7 +66,6 @@ class SunImage() :
         * `width`: new width for this image
         * `height`: new height for this image
         ## Return value: not applicable"""
-
         self.backgroundImage.resize((width, height))
         logging(f"Image {self.backgroundImage.__str__}")
 
@@ -84,7 +81,6 @@ class SunImage() :
         ## Return value: not applicable
         ## Exceptions:
         * `ValueError`: if one of the specified argument has an incorrect value"""
-
         #Arguments checks :
         if alpha < 0 or alpha > 255 :
             logging.error(f"Specified value for the argument 'alpha' ({alpha}) is not correct")
@@ -116,7 +112,6 @@ class SunImage() :
         ## Return value: not applicable
         ## Exceptions:
         * `ValueError`: if one of the specified argument has an incorrect value"""
-
         #Arguments checks :
         if len(size) != 2 or size[0] < 0 or size[1] < 0:
             logging.error(f"Tuple size for icon size must have a len of 2 : (width, height). Current size: {len(size)}")
@@ -146,7 +141,6 @@ class SunImage() :
         ## Return value: not applicable
         ## Exceptions:
         * `ValueError`: if one of the specified argument has an incorrect value"""
-
         #Arguments checks :
         if len(position) != 2 or position[0] < 0 or position[1] < 0:
             logging.error(f"Tuple size for icon position must have a len of 2 : (width, height). Current size: {len(position)}")
@@ -167,5 +161,4 @@ class SunImage() :
         ##Exceptions:
         * `ValueError`: if specified `format` could not be determined
         * `IOError`: if the file where save this image cannot be created"""
-
         self.backgroundImage.save(saveLocationPath, format)

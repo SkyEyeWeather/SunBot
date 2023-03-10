@@ -25,7 +25,6 @@ class SunServer:
         """Constructor of this class
         ## Parameter :
         * `id`: discord ID for the server to create. This ID is unique on Discord"""
-
         object.__setattr__(self, "id", id)
         object.__setattr__(self, "fun", fun)
         object.__setattr__(self, "usersDict", {})       #In this dict users' ID are the keys and users the values
@@ -58,7 +57,6 @@ class SunServer:
         ## Parameters:
         * `__name`: name of the field to update
         * `__value`: new value for the field to update"""
-
         if __name == "fun" :
             object.__setattr__(self, __name, __value)
             self._saveServer()
@@ -76,7 +74,6 @@ class SunServer:
         ## Return value:
         returns `True` if the user was added to the server, otherwise `False`. Falling to add
         an user can be explain by the fact that user was already added in this server"""
-
         #If user was already added into this server, do nothing:
         if user.id in self.usersDict.keys():
             logging.error(f"User n°{user.id} was already added to the server {self.id}. Do nothing.")
@@ -94,7 +91,6 @@ class SunServer:
         ## Return value:
         Return `True` if the corresponding user was successfully removed from this 
         server, otherwise `False`"""
-
         #If ID specified in arguments does not correspond to any server's user :
         if userID not in self.usersDict.keys():
             logging.error(f"User n°{userID} not in the server {self.id}")
@@ -112,7 +108,6 @@ class SunServer:
         ## Return value:
         Return `True` if the webhook was successfully added to this server, 
         otherwise `False`"""
-
         if webhookLink in self.webhooksDict.keys():
             logging.error(f"Webhook pointed by {webhookLink} was already added to the server {self.id}. Abort")
             return False
@@ -128,7 +123,6 @@ class SunServer:
         * `webhookLink`: link corresponding to the webhook to remove
         ## Return value:
         Return True if webhook was removed successfully, otherwise False"""
-
         if webhookLink not in self.webhooksDict.keys():
             logging.error(f"Webhook pointed by {webhookLink} doesn't exist in the server {self.id}. Do nothing")
             return False
@@ -146,7 +140,6 @@ class SunServer:
         to enable, `False` to disable
         ## Return value:
         Return `True` if operation was a success, otherwise `False`"""
-
         if webhookLink not in self.webhooksDict.keys():
             logging.error(f"Webhook {webhookLink} does not exist in the server {self.id}. Do nothing")
             return False
@@ -159,7 +152,6 @@ class SunServer:
     def _saveServer(self):
         """Private method used to save server's data into corresponding backup 
         file"""
-
         with open(f"{sunbot.SERVER_BACKUP_REPERTORY_PATH}{self.id}.json", "w") as serverFile:
             #To make current object transient, clear temporally dictionnary of users:
             tmpUsersDict = self.usersDict

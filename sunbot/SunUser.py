@@ -38,7 +38,6 @@ class SunUser:
         for user to create. Default to Toulouse
         * `mp`: optional, boolean indicating if the user allows private messages 
         from the SunBot. Default value is `False`"""
-
         object.__setattr__(self, "id", id)
         object.__setattr__(self, "emoji", emoji)
         object.__setattr__(self, "freqEmoji", freqEmoji)
@@ -75,7 +74,6 @@ class SunUser:
         ## Parameters:
         * `__name`: name of the attribute to update
         * `__value`: new value for the attribute to update"""
-
         #if attribute exists:
         if __name in self.__dict__:
             #User id cannot be modified:
@@ -96,7 +94,6 @@ class SunUser:
 
     def _saveUserData(self) -> None:
         """Private method used to save user's data into corresponding backup file."""
-
         with open(f"{sunbot.USER_BACKUP_REPERTORY_PATH}{self.id}.json", "w") as userFile:
             jsonData = json.dumps(self.__dict__, ensure_ascii=False, indent=2)
             userFile.write(jsonData)
