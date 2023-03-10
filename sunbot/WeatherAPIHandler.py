@@ -20,7 +20,6 @@ def _performRequest(request : str) -> dict:
     ## Return value :
     Dictionnary that contains API response for the specified request. This dictionnary
     can be empty if an error occured when querying the API"""
-
     logging.info(f"Sending request {request} to the weather API")
     response = requests.get(request)
     #If an error occured when querying weather API :
@@ -40,7 +39,6 @@ def currentWeatherRequest(locationName : str) -> dict:
     * `locationName`: name of the location for which we want to know the current weather
     ## Return value:
     JSON response to the request, as a dictionnary"""
-
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{locationName}/today?unitGroup=metric&include=current&key={os.environ['idVisualCrossing']}&contentType=json&lang=id"
     logging.info(f"Performing a current weather request for {locationName}")
     return _performRequest(request)["currentConditions"]
@@ -53,7 +51,6 @@ def dailyWeatherRequest(locationName : str) -> dict:
     * `locationName` : name of the location for which we want to know the daily weather
     ## Return value:
     JSON response to the request, as a dictionnary"""
-
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{locationName}/today?unitGroup=metric&include=days&key={os.environ['idVisualCrossing']}&contentType=json&lang=id"
     logging.info(f"Retrieving the daily weather for the location {locationName}")
     return _performRequest(request)
@@ -66,7 +63,6 @@ def dailyRainRequest(locationName : str) -> dict :
     * `locationName`: name of the locality whose we want to get data about rain conditions for the current day
     ## Return value:
     JSON request response from the weather API, as a dictionnary"""
-
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{locationName}/today?unitGroup=metric&elements=datetime%2CdatetimeEpoch%2Cprecip%2Cprecipprob%2Cprecipcover%2Cpreciptype%2Csnow%2Csource&include=hours%2Cdays&key={os.environ['idVisualCrossing']}&contentType=json&lang=fr"
     logging.info(f"Performing a daily rainfall request for {locationName}")
     return _performRequest(request)

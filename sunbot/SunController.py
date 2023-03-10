@@ -32,7 +32,6 @@ class SunController :
         * `discordBot`: bot to bind to the new controller 
         ## Return value :
         Not applicable"""
-
         self.bot : commands.Bot = discordBot       #reference to the discord client for the bot
         self.usersDict : dict = {}                 #Dict that contains all Discord users who can use the bot
         self.serversDict : dict = {}               #Dict that contains all the servers to which the bot belongs
@@ -41,7 +40,6 @@ class SunController :
     async def on_ready(self) -> None:
         """This method specifies the actions to be performed when the bot is 
         launched"""
-
         logging.info("Starting bot initialization...")
         logging.info("Synchronize bot commands tree to discord")
         await self.bot.tree.sync(guild=discord.Object(id=1029313313827471413))
@@ -65,7 +63,6 @@ class SunController :
         * `member` : reference to the new member that joined a server known by the bot
         ## Return value:
         not applicable"""
-
         logging.info(f"{member.name} joins the server {member.guild.name}")
         #Create a new user:
         newUser = SunUser(member.id)
@@ -90,7 +87,6 @@ class SunController :
         * `message` : discord message sent
         ## Return value:
         not applicable"""
-
         logging.info("A message was received")
         msgServer = self.serversDict[message.guild.id]
         #Firstly process the command (if message is a command):
@@ -183,7 +179,6 @@ class SunController :
         * `msg` : discord message that triggered this method
         ## Return value:
         not applicable"""
-
         #Add a reaction only if the user is not a bot:
         if not msg.author.bot:
             #Get the user that sent the message:
@@ -204,7 +199,6 @@ class SunController :
         * `ctx` : discord context in which the command has been invoked
         ## Return value:
         not applicable"""
-
         try:
             await ctx.message.delete()
         except discord.Forbidden:
