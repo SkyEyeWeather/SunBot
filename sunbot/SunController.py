@@ -133,7 +133,8 @@ class SunController :
             pass
 
 
-    async def ping(self, interaction : discord.Interaction)->None:
+    @staticmethod
+    async def ping(interaction : discord.Interaction)->None:
         """"""
 
         await interaction.response.send_message("Pong !")
