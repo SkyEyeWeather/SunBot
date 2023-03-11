@@ -55,7 +55,7 @@ class SunController :
                     self.usersDict[user.id] = currentUser
                 self.serversDict[server.id].addUser(currentUser)
         logging.info("Bot is ready !")
-    
+
 
     async def on_member_join(self, member : discord.Member) -> None:
         """This method is called when a new member joins a server where the bot belongs
@@ -138,7 +138,7 @@ class SunController :
 
         await interaction.response.send_message("Pong !")
 
-    
+
     async def meteo(self, interaction : discord.Interaction, place_name : str) -> None:
         """"""
 
@@ -171,7 +171,7 @@ class SunController :
     #====================================================================================
     #                                   PRIVATE METHODS PART
     #====================================================================================
-    
+
     async def _addReaction(self, msg : discord.Message) -> None:
         """Private method to add a reaction to the specified message published 
         by an user, according to the user probability for this action
@@ -191,7 +191,7 @@ class SunController :
                     logging.error(f"Reaction cannot be added because the message was deleted or the emoji {user.emoji} doesn't exist")
                 except TypeError:
                     logging.error(f"Emoji {user.emoji}, set for the user n°{user.id} is not in a valid emoji format")
-    
+
 
     async def _deleteMsgCommand(ctx : commands.Context) -> None:
         """Private method to delete the message written by an user to invoke a bot command
