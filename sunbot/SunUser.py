@@ -81,7 +81,7 @@ class SunUser:
                 logging.error("User identifiant cannot be modified. Abort")
                 return
             #Value for emoji frequency must be in [0, 1] interval:
-            elif __name == "freqEmoji":
+            if __name == "freqEmoji":
                 if __value < 0 or __value > 1:
                     raise ValueError
                 object.__setattr__(self, __name, __value)
