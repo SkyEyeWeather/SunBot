@@ -225,7 +225,7 @@ class DailyWeatherEvent(WeatherEvent):
             if (current_hour == sunbot.DAILY_WEATHER_RESET_UTC_HOUR) and (current_minute in [0, 1]):
                 self.weather_sent = False
             #Else, if it is the time to send daily weather:
-            elif (current_hour == 20) and (current_minute in[56, 57]) and not self.weather_sent:
+            elif (current_hour == sunbot.DAILY_WEATHER_SEND_UTC_HOUR) and (current_minute in[0, 1]) and not self.weather_sent:
             #elif (current_hour == sunbot.DAILY_WEATHER_SEND_UTC_HOUR) and (current_minute in[0, 1])and not self.weather_sent:
                 self.weather_sent = True
                 #Send daily weather on all registered servers, for all location:
