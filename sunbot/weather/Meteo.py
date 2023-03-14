@@ -263,6 +263,52 @@ def createEmbedRainEmbed(requestResponse : dict):
     return embedToSend
 
 
+def create_daily_weather_img(request_response : dict, path : str) -> None :
+    """Creates an image for the daily weather, according to the specified `requestResponse` 
+    passed in arguments.
+    ## Parameters:
+        * `request_response` : response to the request for daily weather returned by Visual Crossing handler
+        * `path`            : string that contains path where save generated image"""
+
+    dayInfo = request_response["days"][0]
+
+    #Create background image according to the weather condition for the day:
+    weatherImage = SunImage(getPathImageWeatherType(dayInfo['conditions']))
+    #Add mask to the image:
+    weatherImage.addMask("BLACK", 180, (weatherImage.width // 2 + 40, weatherImage.height), (0, 0))
+    #Add weather icon according to the forecast daily weather :
+    weatherImage.addIcon(getIconPathWeatherType(dayInfo['conditions']), MAIN_ICON_SIZE, (350, UP_ALIGNMENT))
+    #Add icons to the daily weather image:
+    weatherImage.addIcon(f"{ICON_DIR_PATH}water-drops.png", ICON_SIZE, (LEFT_ALIGNMENT, ITEMS_UP_ALIGNMENT))
+    weatherImage.addIcon(f"{ICON_DIR_PATH}pluviometer.png", ICON_SIZE, (CENTRE_ALIGNMENT, ITEMS_UP_ALIGNMENT))
+    weatherImage.addIcon(f"{ICON_DIR_PATH}wind.png", ICON_SIZE, (LEFT_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+    weatherImage.addIcon(f"{ICON_DIR_PATH}windDirection.png", ICON_SIZE, (CENTRE_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT), 360 - dayInfo['winddir'])
+    weatherImage.addIcon(f"{ICON_DIR_PATH}pressure.png", ICON_SIZE, (LEFT_ALIGNMENT, 2 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+    weatherImage.addIcon(f"{ICON_DIR_PATH}humidity.png", ICON_SIZE, (LEFT_ALIGNMENT, 3 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+    weatherImage.addIcon(f"{ICON_DIR_PATH}rays.png", ICON_SIZE, (LEFT_ALIGNMENT, 4 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+    weatherImage.addIcon(f"{ICON_DIR_PATH}sunrise.png", ICON_SIZE, (LEFT_ALIGNMENT,  5 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+    weatherImage.addIcon(f"{ICON_DIR_PATH}sunset.png", ICON_SIZE, (CENTRE_ALIGNMENT, 5 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+    weatherImage.addIcon(f"{ICON_DIR_PATH}logoVC.jpeg", ICON_SIZE, (5, weatherImage.height - 45))
+    #Write text on the image:
+    weatherImage.drawText(f"{round(dayInfo['temp'], 1)}°C", bigFont, (LEFT_ALIGNMENT, UP_ALIGNMENT))
+    weatherImage.drawText(f"{round(dayInfo['tempmin'], 1)}°C", mediumFont, (LEFT_ALIGNMENT, MIN_MAX_TEMP_ALIGNMENT), (0, 63, 255))
+    weatherImage.drawText(f"{round(dayInfo['tempmax'], 1)}°C", mediumFont, (200, MIN_MAX_TEMP_ALIGNMENT), "ORANGE")
+    weatherImage.drawText(f"{dayInfo['precipprob']}%", mediumFont, (TXT_VERTICAL_ALIGNMENT, ITEMS_UP_ALIGNMENT))
+    precip = dayInfo["precip"]
+    if precip > 0 :
+        weatherImage.drawText(f"{precip}mm", mediumFont, (TXT_CENTRAL_VERTICAL_ALIGNMENT, ITEMS_UP_ALIGNMENT))
+    weatherImage.drawText(f"{round(dayInfo['windspeed'], 2)}km/h", mediumFont, (TXT_VERTICAL_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+    weatherImage.drawText(f"{degToStrDirectVent(dayInfo['winddir'])[1]}", mediumFont, (TXT_CENTRAL_VERTICAL_ALIGNMENT, ITEM_HEIGHT + ITEMS_UP_ALIGNMENT))
+    weatherImage.drawText(f"{dayInfo['pressure']}hPa", mediumFont, (TXT_VERTICAL_ALIGNMENT, 2 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT + TXT_HORIZONTAL_ALIGNMENT))
+    weatherImage.drawText(f"{dayInfo['humidity']}%", mediumFont, (TXT_VERTICAL_ALIGNMENT, 3 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT + TXT_HORIZONTAL_ALIGNMENT))
+    weatherImage.drawText(f"{dayInfo['uvindex']}", mediumFont, (TXT_VERTICAL_ALIGNMENT, 4 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT + TXT_HORIZONTAL_ALIGNMENT))
+    weatherImage.drawText(f"{dayInfo['sunrise'][0 : 5]}", mediumFont, (TXT_VERTICAL_ALIGNMENT, 5 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT + TXT_HORIZONTAL_ALIGNMENT))
+    weatherImage.drawText(f"{dayInfo['sunset'][0 : 5]}", mediumFont, (TXT_CENTRAL_VERTICAL_ALIGNMENT, 5 * ITEM_HEIGHT + ITEMS_UP_ALIGNMENT + TXT_HORIZONTAL_ALIGNMENT))
+    weatherImage.drawText("Données de l'API VisualCrossing", smallFont, (60, weatherImage.height - 40))
+    #Save the image:
+    weatherImage.saveImage(f"{path}/{DAILY_IMAGE_NAME}")
+
+
 class AlerteMeteo(WebhookEvent):
     """Classe permettant de récupérer les alertes météo générées par l'API et de les transmettre sous forme
   de Webhook aux serveurs Discord reliés"""

@@ -67,6 +67,19 @@ class SunServer:
             logging.error("Server attributes cannot directly modified")
 
 
+    def __eq__(self, __o: object) -> bool:
+        """Test if the specified object `__o` is equal to this instance
+        ## Parameter:
+        * `__o`: object to compare to this instance
+        ## Return value:
+        `True` if the specified object to this instance, `False` otherwise"""
+
+        if type(__o) != SunServer:
+            return False
+        #Two servers are equal if they have the same ID:
+        return self.id == __o.id
+
+
     def addUser(self, user : SunUser) -> bool:
         """Adds an user to this server.
         ## Parameter:

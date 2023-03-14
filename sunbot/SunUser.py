@@ -92,6 +92,20 @@ class SunUser:
             logging.error(f"Class {__class__.__name__} haven't got a attribute named {__name}")
 
 
+    def __eq__(self, __o: object) -> bool:
+        """Test if the specified object `o` is equal to this instance
+        ## Parameter: 
+        * `__o`: object to compare to this instance
+        ## Return value:
+        `True` if the specified object and this user are equal, `False` otherwise"""
+
+        #If specified object is not a sunbot user, return false:
+        if type(__o) != SunUser:
+            return False
+        #Two users are equal if and only if they have the same ID:
+        return self.id == __o.id
+
+
     def _saveUserData(self) -> None:
         """Private method used to save user's data into corresponding backup file."""
         with open(f"{sunbot.USER_BACKUP_REPERTORY_PATH}{self.id}.json", "w") as userFile:
