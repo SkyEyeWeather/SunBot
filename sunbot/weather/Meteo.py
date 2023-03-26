@@ -485,7 +485,7 @@ class DailyMeteo(WebhookEvent):
                         else:
                             self.dictUsersBot[userId].userDiscord.send("Aïe, il y a eu un problème avec la requête à l'API \U0001f625")
 
-                if (hour == 6) and (minute >= 0 and minute <= 1) and not self.alreadySend:
+                if (hour == 5) and (minute >= 0 and minute <= 1) and not self.alreadySend:
                     jsonResponse = self.apiHandler.dailyMeteoRequest("Toulouse")
                     #Si la requête n'a pas échoué :
                     if jsonResponse != {}:
