@@ -9,12 +9,19 @@ from operator import itemgetter
 
 class Location(tuple):
     """Define a location. This class is a subclass of tuple, so it is immutable
-    and can be used in dictionnary as key"""
-
+    and can be used in dictionnary as key
+    """
     __slots__ = []  #To prevent creation of attributes
     def __new__(cls, location_name : str, location_tz : str):
         return tuple.__new__(cls, (location_name, location_tz))
     
+    def __eq__(self, __value: object) -> bool:
+        """Compare this location"""
+        if type(__value) != type(self):
+            return False
+        return self.name == __value.name
+
+    #Properties
     name : str = property(itemgetter(0))
     tz : str = property(itemgetter(1))
     
