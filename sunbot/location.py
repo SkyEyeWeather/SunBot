@@ -20,6 +20,9 @@ class Location(tuple):
         if type(__value) != type(self):
             return False
         return self.name == __value.name
+    
+    def __hash__(self) -> int:
+        return self.name.__hash__()
 
     #Properties
     name : str = property(itemgetter(0))
