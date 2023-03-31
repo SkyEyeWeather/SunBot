@@ -6,13 +6,17 @@ class is immutable.
 """
 
 from operator import itemgetter
+import pytz
 
 class Location(tuple):
     """Define a location. This class is a subclass of tuple, so it is immutable
     and can be used in dictionnary as key
     """
     __slots__ = []  #To prevent creation of attributes
-    def __new__(cls, location_name : str, location_tz : str):
+    def __new__(cls, location_name : str, location_tz_str : str):
+        location_tz = None
+        if location_tz_str != "":
+            location_tz = pytz.timezone(location_tz_str)
         return tuple.__new__(cls, (location_name, location_tz))
     
     def __eq__(self, __value: object) -> bool:
