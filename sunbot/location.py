@@ -13,6 +13,7 @@ class Location(tuple):
     """Define a location. This class is a subclass of tuple, so it is immutable
     and can be used in dictionnary as key
     """
+    
     __slots__ = []  # To prevent creation of attributes
 
     def __new__(cls, location_name : str, location_tz_str : str):
@@ -33,4 +34,3 @@ class Location(tuple):
     #Properties
     name : str = property(itemgetter(0))
     tz : str = property(itemgetter(1))
-

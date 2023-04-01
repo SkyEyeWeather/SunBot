@@ -5,6 +5,7 @@ import logging
 from typing import Dict
 
 import discord
+from sympy import use
 from sunbot.location import Location
 from sunbot.weather.Meteo import create_daily_weather_img
 import sunbot.sunbot as sunbot
@@ -105,9 +106,9 @@ class WeatherEvent(ABC):
                 self.__users_location_dict[current_location] = []
             self.__users_location_dict[location_name].append(user_id)
             self.__mutex_users_dict.release()
-            logging.info(f"User n°{user_id} was successfully added to the list for the location {location_name}")
+            logging.info(f"User n°%d was successfully added to the list for the location %s", user_id, location_name)
             return True
-        logging.warning(f"User n°{user_id} is already listening for the location {location_name}. Do nothing")
+        logging.warning(f"User n°%d is already listening for the location %s. Do nothing", user_id, location_name)
         return False
 
     async def del_usr_from_location(self, user_id : int, location_name : str) -> bool:
@@ -128,7 +129,7 @@ class WeatherEvent(ABC):
         await self.__mutex_users_dict.acquire()
         self.__users_location_dict[Location(location_name, "")].remove(user_id)
         self.__mutex_users_dict.release()
-        logging.info(f"User n°{user_id} was successfully removed from the list for the location {location_name}")
+        logging.info(f"User n°%d was successfully removed from the list for the location", user_id)
         return True
 
     async def is_srv_sub2location(self, server_id : int, location_name : str) -> bool:
@@ -167,9 +168,9 @@ class WeatherEvent(ABC):
                 self.__servers_location_dict[current_location] = {}
             self.__servers_location_dict[current_location][server_id] = interaction
             self.__mutex_servers_dict.release()
-            logging.info(f"Server n°{server_id} was successfully added to the list for the location {location_name}")
+            logging.info(f"Server n°%d was successfully added to the list for the location %s", server_id, location_name)
             return True
-        logging.warning(f"User n°{server_id} is already listening for the location {location_name}. Do nothing")
+        logging.warning(f"User n°%d is already listening for the location %s. Do nothing", server_id, location_name)
         return False
 
     async def del_srv_from_location(self, server_id : int, location_name : str) -> bool:
@@ -185,12 +186,12 @@ class WeatherEvent(ABC):
         subscribing servers for the specified location, `False` otherwise
         """
         if not await self.is_srv_sub2location(server_id, location_name):
-            logging.warning(f"Server n°{server_id} has no subscribed to the location {location_name}")
+            logging.warning(f"Server n°%d has no subscribed to the location %s", server_id, location_name)
             return False
         await self.__mutex_servers_dict.acquire()
         self.__servers_location_dict[Location(location_name, "")].pop(server_id)
         self.__mutex_servers_dict.release()
-        logging.info(f"Server n°{server_id} was successfully removed from the list for the location {location_name}")
+        logging.info(f"Server n°%d was successfully removed from the list for the location %s", server_id, location_name)
         return True
 
     @abstractmethod
@@ -210,7 +211,6 @@ class DailyWeatherEvent(WeatherEvent):
         self.__dict_weather_sent_flag : Dict[Location, bool] = {}
         self.__mutex_dict_flag = asyncio.Lock()
 
-
     async def get_location_flag(self, location : Location) -> bool:
         """Return the flag for the specified location. The value of the flag is
         `True` if the daily weather was already sent for the location, `False`
@@ -225,7 +225,7 @@ class DailyWeatherEvent(WeatherEvent):
         try:
             flag = self.__dict_weather_sent_flag[location]
         except KeyError:
-            logging.error("Specified location ({}) is not in daily weather flag".format(location.name))
+            logging.error("Specified location (%s) is not in daily weather flag", location.name)
         finally:
             self.__mutex_dict_flag.release()
         return flag
@@ -252,13 +252,13 @@ class DailyWeatherEvent(WeatherEvent):
             await self.set_location_flag(current_location, False)
         return (await super().add_srv2location(interaction, location_name, location_tz))
 
-
     async def run_event_task(self):
         logging.info("Starting daily weather task")
         # Run forever:
         while True:
             await asyncio.sleep(60)
-            # Check for each known location if it is the time to send the daily weather or reset flag:
+            # Check for each known location if it is the time to send the daily
+            # weather or reset flag:
             for location, server_dict in (await self.get_server_location_dict()).items():
                 loc_cur_h = int(datetime.now(location.tz).strftime("%H"))
                 loc_cur_min = int(datetime.now(location.tz).strftime("%M"))
@@ -268,7 +268,6 @@ class DailyWeatherEvent(WeatherEvent):
                 elif(loc_cur_h == sunbot.DAILY_WEATHER_SEND_HOUR) and (loc_cur_min in [0, 1]) and not await self.get_location_flag(location):
                     await self.set_location_flag(location, True)
                     await self.__send_daily_weather2srv(location, server_dict)
-    
 
     @staticmethod
     async def __send_daily_weather2srv(location : Location, server_dict : Dict[int, discord.Interaction]) -> None:
@@ -294,7 +293,6 @@ class DailyWeatherEvent(WeatherEvent):
                 await interaction.channel.send(content=f"Voici la météo prévue pour aujourd'hui à {location.name}\n", file=discord.File(f"{sunbot.DAILY_IMAGE_PATH}{sunbot.DAILY_IMAGE_NAME}"))
                 await asyncio.sleep(0.1)
 
-
     async def __send_daily_weather2usr(self) -> None:
         """"""
         pass #TODO : Send daily weather to all registered users, in PM
@@ -306,7 +304,6 @@ class WeatherAlertEvent(WeatherEvent):
 
     def __init__(self) -> None:
         super().__init__()
-
 
     async def run_event_task(self):
         """"""
