@@ -11,7 +11,7 @@ import sunbot.sunbot as sunbot
 import sunbot.WeatherAPIHandler as weather_api_handler
 
 
-#One class for all locations in order to not have too many tasks running in the same time
+# One class for all locations in order to not have too many tasks running in the same time
 class WeatherEvent(ABC):
     """Abstract class that represent a general weather event. Because this class
     is abstract, it cannot be directly instantiate
@@ -20,12 +20,11 @@ class WeatherEvent(ABC):
     def __init__(self) -> None:
         """Constructor for this class, which can only be called by inheriting classes"""
 
-        #private attributes:
-        self.__users_location_dict : dict[Location, list[int]] = {}                         #Dict containing user that subscribed to each location
-        self.__servers_location_dict : dict[Location, dict[int, discord.Interaction]] = {}  #Dict containing server that subscribed to each location
-        self.__mutex_users_dict = asyncio.Lock()    #Mutex to handle access to user dict
-        self.__mutex_servers_dict = asyncio.Lock()  #Mutex to handle access to server dict
-
+        # private attributes:
+        self.__users_location_dict : dict[Location, list[int]] = {}                         # Dict containing user that subscribed to each location
+        self.__servers_location_dict : dict[Location, dict[int, discord.Interaction]] = {}  # Dict containing server that subscribed to each location
+        self.__mutex_users_dict = asyncio.Lock()    # Mutex to handle access to user dict
+        self.__mutex_servers_dict = asyncio.Lock()  # Mutex to handle access to server dict
 
     async def get_users_location_dict(self) -> dict[Location, list[int]] :
         """ Return dictionary containing ID of all users that subscribed to
@@ -33,10 +32,9 @@ class WeatherEvent(ABC):
         and list of ID the values
         """
         await self.__mutex_users_dict.acquire()
-        dict_to_return = self.__users_location_dict.copy() #/!\ shallow copy
+        dict_to_return = self.__users_location_dict.copy() # /!\ shallow copy
         self.__mutex_users_dict.release()
         return dict_to_return
-
 
     async def get_server_location_dict(self) -> dict[Location, dict[int, discord.Interaction]]:
         """Return dictionnary containing ID of all servers that subsribed to each
@@ -45,10 +43,9 @@ class WeatherEvent(ABC):
         """
         dict_to_return = {}
         await self.__mutex_servers_dict.acquire()
-        dict_to_return = self.__servers_location_dict.copy() #/!\ shallow copy
+        dict_to_return = self.__servers_location_dict.copy() # /!\ shallow copy
         self.__mutex_servers_dict.release()
         return dict_to_return
-    
 
     async def get_interaction(self, server_id : int, location_name : str) -> discord.Interaction:
         """Return discord interaction linked to the specified `server_id` and
@@ -72,7 +69,6 @@ class WeatherEvent(ABC):
         finally:
             self.__mutex_servers_dict.release()
         return interaction
-        
 
     async def is_usr_sub2location(self, user_id : int, location_name : str) -> bool:
         """Return wether the user corresponding to specified `user_id` subscribed
@@ -90,8 +86,7 @@ class WeatherEvent(ABC):
         self.__mutex_users_dict.release()
         return user_in_list
 
-
-    async def add_usr2location(self, user_id : int, location_name : str, location_tz = "") -> bool:
+    async def add_usr2location(self, user_id : int, location_name : str, location_tz="") -> bool:
         """Add user whose Discord ID is specified to the `location_name` list
         of subscribers
 
@@ -115,7 +110,6 @@ class WeatherEvent(ABC):
         logging.warning(f"User n°{user_id} is already listening for the location {location_name}. Do nothing")
         return False
 
-
     async def del_usr_from_location(self, user_id : int, location_name : str) -> bool:
         """Delete specified `user_id` from the list of subscribers for the
         indicated `location_name`
@@ -137,7 +131,6 @@ class WeatherEvent(ABC):
         logging.info(f"User n°{user_id} was successfully removed from the list for the location {location_name}")
         return True
 
-
     async def is_srv_sub2location(self, server_id : int, location_name : str) -> bool:
         """Return wether the server corresponding to specified `server_id` 
         subscribed to the indicated `location_name` or not.
@@ -153,7 +146,6 @@ class WeatherEvent(ABC):
         srv_in_dict = (server_id in location_srv_dict)
         self.__mutex_servers_dict.release()
         return srv_in_dict
-
 
     async def add_srv2location(self, interaction : discord.Interaction, location_name : str, location_tz : str = "") -> bool:
         """Add server whose Discord ID is specified to the `location_name` list
@@ -180,7 +172,6 @@ class WeatherEvent(ABC):
         logging.warning(f"User n°{server_id} is already listening for the location {location_name}. Do nothing")
         return False
 
-
     async def del_srv_from_location(self, server_id : int, location_name : str) -> bool:
         """Delete specified `server_id` from the list of subscribing servers for the
         indicated `location_name`
@@ -202,7 +193,6 @@ class WeatherEvent(ABC):
         logging.info(f"Server n°{server_id} was successfully removed from the list for the location {location_name}")
         return True
 
-
     @abstractmethod
     async def run_event_task(self):
         """Abstract method that listen for an event and handle it when it is
@@ -216,7 +206,7 @@ class DailyWeatherEvent(WeatherEvent):
 
     def __init__(self) -> None:
         super().__init__()
-        #Flag that indicates if daily weather was sent or not for each location:
+        # Flag that indicates if daily weather was sent or not for each location:
         self.__dict_weather_sent_flag : Dict[Location, bool] = {}
         self.__mutex_dict_flag = asyncio.Lock()
 
@@ -252,29 +242,27 @@ class DailyWeatherEvent(WeatherEvent):
         self.__dict_weather_sent_flag[location] = value
         self.__mutex_dict_flag.release()
 
-
-
     async def add_srv2location(self, interaction : discord.Interaction, location_name : str, location_tz : str = "") -> bool:
         """
         """
-        #Only add specified location if there is not already known by the task:
+        # Only add specified location if there is not already known by the task:
         current_location = Location(location_name, location_tz)
         if current_location not in self.__dict_weather_sent_flag:
-            #Add current location to the task:
+            # Add current location to the task:
             await self.set_location_flag(current_location, False)
         return (await super().add_srv2location(interaction, location_name, location_tz))
 
 
     async def run_event_task(self):
         logging.info("Starting daily weather task")
-        #Run forever:
+        # Run forever:
         while True:
             await asyncio.sleep(60)
-            #Check for each known location if it is the time to send the daily weather or reset flag:
+            # Check for each known location if it is the time to send the daily weather or reset flag:
             for location, server_dict in (await self.get_server_location_dict()).items():
                 loc_cur_h = int(datetime.now(location.tz).strftime("%H"))
                 loc_cur_min = int(datetime.now(location.tz).strftime("%M"))
-                #Check if it is the time to reset flag. This flag is reset between 0h00 and 0h01:
+                # Check if it is the time to reset flag. This flag is reset between 0h00 and 0h01:
                 if(loc_cur_h == sunbot.DAILY_WEATHER_RESET_HOUR) and (loc_cur_min in [0, 1]):
                     await self.set_location_flag(location, False)
                 elif(loc_cur_h == sunbot.DAILY_WEATHER_SEND_HOUR) and (loc_cur_min in [0, 1]) and not await self.get_location_flag(location):
@@ -292,17 +280,17 @@ class DailyWeatherEvent(WeatherEvent):
         ## Return value:
         Not applicable
         """
-        #Get daily weather response from the API for current location:
+        # Get daily weather response from the API for current location:
         request_response = weather_api_handler.dailyWeatherRequest(location.name)
-        #If a response was sent by the weather API:
+        # If a response was sent by the weather API:
         if request_response != {}:
             create_daily_weather_img(request_response, "./Data/Images")
-            #Send data for current location on each registered server:
+            # Send data for current location on each registered server:
             for server in server_dict:
-                #Get interaction for current server, which contains a channel
-                #where send daily weather:
+                # Get interaction for current server, which contains a channel
+                # where send daily weather:
                 interaction = server_dict[server]
-                #Send daily weather:
+                # Send daily weather:
                 await interaction.channel.send(content=f"Voici la météo prévue pour aujourd'hui à {location.name}\n", file=discord.File(f"{sunbot.DAILY_IMAGE_PATH}{sunbot.DAILY_IMAGE_NAME}"))
                 await asyncio.sleep(0.1)
 
