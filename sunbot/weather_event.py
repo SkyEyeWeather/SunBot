@@ -5,7 +5,6 @@ import logging
 from typing import Dict
 
 import discord
-from sympy import use
 from sunbot.location import Location
 from sunbot.weather.Meteo import create_daily_weather_img
 import sunbot.sunbot as sunbot
@@ -106,9 +105,9 @@ class WeatherEvent(ABC):
                 self.__users_location_dict[current_location] = []
             self.__users_location_dict[location_name].append(user_id)
             self.__mutex_users_dict.release()
-            logging.info(f"User n°%d was successfully added to the list for the location %s", user_id, location_name)
+            logging.info("User n°%d was successfully added to the list for the location %s", user_id, location_name)
             return True
-        logging.warning(f"User n°%d is already listening for the location %s. Do nothing", user_id, location_name)
+        logging.warning("User n°%d is already listening for the location %s. Do nothing", user_id, location_name)
         return False
 
     async def del_usr_from_location(self, user_id : int, location_name : str) -> bool:
@@ -124,12 +123,12 @@ class WeatherEvent(ABC):
         subscribers for the specified location, `False` otherwise
         """
         if not await self.is_usr_sub2location(user_id, location_name):
-            logging.warning(f"User n°{user_id} has no subscribed to the location {location_name}")
+            logging.warning("User n°{user_id} has no subscribed to the location {location_name}")
             return False
         await self.__mutex_users_dict.acquire()
         self.__users_location_dict[Location(location_name, "")].remove(user_id)
         self.__mutex_users_dict.release()
-        logging.info(f"User n°%d was successfully removed from the list for the location", user_id)
+        logging.info("User n°%d was successfully removed from the list for the location", user_id)
         return True
 
     async def is_srv_sub2location(self, server_id : int, location_name : str) -> bool:
@@ -168,9 +167,9 @@ class WeatherEvent(ABC):
                 self.__servers_location_dict[current_location] = {}
             self.__servers_location_dict[current_location][server_id] = interaction
             self.__mutex_servers_dict.release()
-            logging.info(f"Server n°%d was successfully added to the list for the location %s", server_id, location_name)
+            logging.info("Server n°%d was successfully added to the list for the location %s", server_id, location_name)
             return True
-        logging.warning(f"User n°%d is already listening for the location %s. Do nothing", server_id, location_name)
+        logging.warning("User n°%d is already listening for the location %s. Do nothing", server_id, location_name)
         return False
 
     async def del_srv_from_location(self, server_id : int, location_name : str) -> bool:
@@ -186,12 +185,12 @@ class WeatherEvent(ABC):
         subscribing servers for the specified location, `False` otherwise
         """
         if not await self.is_srv_sub2location(server_id, location_name):
-            logging.warning(f"Server n°%d has no subscribed to the location %s", server_id, location_name)
+            logging.warning("Server n°%d has no subscribed to the location %s", server_id, location_name)
             return False
         await self.__mutex_servers_dict.acquire()
         self.__servers_location_dict[Location(location_name, "")].pop(server_id)
         self.__mutex_servers_dict.release()
-        logging.info(f"Server n°%d was successfully removed from the list for the location %s", server_id, location_name)
+        logging.info("Server n°%d was successfully removed from the list for the location %s", server_id, location_name)
         return True
 
     @abstractmethod

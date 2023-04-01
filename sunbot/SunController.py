@@ -206,10 +206,10 @@ class SunController :
                     logging.error(f"An error occured while trying to update channel for daily weather for location {location_name} on the server n°{interaction.guild_id}")
         #If daily weather for specified location and server is not set:
         else:
-            #Check if location is known by the API:
+            # Check if location is known by the API:
             daily_weather_test = weatherAPIHandler.dailyWeatherRequest(location_name)
             if daily_weather_test == {}:
-                logging.error("Unknown location : {}".format(location_name))
+                logging.error("Unknown location:  %s", location_name)
                 await interaction.response.send_message(f"Je n'ai pas {location_name} dans mes données, vérifies le nom !")
             else:
                 location_tz : str = daily_weather_test['timezone']
@@ -218,8 +218,8 @@ class SunController :
                     await interaction.response.send_message(f"C'est compris, j'enverrai désormais quotidiennement la météo du jour pour {location_name} ici 😉")
                 else:
                     await interaction.response.send_message("Désolé, une erreur est survenue durant l'exécution de la commande...")
-                    logging.error(f"An error occured while trying to add daily weather for the server n°{interaction.guild_id} to the location {location_name}")
-                
+                    logging.error("An error occured while trying to add daily weather for the server n°%d to the location %s", interaction.guild_id, location_name)
+
 
     #====================================================================================
     #                                   PRIVATE METHODS PART
