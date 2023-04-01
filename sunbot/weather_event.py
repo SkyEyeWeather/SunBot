@@ -3,8 +3,6 @@ import asyncio
 from datetime import datetime
 import logging
 from typing import Dict
-import pytz
-import time
 
 import discord
 from sunbot.location import Location
@@ -108,7 +106,7 @@ class WeatherEvent(ABC):
         if not await self.is_usr_sub2location(user_id, location_name):
             await self.__mutex_users_dict.acquire()
             current_location = Location(location_name, location_tz)
-            if not current_location in self.__users_location_dict:
+            if current_location not in self.__users_location_dict:
                 self.__users_location_dict[current_location] = []
             self.__users_location_dict[location_name].append(user_id)
             self.__mutex_users_dict.release()
@@ -222,7 +220,7 @@ class DailyWeatherEvent(WeatherEvent):
         self.__dict_weather_sent_flag : Dict[Location, bool] = {}
         self.__mutex_dict_flag = asyncio.Lock()
 
-    
+
     async def get_location_flag(self, location : Location) -> bool:
         """Return the flag for the specified location. The value of the flag is
         `True` if the daily weather was already sent for the location, `False`
@@ -241,7 +239,7 @@ class DailyWeatherEvent(WeatherEvent):
         finally:
             self.__mutex_dict_flag.release()
         return flag
-    
+
     async def set_location_flag(self, location : Location, value : bool) -> None:
         """Set the flag for the specified location to the `value` value.
         ## Parameters:
@@ -284,7 +282,8 @@ class DailyWeatherEvent(WeatherEvent):
                     await self.__send_daily_weather2srv(location, server_dict)
     
 
-    async def __send_daily_weather2srv(self, location : Location, server_dict : Dict[int, discord.Interaction]) -> None:
+    @staticmethod
+    async def __send_daily_weather2srv(location : Location, server_dict : Dict[int, discord.Interaction]) -> None:
         """Private method that send daily weather for all location on all
         subscribing servers.
         ## Parameters:
