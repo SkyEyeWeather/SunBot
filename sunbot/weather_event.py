@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 import asyncio
+from datetime import datetime
 import logging
+from typing import Dict
+import pytz
 import time
 
 import discord
@@ -193,12 +196,12 @@ class WeatherEvent(ABC):
         subscribing servers for the specified location, `False` otherwise
         """
         if not await self.is_srv_sub2location(server_id, location_name):
-            logging.warning(f"User n°{server_id} has no subscribed to the location {location_name}")
+            logging.warning(f"Server n°{server_id} has no subscribed to the location {location_name}")
             return False
         await self.__mutex_servers_dict.acquire()
         self.__servers_location_dict[Location(location_name, "")].pop(server_id)
         self.__mutex_servers_dict.release()
-        logging.info(f"User n°{server_id} was successfully removed from the list for the location {location_name}")
+        logging.info(f"Server n°{server_id} was successfully removed from the list for the location {location_name}")
         return True
 
 
@@ -215,7 +218,53 @@ class DailyWeatherEvent(WeatherEvent):
 
     def __init__(self) -> None:
         super().__init__()
-        self.weather_sent = False   #Flag that indicates if daily weather was sent or not
+        #Flag that indicates if daily weather was sent or not for each location:
+        self.__dict_weather_sent_flag : Dict[Location, bool] = {}
+        self.__mutex_dict_flag = asyncio.Lock()
+
+    
+    async def get_location_flag(self, location : Location) -> bool:
+        """Return the flag for the specified location. The value of the flag is
+        `True` if the daily weather was already sent for the location, `False`
+        otherwise
+        ## Parameters:
+        * `location`: location for which flag has to be retrieved
+        ## Return value:
+        A boolean representing the flag
+        """
+        flag = False
+        await self.__mutex_dict_flag.acquire()
+        try:
+            flag = self.__dict_weather_sent_flag[location]
+        except KeyError:
+            logging.error("Specified location ({}) is not in daily weather flag".format(location.name))
+        finally:
+            self.__mutex_dict_flag.release()
+        return flag
+    
+    async def set_location_flag(self, location : Location, value : bool) -> None:
+        """Set the flag for the specified location to the `value` value.
+        ## Parameters:
+        * `location` : location for which flag has to be set
+        * `value`: `True` or `False`
+        ## Return value:
+        Not applicable
+        """
+        await self.__mutex_dict_flag.acquire()
+        self.__dict_weather_sent_flag[location] = value
+        self.__mutex_dict_flag.release()
+
+
+
+    async def add_srv2location(self, interaction : discord.Interaction, location_name : str, location_tz : str = "") -> bool:
+        """
+        """
+        #Only add specified location if there is not already known by the task:
+        current_location = Location(location_name, location_tz)
+        if current_location not in self.__dict_weather_sent_flag:
+            #Add current location to the task:
+            await self.set_location_flag(current_location, False)
+        return (await super().add_srv2location(interaction, location_name, location_tz))
 
 
     async def run_event_task(self):
@@ -223,37 +272,37 @@ class DailyWeatherEvent(WeatherEvent):
         #Run forever:
         while True:
             await asyncio.sleep(60)
-            #Get current UTC hour:
-            utc_hour = time.gmtime(time.time())
-            current_hour = utc_hour[3]
-            current_minute = utc_hour[4]
-            #If it is the time to reset:
-            if (current_hour == sunbot.DAILY_WEATHER_RESET_UTC_HOUR) and (current_minute in [0, 1]):
-                self.weather_sent = False
-            #Else, if it is the time to send daily weather:
-            elif (current_hour == sunbot.DAILY_WEATHER_SEND_UTC_HOUR) and (current_minute in[0, 1]) and not self.weather_sent:
-            #elif (current_hour == sunbot.DAILY_WEATHER_SEND_UTC_HOUR) and (current_minute in[0, 1])and not self.weather_sent:
-                self.weather_sent = True
-                #Send daily weather on all registered servers, for all location:
-                await self.__send_daily_weather2srv()
-                #Send daily weather to all the users registered for all location:
-                await self.__send_daily_weather2usr()
+            #Check for each known location if it is the time to send the daily weather or reset flag:
+            for location, server_dict in (await self.get_server_location_dict()).items():
+                loc_cur_h = int(datetime.now(location.tz).strftime("%H"))
+                loc_cur_min = int(datetime.now(location.tz).strftime("%M"))
+                #Check if it is the time to reset flag. This flag is reset between 0h00 and 0h01:
+                if(loc_cur_h == sunbot.DAILY_WEATHER_RESET_HOUR) and (loc_cur_min in [0, 1]):
+                    await self.set_location_flag(location, False)
+                elif(loc_cur_h == sunbot.DAILY_WEATHER_SEND_HOUR) and (loc_cur_min in [0, 1]) and not await self.get_location_flag(location):
+                    await self.set_location_flag(location, True)
+                    await self.__send_daily_weather2srv(location, server_dict)
     
 
-    async def __send_daily_weather2srv(self) -> None:
+    async def __send_daily_weather2srv(self, location : Location, server_dict : Dict[int, discord.Interaction]) -> None:
         """Private method that send daily weather for all location on all
-        subscribing servers
+        subscribing servers.
+        ## Parameters:
+        * `location`: location for which the weather is sent to all subscribing servers
+        * `server_dict`: dict of subscribing servers
+        ## Return value:
+        Not applicable
         """
-        for location, server_dict in (await self.get_server_location_dict()).items():
-            #Get daily weather response from the API for current location:
-            request_response = weather_api_handler.dailyWeatherRequest(location.name)
-            if request_response != {}:
-                create_daily_weather_img(request_response, "./Data/Images")
-            #Send data for current location on each registered server
+        #Get daily weather response from the API for current location:
+        request_response = weather_api_handler.dailyWeatherRequest(location.name)
+        #If a response was sent by the weather API:
+        if request_response != {}:
+            create_daily_weather_img(request_response, "./Data/Images")
+            #Send data for current location on each registered server:
             for server in server_dict:
-                #Get interaction for current server, which contain a channel
+                #Get interaction for current server, which contains a channel
                 #where send daily weather:
-                interaction : discord.Interaction = server_dict[server]
+                interaction = server_dict[server]
                 #Send daily weather:
                 await interaction.channel.send(content=f"Voici la météo prévue pour aujourd'hui à {location.name}\n", file=discord.File(f"{sunbot.DAILY_IMAGE_PATH}{sunbot.DAILY_IMAGE_NAME}"))
                 await asyncio.sleep(0.1)

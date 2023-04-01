@@ -213,7 +213,7 @@ class SunController :
                 await interaction.response.send_message(f"Je n'ai pas {location_name} dans mes données, vérifies le nom !")
             else:
                 location_tz : str = daily_weather_test['timezone']
-                res_add = await self.daily_weather_handler.add_srv2location(interaction, location_name)
+                res_add = await self.daily_weather_handler.add_srv2location(interaction, location_name, location_tz)
                 if res_add:
                     await interaction.response.send_message(f"C'est compris, j'enverrai désormais quotidiennement la météo du jour pour {location_name} ici 😉")
                 else:
