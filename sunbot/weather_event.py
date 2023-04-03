@@ -103,7 +103,7 @@ class WeatherEvent(ABC):
             current_location = Location(location_name, location_tz)
             if current_location not in self.__users_location_dict:
                 self.__users_location_dict[current_location] = []
-            self.__users_location_dict[location_name].append(user_id)
+            self.__users_location_dict[current_location].append(user_id)
             self.__mutex_users_dict.release()
             logging.info("User n°%d was successfully added to the list for the location %s", user_id, location_name)
             return True
