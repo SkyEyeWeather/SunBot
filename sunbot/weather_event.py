@@ -205,52 +205,95 @@ class WeatherEvent(ABC):
 class DailyWeatherEvent(WeatherEvent):
     """Class that handle daily weather event"""
 
+    USER_FLAG_TYPE = 'u'
+    SERVER_FLAG_TYPE = 's'
+    FLAG_TYPES = [USER_FLAG_TYPE, SERVER_FLAG_TYPE]
+
     def __init__(self) -> None:
         super().__init__()
         # Flag that indicates if daily weather was sent or not for each location:
         self.__dict_weather_sent_flag : Dict[Location, bool] = {}
         self.__mutex_dict_flag = asyncio.Lock()
 
-    async def get_location_flag(self, location : Location) -> bool:
+    async def get_location_flag(self, location : Location, flag_type : str) -> bool:
         """Return the flag for the specified location. The value of the flag is
         `True` if the daily weather was already sent for the location, `False`
         otherwise
         ## Parameters:
         * `location`: location for which flag has to be retrieved
+        * `flag_type`: type of flag to retrieve `u` or `s`
         ## Return value:
         A boolean representing the flag
         """
+        if flag_type not in self.FLAG_TYPES:
+            raise ValueError()
         flag = False
         await self.__mutex_dict_flag.acquire()
         try:
-            flag = self.__dict_weather_sent_flag[location]
+            if flag_type == self.USER_FLAG_TYPE:
+                flag = self.__dict_weather_sent_flag_user[location]
+            else:
+                flag = self.__dict_weather_sent_flag_server[location]
         except KeyError:
             logging.error("Specified location (%s) is not in daily weather flag", location.name)
         finally:
             self.__mutex_dict_flag.release()
         return flag
 
-    async def set_location_flag(self, location : Location, value : bool) -> None:
-        """Set the flag for the specified location to the `value` value.
+    async def set_location_flag(self, location : Location, flag_type : str, value : bool) -> None:
+        """Set the flag for the specified location and type to the `value` value.
         ## Parameters:
         * `location` : location for which flag has to be set
+        * `flag_type`: type of flag to retrieve `u` or `s`
         * `value`: `True` or `False`
         ## Return value:
         Not applicable
         """
+        if flag_type not in self.FLAG_TYPES:
+            raise ValueError()
         await self.__mutex_dict_flag.acquire()
-        self.__dict_weather_sent_flag[location] = value
+        if flag_type == self.USER_FLAG_TYPE:
+            self.__dict_weather_sent_flag_user[location] = value
+        else:
+            self.__dict_weather_sent_flag_server[location] = value
         self.__mutex_dict_flag.release()
 
     async def add_srv2location(self, interaction : discord.Interaction, location_name : str, location_tz : str = "") -> bool:
-        """
+        """Add server whose Discord ID is specified to the `location_name` list
+        of subscribing servers, with indicated discord `interaction`
+
+        ## Parameters:
+        * `interaction` : Discord interaction, used to retrieve context data
+        * `location_name`: name of the location to which specified user whish
+        to subscribe
+        * `location_tz` : time zone of the location, optional
+        ## Return value:
+        `True` if the server was successfully added, `False` otherwise
         """
         # Only add specified location if there is not already known by the task:
         current_location = Location(location_name, location_tz)
-        if current_location not in self.__dict_weather_sent_flag:
+        if current_location not in self.__dict_weather_sent_flag_server:
             # Add current location to the task:
-            await self.set_location_flag(current_location, False)
+            await self.set_location_flag(current_location, self.SERVER_FLAG_TYPE, False)
         return (await super().add_srv2location(interaction, location_name, location_tz))
+    
+    async def add_usr2location(self, interaction: discord.Interaction, location_name: str, location_tz="") -> bool:
+        """Add user whose Discord ID is specified to the `location_name` list
+        of subscribers
+
+        ## Parameters:
+        * `interaction`: Discord interaction, use to retrieve context data 
+        * `location_name`: name of the location to which specified user whish
+        to subscribe
+        * `location_tz`: time zone of the location, optional
+        ## Return value:
+        `True` if the user was successfully added, `False` otherwise
+        """
+        current_location = Location(location_name, location_tz)
+        if current_location not in self.__dict_weather_sent_flag_user:
+            #Add current location to the task:
+            await self.set_location_flag(current_location, self.USER_FLAG_TYPE, False)
+        return await super().add_usr2location(interaction, location_name, location_tz)
 
     async def run_event_task(self):
         logging.info("Starting daily weather task")
@@ -264,14 +307,23 @@ class DailyWeatherEvent(WeatherEvent):
                 loc_cur_min = int(datetime.now(location.tz).strftime("%M"))
                 # Check if it is the time to reset flag. This flag is reset between 0h00 and 0h01:
                 if(loc_cur_h == sunbot.DAILY_WEATHER_RESET_HOUR) and (loc_cur_min in [0, 1]):
-                    await self.set_location_flag(location, False)
-                elif(loc_cur_h == sunbot.DAILY_WEATHER_SEND_HOUR) and (loc_cur_min in [0, 1]) and not await self.get_location_flag(location):
-                    await self.set_location_flag(location, True)
+                    await self.set_location_flag(location, self.SERVER_FLAG_TYPE, False)
+                elif(loc_cur_h == sunbot.DAILY_WEATHER_SEND_HOUR) and (loc_cur_min in [0, 1]) and not await self.get_location_flag(location, self.SERVER_FLAG_TYPE):
+                    await self.set_location_flag(location, self.SERVER_FLAG_TYPE, True)
                     await self.__send_daily_weather2srv(location, server_dict)
+            for location, users_dict in (await self.get_users_location_dict()).items():
+                loc_cur_h = int(datetime.now(location.tz).strftime("%H"))
+                loc_cur_min = int(datetime.now(location.tz).strftime("%M"))
+                # Check if it is the time to reset flag. This flag is reset between 0h00 and 0h01:
+                if(loc_cur_h == sunbot.DAILY_WEATHER_RESET_HOUR) and (loc_cur_min in [0, 1]):
+                    await self.set_location_flag(location, self.USER_FLAG_TYPE, False)
+                elif(loc_cur_h == sunbot.DAILY_WEATHER_SEND_HOUR) and (loc_cur_min in [0, 1]) and not await self.get_location_flag(location, self.USER_FLAG_TYPE):
+                    await self.set_location_flag(location, self.USER_FLAG_TYPE, True)
+                    await self.__send_daily_weather2usr(location, users_dict)
 
     @staticmethod
     async def __send_daily_weather2srv(location : Location, server_dict : Dict[int, discord.Interaction]) -> None:
-        """Private method that send daily weather for all location on all
+        """Private method that sends daily weather for the specified location on all
         subscribing servers.
         ## Parameters:
         * `location`: location for which the weather is sent to all subscribing servers
@@ -293,9 +345,20 @@ class DailyWeatherEvent(WeatherEvent):
                 await interaction.channel.send(content=f"Voici la météo prévue pour aujourd'hui à {location.name}\n", file=discord.File(f"{sunbot.DAILY_IMAGE_PATH}{sunbot.DAILY_IMAGE_NAME}"))
                 await asyncio.sleep(0.1)
 
-    async def __send_daily_weather2usr(self) -> None:
-        """"""
-        pass #TODO : Send daily weather to all registered users, in PM
+    @staticmethod
+    async def __send_daily_weather2usr(location : Location, users_dict : dict[int, discord.Interaction]) -> None:
+        """ Private method that sends daily weather in private message for the
+        specified location to all users who have subscribed to each location
+        """
+        #Get daily weather response from the API for specified location:
+        request_response = weather_api_handler.dailyWeatherRequest(location.name)
+        if request_response != {}:
+            create_daily_weather_img(request_response, "./Data/Images")
+            #Send daily weather in private message to each user:
+            for user in users_dict:
+                interaction = users_dict[user]
+                await interaction.user.send(content=f"Voici la météo prévue pour aujourd'hui à {location.name}\n", file=discord.File(f"{sunbot.DAILY_IMAGE_PATH}{sunbot.DAILY_IMAGE_NAME}"))
+                await asyncio.sleep(0.1)
 
 
 #TODO implement weather alert event handling
