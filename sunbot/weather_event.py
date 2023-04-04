@@ -52,7 +52,7 @@ class WeatherEvent(ABC):
         `location_name`
 
         ## Parameters:
-        * `server_id`: server ID 
+        * `server_id`: server ID
         * `location_name`: name of the location
         ## Return value:
         Discord interaction corresponding to the specified `server_id` and
@@ -91,7 +91,7 @@ class WeatherEvent(ABC):
         of subscribers
 
         ## Parameters:
-        * `interaction`: Discord interaction, use to retrieve context data 
+        * `interaction`: Discord interaction, use to retrieve context data
         * `location_name`: name of the location to which specified user whish
         to subscribe
         * `location_tz`: time zone of the location, optional
@@ -117,10 +117,10 @@ class WeatherEvent(ABC):
 
         ## Parameters:
         * `user_id`: user ID to delete from the list of subscribers
-        * `location_name`: name of the location from which the user will be 
+        * `location_name`: name of the location from which the user will be
         deleted
         ## Return value:
-        `True` if the user ID was successfully deleted from the list of 
+        `True` if the user ID was successfully deleted from the list of
         subscribers for the specified location, `False` otherwise
         """
         if not await self.is_usr_sub2location(user_id, location_name):
@@ -133,7 +133,7 @@ class WeatherEvent(ABC):
         return True
 
     async def is_srv_sub2location(self, server_id : int, location_name : str) -> bool:
-        """Return wether the server corresponding to specified `server_id` 
+        """Return wether the server corresponding to specified `server_id`
         subscribed to the indicated `location_name` or not.
 
         ## Parameters:
@@ -179,10 +179,10 @@ class WeatherEvent(ABC):
 
         ## Parameters:
         * `user_id`: user ID to delete from the list of subscribers
-        * `location_name`: name of the location from which the server will be 
+        * `location_name`: name of the location from which the server will be
         deleted
         ## Return value:
-        `True` if the server ID was successfully deleted from the list of 
+        `True` if the server ID was successfully deleted from the list of
         subscribing servers for the specified location, `False` otherwise
         """
         if not await self.is_srv_sub2location(server_id, location_name):
@@ -277,13 +277,13 @@ class DailyWeatherEvent(WeatherEvent):
             # Add current location to the task:
             await self.set_location_flag(current_location, self.SERVER_FLAG_TYPE, False)
         return (await super().add_srv2location(interaction, location_name, location_tz))
-    
+
     async def add_usr2location(self, interaction: discord.Interaction, location_name: str, location_tz="") -> bool:
         """Add user whose Discord ID is specified to the `location_name` list
         of subscribers
 
         ## Parameters:
-        * `interaction`: Discord interaction, use to retrieve context data 
+        * `interaction`: Discord interaction, use to retrieve context data
         * `location_name`: name of the location to which specified user whish
         to subscribe
         * `location_tz`: time zone of the location, optional
@@ -292,7 +292,7 @@ class DailyWeatherEvent(WeatherEvent):
         """
         current_location = Location(location_name, location_tz)
         if current_location not in self.__dict_weather_sent_flag_user:
-            #Add current location to the task:
+            # Add current location to the task:
             await self.set_location_flag(current_location, self.USER_FLAG_TYPE, False)
         return await super().add_usr2location(interaction, location_name, location_tz)
 
@@ -351,11 +351,11 @@ class DailyWeatherEvent(WeatherEvent):
         """ Private method that sends daily weather in private message for the
         specified location to all users who have subscribed to each location
         """
-        #Get daily weather response from the API for specified location:
+        # Get daily weather response from the API for specified location:
         request_response = weather_api_handler.dailyWeatherRequest(location.name)
         if request_response != {}:
             create_daily_weather_img(request_response, "./Data/Images")
-            #Send daily weather in private message to each user:
+            # Send daily weather in private message to each user:
             for user in users_dict:
                 interaction = users_dict[user]
                 await interaction.user.send(content=f"Voici la météo prévue pour aujourd'hui à {location.name}\n", file=discord.File(f"{sunbot.DAILY_IMAGE_PATH}{sunbot.DAILY_IMAGE_NAME}"))

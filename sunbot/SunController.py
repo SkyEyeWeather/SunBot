@@ -30,7 +30,7 @@ class SunController :
     def __init__(self, discordBot : commands.Bot) -> None:
         """Constructor of this class. Bind the specified bot to this controller.
         ## Parameter :
-        * `discordBot`: bot to bind to the new controller 
+        * `discordBot`: bot to bind to the new controller
         ## Return value :
         Not applicable"""
         self.bot : commands.Bot = discordBot       #reference to the discord client for the bot
@@ -40,7 +40,7 @@ class SunController :
 
 
     async def on_ready(self) -> None:
-        """This method specifies the actions to be performed when the bot is 
+        """This method specifies the actions to be performed when the bot is
         launched"""
         logging.info("Starting bot initialization...")
         logging.info("Synchronize bot commands tree to discord")
@@ -219,7 +219,7 @@ class SunController :
                 else:
                     await interaction.response.send_message("Désolé, une erreur est survenue durant l'exécution de la commande...")
                     logging.error("An error occured while trying to add daily weather for the server n°%d to the location %s", interaction.guild_id, location_name)
-    
+
     async def set_daily_weather_pm(self, interaction : discord.Interaction, location_name : str) -> None:
         """ Add or remove user that invoke the command for set the sending of
         daily weather in private message to/from the list of subscribers for the
@@ -262,7 +262,7 @@ class SunController :
     #====================================================================================
 
     async def _addReaction(self, msg : discord.Message) -> None:
-        """Private method to add a reaction to the specified message published 
+        """Private method to add a reaction to the specified message published
         by an user, according to the user probability for this action
         ## Parameters:
         * `msg` : discord message that triggered this method
