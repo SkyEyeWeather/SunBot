@@ -221,7 +221,7 @@ class SunController :
                     logging.error("An error occured while trying to add daily weather for the server n°%d to the location %s", interaction.guild_id, location_name)
 
     async def set_daily_weather_pm(self, interaction : discord.Interaction, location_name : str) -> None:
-        """ Add or remove user that invoke the command for set the sending of
+        """Add or remove user that invoke the command for set the sending of
         daily weather in private message to/from the list of subscribers for the
         specified location.
         ## Parameters:

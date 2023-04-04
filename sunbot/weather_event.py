@@ -348,7 +348,7 @@ class DailyWeatherEvent(WeatherEvent):
 
     @staticmethod
     async def __send_daily_weather2usr(location : Location, users_dict : dict[int, discord.Interaction]) -> None:
-        """ Private method that sends daily weather in private message for the
+        """Private method that sends daily weather in private message for the
         specified location to all users who have subscribed to each location
         """
         # Get daily weather response from the API for specified location:
