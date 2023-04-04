@@ -30,7 +30,7 @@ class SunController :
     def __init__(self, discordBot : commands.Bot) -> None:
         """Constructor of this class. Bind the specified bot to this controller.
         ## Parameter :
-        * `discordBot`: bot to bind to the new controller 
+        * `discordBot`: bot to bind to the new controller
         ## Return value :
         Not applicable"""
         self.bot : commands.Bot = discordBot       #reference to the discord client for the bot
@@ -40,7 +40,7 @@ class SunController :
 
 
     async def on_ready(self) -> None:
-        """This method specifies the actions to be performed when the bot is 
+        """This method specifies the actions to be performed when the bot is
         launched"""
         logging.info("Starting bot initialization...")
         logging.info("Synchronize bot commands tree to discord")
@@ -220,13 +220,49 @@ class SunController :
                     await interaction.response.send_message("Désolé, une erreur est survenue durant l'exécution de la commande...")
                     logging.error("An error occured while trying to add daily weather for the server n°%d to the location %s", interaction.guild_id, location_name)
 
+    async def set_daily_weather_pm(self, interaction : discord.Interaction, location_name : str) -> None:
+        """Add or remove user that invoke the command for set the sending of
+        daily weather in private message to/from the list of subscribers for the
+        specified location.
+        ## Parameters:
+        * `interaction`: command context
+        * `location_name`: location name for which the user want to enable or
+        disable the sending of daily weather in private message
+        ## Return value:
+        Not applicable
+        """
+        user_id = interaction.user.id
+        # Two cases depending on whether user has already used this command or not
+        # for the specified location
+        if await self.daily_weather_handler.is_usr_sub2location(user_id, location_name):
+            # User has already used the command for the indicated location, so
+            # disable the sending for this location and user
+            await self.daily_weather_handler.del_usr_from_location(user_id, location_name)
+            await interaction.response.send_message(content=f"C'est entendu, je ne vous enverrai plus la météo quotidienne pour {location_name}")
+            logging.info("User n°%d has disabled pm of daily weather for %s", user_id, location_name)
+            return
+        # User has not enable the pm for the specified location, so first check
+        # that this city is known by the API to avoid future errors
+        daily_weather_test = weatherAPIHandler.dailyWeatherRequest(location_name)
+        if daily_weather_test == {}:
+            logging.error("Location %s is unknown by the API", location_name)
+            interaction.response.send_message(content="Je ne connais pas %s, désolé ! Vérifiez l'orthographe de la localisation et reéessayez!")
+            return
+        # Add the user to the location subscribers list:
+        location_tz : str = daily_weather_test["timezone"]
+        if await self.daily_weather_handler.add_usr2location(interaction, location_name, location_tz):
+            logging.info("User n°%d has subscribed to receive daily weather for the location %s", user_id, location_name)
+            await interaction.response.send_message(content=f"Super ! Je vous enverrez désormais la météo pour {location_name} chaque jour en message privé! (à 7h00 heure locale de la localisation)")
+            return
+        logging.error("An error occured while trying to set daily weather for the user n°%d for the location %s", interaction.guild_id, location_name)
+        await interaction.response.send_message("Désolé, une erreur est survenue durant l'exécution de la commande...")
 
     #====================================================================================
     #                                   PRIVATE METHODS PART
     #====================================================================================
 
     async def _addReaction(self, msg : discord.Message) -> None:
-        """Private method to add a reaction to the specified message published 
+        """Private method to add a reaction to the specified message published
         by an user, according to the user probability for this action
         ## Parameters:
         * `msg` : discord message that triggered this method
