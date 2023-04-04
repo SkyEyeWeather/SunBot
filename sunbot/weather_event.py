@@ -212,7 +212,8 @@ class DailyWeatherEvent(WeatherEvent):
     def __init__(self) -> None:
         super().__init__()
         # Flag that indicates if daily weather was sent or not for each location:
-        self.__dict_weather_sent_flag : Dict[Location, bool] = {}
+        self.__dict_weather_sent_flag_server : Dict[Location, bool] = {}
+        self.__dict_weather_sent_flag_user : Dict[Location, bool] = {}
         self.__mutex_dict_flag = asyncio.Lock()
 
     async def get_location_flag(self, location : Location, flag_type : str) -> bool:
