@@ -47,7 +47,6 @@ listeGifKernelDead = [
 logging.basicConfig(level=logging.INFO)
 sunBot = commands.Bot(command_prefix='+', intents=discord.Intents.all(), help_command=SunBotHelpCommand())
 sunController = SunController(sunBot)
-sunController.on_ready()
 vcRequestHandler = VisualCrossingHandler()
 discordAPI_handler = DiscordHandler()
 dictUsersBot = {}
@@ -151,6 +150,11 @@ async def meteo(interaction : discord.Interaction, place_name : str) -> None:
 @app_commands.describe(location_name = "Nom de la localité")
 async def set_daily_weather_channel(interaction : discord.Interaction, location_name : str) -> None:
   await sunController.set_daily_weather_channel(interaction, location_name)
+
+@sunBot.tree.command(name="mp_daily_weather", description="Active ou désactive l'envoi quotidien de la météo du jour pour la localisation indiquée", guild=discord.Object(id=726063782606143618))
+@app_commands.describe(location_name="Nom de la localité")
+async def set_daily_weather_pm(interaction : discord.Interaction, location_name : str) -> None:
+  await sunController.set_daily_weather_pm(interaction, location_name)
 
 
 @sunBot.command(name="favMeteo", brief="Envie de connaître la météo d'une localité sans te casser la tête ? Cette commande est pour toi !")
