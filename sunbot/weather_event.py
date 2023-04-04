@@ -21,12 +21,12 @@ class WeatherEvent(ABC):
         """Constructor for this class, which can only be called by inheriting classes"""
 
         # private attributes:
-        self.__users_location_dict : dict[Location, list[int]] = {}                         # Dict containing user that subscribed to each location
+        self.__users_location_dict : dict[Location, dict[int, discord.Interaction]] = {}    # Dict containing user that subscribed to each location
         self.__servers_location_dict : dict[Location, dict[int, discord.Interaction]] = {}  # Dict containing server that subscribed to each location
         self.__mutex_users_dict = asyncio.Lock()    # Mutex to handle access to user dict
         self.__mutex_servers_dict = asyncio.Lock()  # Mutex to handle access to server dict
 
-    async def get_users_location_dict(self) -> dict[Location, list[int]] :
+    async def get_users_location_dict(self) -> dict[Location, dict[int, discord.Interaction]]:
         """ Return dictionary containing ID of all users that subscribed to
         each location. Thus, in the returned dict, location names are the keys
         and list of ID the values
@@ -81,29 +81,30 @@ class WeatherEvent(ABC):
         `True` if the user subrscribed to specified location, `False` otherwise
         """
         await self.__mutex_users_dict.acquire()
-        location_users_list = self.__users_location_dict.get(Location(location_name, ""), [])
-        user_in_list = (user_id in location_users_list)
+        location_users_dict = self.__users_location_dict.get(Location(location_name, ""), {})
+        user_in_dict = (user_id in location_users_dict)
         self.__mutex_users_dict.release()
-        return user_in_list
+        return user_in_dict
 
-    async def add_usr2location(self, user_id : int, location_name : str, location_tz="") -> bool:
+    async def add_usr2location(self, interaction : discord.Interaction, location_name : str, location_tz="") -> bool:
         """Add user whose Discord ID is specified to the `location_name` list
         of subscribers
 
         ## Parameters:
-        * `user_id`: user ID to add to the list of subscriber
+        * `interaction`: Discord interaction, use to retrieve context data 
         * `location_name`: name of the location to which specified user whish
         to subscribe
         * `location_tz`: time zone of the location, optional
         ## Return value:
         `True` if the user was successfully added, `False` otherwise
         """
+        user_id = interaction.user.id
         if not await self.is_usr_sub2location(user_id, location_name):
             await self.__mutex_users_dict.acquire()
             current_location = Location(location_name, location_tz)
             if current_location not in self.__users_location_dict:
-                self.__users_location_dict[current_location] = []
-            self.__users_location_dict[current_location].append(user_id)
+                self.__users_location_dict[current_location] = {}
+            self.__users_location_dict[current_location][user_id] = interaction
             self.__mutex_users_dict.release()
             logging.info("User n°%d was successfully added to the list for the location %s", user_id, location_name)
             return True
@@ -126,7 +127,7 @@ class WeatherEvent(ABC):
             logging.warning("User n°{user_id} has no subscribed to the location {location_name}")
             return False
         await self.__mutex_users_dict.acquire()
-        self.__users_location_dict[Location(location_name, "")].remove(user_id)
+        self.__users_location_dict[Location(location_name, "")].pop(user_id)
         self.__mutex_users_dict.release()
         logging.info("User n°%d was successfully removed from the list for the location", user_id)
         return True
