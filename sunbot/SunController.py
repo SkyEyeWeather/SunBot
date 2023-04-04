@@ -232,12 +232,12 @@ class SunController :
         Not applicable
         """
         user_id = interaction.user.id
-        # Two cases depending on whether user has already or not used this command
+        # Two cases depending on whether user has already used this command or not
         # for the specified location
         if await self.daily_weather_handler.is_usr_sub2location(user_id, location_name):
-            # User has already use the command for the indicated location, so
+            # User has already used the command for the indicated location, so
             # disable the sending for this location and user
-            self.daily_weather_handler.del_usr_from_location(user_id, location_name)
+            await self.daily_weather_handler.del_usr_from_location(user_id, location_name)
             await interaction.response.send_message(content=f"C'est entendu, je ne vous enverrai plus la météo quotidienne pour {location_name}")
             logging.info("User n°%d has disabled pm of daily weather for %s", user_id, location_name)
             return
