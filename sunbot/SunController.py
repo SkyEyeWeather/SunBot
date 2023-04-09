@@ -177,33 +177,25 @@ class SunController :
 
     async def set_daily_weather_channel(self, interaction : discord.Interaction, location_name : str) -> None:
         """Add or remove a server to / from the list of subscribing servers
-
         ## Parameters:
         * `interaction`: discord interaction which contains context data
         * `location_name`: location to which the server have to be add / remove
         """
+        server_id = interaction.guild_id
         #If daily weather for specified location and server was already set:
-        if await self.daily_weather_handler.is_srv_sub2location(interaction.guild_id, location_name):
+        if await self.daily_weather_handler.is_sub2location(self.daily_weather_handler.SERVER_SUB_TYPE, server_id, location_name):
             #If specified interaction is the same as the current registered interaction for current server and location name:
-            registered_interaction = await self.daily_weather_handler.get_interaction(interaction.guild_id, location_name)
+            registered_interaction = await self.daily_weather_handler.get_interaction(self.daily_weather_handler.SERVER_SUB_TYPE, server_id, location_name)
+            #If the bot already sends daily weather on current channel, disable the sending
             if interaction.channel_id == registered_interaction.channel_id:
-                #Disable daily weather for the current server:
-                res_del = await self.daily_weather_handler.del_srv_from_location(interaction.guild_id, location_name)
-                if res_del:
-                    await interaction.response.send_message(f"Bien compris, je n'enverrai plus la météo quotidienne pour {location_name} 😀")
-                    logging.info(f"Daily weather was disabled for the location {location_name} on the server n°{interaction.guild_id}")
-                else:
-                    await interaction.response.send_message(f"Bonne nouvelle, je n'envoie actuellement pas la météo quotidienne pour {location_name}")
+                await self.daily_weather_handler.del_sub_from_location(self.daily_weather_handler.SERVER_SUB_TYPE, server_id, location_name)
+                await interaction.response.send_message(f"Bien compris, je n'enverrai plus la météo quotidienne pour {location_name} 😀")
+                logging.info(f"Daily weather was disabled for the location {location_name} on the server n°{server_id}")
             #Else replace registered interaction with the new one:
             else:
-                res_del = await self.daily_weather_handler.del_srv_from_location(interaction.guild_id, location_name)
-                res_add = await self.daily_weather_handler.add_srv2location(interaction, location_name)
-                if res_add and res_del:
-                    await interaction.response.send_message(f"Ok, j'enverrai désormais la météo quotidienne pour {location_name} ici!")
-                    logging.info(f"Daily weather for location {location_name} on the server n°{interaction.guild_id} was updated with a new channel")
-                else:
-                    await interaction.response.send_message("Hummm... Je n'arrive pas à mettre les données à jour, désolé...😢")
-                    logging.error(f"An error occured while trying to update channel for daily weather for location {location_name} on the server n°{interaction.guild_id}")
+                await self.daily_weather_handler.add_sub2location(self.daily_weather_handler.SERVER_SUB_TYPE, interaction, location_name)
+                await interaction.response.send_message(f"Ok, j'enverrai désormais la météo quotidienne pour {location_name} ici à la place du channel précédent!")
+                logging.info(f"Daily weather for location {location_name} on the server n°{server_id} was updated with a new channel")
         #If daily weather for specified location and server is not set:
         else:
             # Check if location is known by the API:
@@ -213,12 +205,8 @@ class SunController :
                 await interaction.response.send_message(f"Je n'ai pas {location_name} dans mes données, vérifies le nom !")
             else:
                 location_tz : str = daily_weather_test['timezone']
-                res_add = await self.daily_weather_handler.add_srv2location(interaction, location_name, location_tz)
-                if res_add:
-                    await interaction.response.send_message(f"C'est compris, j'enverrai désormais quotidiennement la météo du jour pour {location_name} ici 😉")
-                else:
-                    await interaction.response.send_message("Désolé, une erreur est survenue durant l'exécution de la commande...")
-                    logging.error("An error occured while trying to add daily weather for the server n°%d to the location %s", interaction.guild_id, location_name)
+                await self.daily_weather_handler.add_sub2location(self.daily_weather_handler.SERVER_SUB_TYPE, interaction, location_name, location_tz)
+                await interaction.response.send_message(f"C'est compris, j'enverrai désormais quotidiennement la météo du jour pour {location_name} ici 😉")
 
     async def set_daily_weather_pm(self, interaction : discord.Interaction, location_name : str) -> None:
         """Add or remove user that invoke the command for set the sending of
@@ -234,12 +222,12 @@ class SunController :
         user_id = interaction.user.id
         # Two cases depending on whether user has already used this command or not
         # for the specified location
-        if await self.daily_weather_handler.is_usr_sub2location(user_id, location_name):
+        if await self.daily_weather_handler.is_sub2location(self.daily_weather_handler.USER_SUB_TYPE, user_id, location_name):
             # User has already used the command for the indicated location, so
             # disable the sending for this location and user
-            await self.daily_weather_handler.del_usr_from_location(user_id, location_name)
+            await self.daily_weather_handler.del_sub_from_location(self.daily_weather_handler.USER_SUB_TYPE, user_id, location_name)
             await interaction.response.send_message(content=f"C'est entendu, je ne vous enverrai plus la météo quotidienne pour {location_name}")
-            logging.info("User n°%d has disabled pm of daily weather for %s", user_id, location_name)
+            logging.info("User n°%d has disabled daily weather pm for %s", user_id, location_name)
             return
         # User has not enable the pm for the specified location, so first check
         # that this city is known by the API to avoid future errors
@@ -250,12 +238,9 @@ class SunController :
             return
         # Add the user to the location subscribers list:
         location_tz : str = daily_weather_test["timezone"]
-        if await self.daily_weather_handler.add_usr2location(interaction, location_name, location_tz):
-            logging.info("User n°%d has subscribed to receive daily weather for the location %s", user_id, location_name)
-            await interaction.response.send_message(content=f"Super ! Je vous enverrez désormais la météo pour {location_name} chaque jour en message privé! (à 7h00 heure locale de la localisation)")
-            return
-        logging.error("An error occured while trying to set daily weather for the user n°%d for the location %s", interaction.guild_id, location_name)
-        await interaction.response.send_message("Désolé, une erreur est survenue durant l'exécution de la commande...")
+        await self.daily_weather_handler.add_sub2location(self.daily_weather_handler.USER_SUB_TYPE, interaction, location_name, location_tz)
+        logging.info("User n°%d has subscribed to receive daily weather for the location %s", user_id, location_name)
+        await interaction.response.send_message(content=f"Super ! Je vous enverrez désormais la météo pour {location_name} chaque jour en message privé! (à 7h00 heure locale de la localisation)")
 
     #====================================================================================
     #                                   PRIVATE METHODS PART
