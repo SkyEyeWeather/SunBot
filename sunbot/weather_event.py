@@ -1,8 +1,10 @@
+"""Weather Event module"""
+
 from abc import ABC, abstractmethod
 import asyncio
 from datetime import datetime
 import logging
-from typing import Dict
+from typing import Dict, Literal
 
 import discord
 from sunbot.location import Location
@@ -11,9 +13,15 @@ import sunbot.sunbot as sunbot
 import sunbot.WeatherAPIHandler as weather_api_handler
 
 
+USER_SUB_TYPE = 'u'
+SERVER_SUB_TYPE = 's'
+SUB_TYPE_LIST = [USER_SUB_TYPE, SERVER_SUB_TYPE]
+SubType = Literal['u', 's']
+
+
 # One class for all locations in order to not have too many tasks running in the same time
 class WeatherEvent(ABC):
-    """Abstract class that represent a general weather event. Because this class
+    """Abstract class representing a general weather event. Because this class
     is abstract, it cannot be directly instantiate
     """
 
@@ -21,280 +29,265 @@ class WeatherEvent(ABC):
         """Constructor for this class, which can only be called by inheriting classes"""
 
         # private attributes:
-        self.__users_location_dict : dict[Location, dict[int, discord.Interaction]] = {}    # Dict containing user that subscribed to each location
-        self.__servers_location_dict : dict[Location, dict[int, discord.Interaction]] = {}  # Dict containing server that subscribed to each location
-        self.__mutex_users_dict = asyncio.Lock()    # Mutex to handle access to user dict
-        self.__mutex_servers_dict = asyncio.Lock()  # Mutex to handle access to server dict
+        self.__sub_locations_dict : dict[str, dict[Location, dict[int, discord.Interaction]]] = \
+            {SERVER_SUB_TYPE : {}, USER_SUB_TYPE : {}}
+        self.__mutex_access_dict = asyncio.Lock()    # Mutex to handle access to user dict
 
-    async def get_users_location_dict(self) -> dict[Location, dict[int, discord.Interaction]]:
-        """ Return dictionary containing ID of all users that subscribed to
-        each location. Thus, in the returned dict, location names are the keys
-        and list of ID the values
-        """
-        await self.__mutex_users_dict.acquire()
-        dict_to_return = self.__users_location_dict.copy() # /!\ shallow copy
-        self.__mutex_users_dict.release()
-        return dict_to_return
-
-    async def get_server_location_dict(self) -> dict[Location, dict[int, discord.Interaction]]:
-        """Return dictionnary containing ID of all servers that subsribed to each
-        location. Thus, in the returned dict, location names are the keys and list
-        of ID the values
-        """
-        dict_to_return = {}
-        await self.__mutex_servers_dict.acquire()
-        dict_to_return = self.__servers_location_dict.copy() # /!\ shallow copy
-        self.__mutex_servers_dict.release()
-        return dict_to_return
-
-    async def get_interaction(self, server_id : int, location_name : str) -> discord.Interaction:
-        """Return discord interaction linked to the specified `server_id` and
-        `location_name`
-
+    async def get_subscribers_list(self, sub_type : SubType) -> dict[Location, dict[int, discord.Interaction]]:
+        """ Return a dictionnary containing entities that subscribed to each
+        location. Possible value for `sub_type` is `SERVER_SUB_TYPE` for servers
+        and `USER_SUB_TYPE` for users. Returned dictionnary is a shallow copy of
+        the original one, so directly modifying it can be dangerous.
         ## Parameters:
-        * `server_id`: server ID
+        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server,
+        `USER_SUB_TYPE` for user
+        ## Return value:
+        A dictionnary that contains subscribers (server or user) for each registered
+        location
+        ## Exceptions:
+        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
+        `USER_SUB_TYPE`
+        """
+        # Argument checking:
+        self.check_sub_type(sub_type)
+        await self.__mutex_access_dict.acquire()
+        # Get dictionnary corresponding to sub_type value
+        sub_type_dict = self.__sub_locations_dict[sub_type]
+        dict_to_return = sub_type_dict.copy()  # /!\ shallow copy
+        self.__mutex_access_dict.release()
+        return dict_to_return
+
+    async def get_interaction(self, sub_type : SubType, sub_id : int, location_name : str) -> discord.Interaction:
+        """Return discord interaction linked to the specified `entity_id` and
+        `location_name`. Possible value for `sub_type` is `SERVER_SUB_TYPE` for
+        servers and `USER_SUB_TYPE` for users
+        ## Parameters:
+        * `sub_type`: type of subscribers, `SERVER_SUB_TYPE` for server,
+        `USER_SUB_TYPE` for user
+        * `sub_id`: subscriber ID
         * `location_name`: name of the location
         ## Return value:
-        Discord interaction corresponding to the specified `server_id` and
+        Discord interaction corresponding to the specified `entity_id` and
         `location name`
+        ## Exception:
+        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
+        `USER_SUB_TYPE`
         """
-        await self.__mutex_servers_dict.acquire()
+        # Argument checking:
+        self.check_sub_type(sub_type)
+        await self.__mutex_access_dict.acquire()
+        sub_type_dict = self.__sub_locations_dict[sub_type]
         try:
-            for location in self.__servers_location_dict:
+            for location in sub_type_dict:
                 if location.name == location_name:
-                    interaction = self.__servers_location_dict[Location(location_name, "")][server_id]
-        except KeyError as e:
-            logging.error(e.__cause__)
+                    interaction = sub_type_dict[Location(location_name, "")][sub_id]
+        except KeyError as err:
+            logging.error(err.__cause__)
             return None
         finally:
-            self.__mutex_servers_dict.release()
+            self.__mutex_access_dict.release()
         return interaction
 
-    async def is_usr_sub2location(self, user_id : int, location_name : str) -> bool:
-        """Return wether the user corresponding to specified `user_id` subscribed
-
-        to the indicated `location_name` or not.
+    async def is_sub2location(self, sub_type : SubType, sub_id : int, location_name : str) -> bool:
+        """Return whether the entity corresponding to the specified `entity_id`
+        subscribed to the indicated `location_name` or not. Possible value for
+        `sub_type` is `SERVER_SUB_TYPE` for servers and `USER_SUB_TYPE` for users
         ## Parameters:
-        * `user_id`: user ID
+        * `sub_type`: type of subscribers to check, `SERVER_SUB_TYPE` for server,
+        `USER_SUB_TYPE` for user
+        * `sub_id`: subscriber ID
         * `location_name`: name of the location
         ## Return value:
-        `True` if the user subrscribed to specified location, `False` otherwise
+        `True` if the subscriber listen to the specified location, `False`
+        otherwise
+        ##Exception:
+        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
+        `USER_SUB_TYPE`
         """
-        await self.__mutex_users_dict.acquire()
-        location_users_dict = self.__users_location_dict.get(Location(location_name, ""), {})
-        user_in_dict = (user_id in location_users_dict)
-        self.__mutex_users_dict.release()
-        return user_in_dict
+        # Argument checking:
+        self.check_sub_type(sub_type)
+        await self.__mutex_access_dict.acquire()
+        sub_type_dict = self.__sub_locations_dict[sub_type]
+        location_sub_dict = sub_type_dict.get(Location(location_name, ""), {})
+        sub_in_dict = sub_id in location_sub_dict
+        self.__mutex_access_dict.release()
+        return sub_in_dict
 
-    async def add_usr2location(self, interaction : discord.Interaction, location_name : str, location_tz="") -> bool:
-        """Add user whose Discord ID is specified to the `location_name` list
-        of subscribers
-
+    async def add_sub2location(self, sub_type : SubType, interaction : discord.Interaction, location_name : str, location_tz="") -> None:
+        """Add an entity contained in the specified `interaction `to the `location_name`
+        dict of subscribers.Possible value for `sub_type` is `SERVER_SUB_TYPE`
+        for servers and `USER_SUB_TYPE` for users. If the entity was already added
+        to the location, the corresponding interaction is updated.
         ## Parameters:
+        * `sub_type`: type of subscribers to add, `SERVER_SUB_TYPE` for server,
+        `USER_SUB_TYPE` for user
         * `interaction`: Discord interaction, use to retrieve context data
         * `location_name`: name of the location to which specified user whish
         to subscribe
         * `location_tz`: time zone of the location, optional
         ## Return value:
-        `True` if the user was successfully added, `False` otherwise
+        Not applicable
+        ## Exception:
+        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
+        `USER_SUB_TYPE`
         """
-        user_id = interaction.user.id
-        if not await self.is_usr_sub2location(user_id, location_name):
-            await self.__mutex_users_dict.acquire()
-            current_location = Location(location_name, location_tz)
-            if current_location not in self.__users_location_dict:
-                self.__users_location_dict[current_location] = {}
-            self.__users_location_dict[current_location][user_id] = interaction
-            self.__mutex_users_dict.release()
-            logging.info("User n°%d was successfully added to the list for the location %s", user_id, location_name)
-            return True
-        logging.warning("User n°%d is already listening for the location %s. Do nothing", user_id, location_name)
-        return False
+        # Argument checking:
+        self.check_sub_type(sub_type)
+        # Retrieve entity ID:
+        if sub_type == USER_SUB_TYPE:
+            sub_id = interaction.user.id
+        else:
+            sub_id = interaction.guild.id
+        # It is not needed to check if entity was already added, the corresponding
+        # discord interaction will just be updated
+        await self.__mutex_access_dict.acquire()
+        current_location = Location(location_name, location_tz)
+        # If location is not yet known by the bot:
+        if current_location not in self.__sub_locations_dict[sub_type]:
+            self.__sub_locations_dict[sub_type][current_location] = {}
+        self.__sub_locations_dict[sub_type][current_location][sub_id] = interaction
+        self.__mutex_access_dict.release()
+        logging.info("Subscriber n°%d was successfully added to the list for the location %s", sub_id, location_name)
 
-    async def del_usr_from_location(self, user_id : int, location_name : str) -> bool:
-        """Delete specified `user_id` from the list of subscribers for the
-        indicated `location_name`
-
+    async def del_sub_from_location(self, sub_type : SubType, sub_id : int, location_name : str) -> bool:
+        """Delete subscriber whose ID is specified in argument from the list
+        of subscribers for the indicated `location_name`. Possible value for
+        `sub_type` is `SERVER_SUB_TYPE` for servers and `USER_SUB_TYPE` for users.
         ## Parameters:
-        * `user_id`: user ID to delete from the list of subscribers
-        * `location_name`: name of the location from which the user will be
+        * `sub_type`: type of subscribers to remove, `SERVER_SUB_TYPE` for server,
+        `USER_SUB_TYPE` for user
+        * `sub_id`: sub ID to delete from the list of subscribers
+        * `location_name`: name of the location from which the subsriber will be
         deleted
         ## Return value:
-        `True` if the user ID was successfully deleted from the list of
+        `True` if the sub ID was successfully deleted from the list of
         subscribers for the specified location, `False` otherwise
+        ## Exception:
+        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
+        `USER_SUB_TYPE`
         """
-        if not await self.is_usr_sub2location(user_id, location_name):
-            logging.warning("User n°{user_id} has no subscribed to the location {location_name}")
+        # Argument checking:
+        self.check_sub_type(sub_type)
+        # If specified subscriber was not added to the indicated location, do
+        # nothing:
+        if not await self.is_sub2location(sub_type, sub_id, location_name):
+            logging.warning("Subscriber n°%d has no subscribed to the location %s", sub_id, location_name)
             return False
-        await self.__mutex_users_dict.acquire()
-        self.__users_location_dict[Location(location_name, "")].pop(user_id)
-        self.__mutex_users_dict.release()
-        logging.info("User n°%d was successfully removed from the list for the location", user_id)
+        location = Location(location_name, "")
+        await self.__mutex_access_dict.acquire()
+        self.__sub_locations_dict[sub_type][location].pop(sub_id)
+        # If there is no subscriber remaning for the location, delete it for memory saving
+        if self.__sub_locations_dict[sub_type][location] == {}:
+            self.__sub_locations_dict[sub_type].pop(location)
+        self.__mutex_access_dict.release()
+        logging.info("Subscriber n°%d was successfully removed from the list for the location %s", sub_id, location_name)
         return True
 
-    async def is_srv_sub2location(self, server_id : int, location_name : str) -> bool:
-        """Return wether the server corresponding to specified `server_id`
-        subscribed to the indicated `location_name` or not.
-
+    @staticmethod
+    def check_sub_type(sub_type : SubType) -> None:
+        """Check whether sub type correspond to a known type of subscriber.
         ## Parameters:
-        * `server_id`: user ID
-        * `location_name`: name of the location
+        * `sub_type`: type of subscribers, `SERVER_SUB_TYPE` for server,
+        `USER_SUB_TYPE` for user
         ## Return value:
-        `True` if the server subrscribed to specified location, `False` otherwise
+        None
+        ## Exception:
+         * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
+        `USER_SUB_TYPE`
         """
-        await self.__mutex_servers_dict.acquire()
-        location_srv_dict = self.__servers_location_dict.get(Location(location_name, ""), {})
-        srv_in_dict = (server_id in location_srv_dict)
-        self.__mutex_servers_dict.release()
-        return srv_in_dict
-
-    async def add_srv2location(self, interaction : discord.Interaction, location_name : str, location_tz : str = "") -> bool:
-        """Add server whose Discord ID is specified to the `location_name` list
-        of subscribing servers, with indicated discord `interaction`
-
-        ## Parameters:
-        * `interaction` : Discord interaction, used to retrieve context data
-        * `location_name`: name of the location to which specified user whish
-        to subscribe
-        * `location_tz` : time zone of the location, optional
-        ## Return value:
-        `True` if the server was successfully added, `False` otherwise
-        """
-        server_id = interaction.guild_id
-        if not await self.is_srv_sub2location(server_id, location_name):
-            await self.__mutex_servers_dict.acquire()
-            current_location = Location(location_name, location_tz)
-            if not location_name in self.__servers_location_dict:
-                self.__servers_location_dict[current_location] = {}
-            self.__servers_location_dict[current_location][server_id] = interaction
-            self.__mutex_servers_dict.release()
-            logging.info("Server n°%d was successfully added to the list for the location %s", server_id, location_name)
-            return True
-        logging.warning("User n°%d is already listening for the location %s. Do nothing", server_id, location_name)
-        return False
-
-    async def del_srv_from_location(self, server_id : int, location_name : str) -> bool:
-        """Delete specified `server_id` from the list of subscribing servers for the
-        indicated `location_name`
-
-        ## Parameters:
-        * `user_id`: user ID to delete from the list of subscribers
-        * `location_name`: name of the location from which the server will be
-        deleted
-        ## Return value:
-        `True` if the server ID was successfully deleted from the list of
-        subscribing servers for the specified location, `False` otherwise
-        """
-        if not await self.is_srv_sub2location(server_id, location_name):
-            logging.warning("Server n°%d has no subscribed to the location %s", server_id, location_name)
-            return False
-        await self.__mutex_servers_dict.acquire()
-        self.__servers_location_dict[Location(location_name, "")].pop(server_id)
-        self.__mutex_servers_dict.release()
-        logging.info("Server n°%d was successfully removed from the list for the location %s", server_id, location_name)
-        return True
+        if sub_type not in SUB_TYPE_LIST:
+            logging.error("Unknown subscriber type %s", sub_type)
+            raise ValueError("Unknown subscriber type")
 
     @abstractmethod
     async def run_event_task(self):
         """Abstract method that listen for an event and handle it when it is
         triggered. Must be implemented by inheriting classes
         """
-        pass
 
 
 class DailyWeatherEvent(WeatherEvent):
-    """Class that handle daily weather event"""
-
-    USER_FLAG_TYPE = 'u'
-    SERVER_FLAG_TYPE = 's'
-    FLAG_TYPES = [USER_FLAG_TYPE, SERVER_FLAG_TYPE]
+    """Class that handle daily weather event and send it to subscriber"""
 
     def __init__(self) -> None:
         super().__init__()
         # Flag that indicates if daily weather was sent or not for each location:
-        self.__dict_weather_sent_flag_server : Dict[Location, bool] = {}
-        self.__dict_weather_sent_flag_user : Dict[Location, bool] = {}
+        self.__dict_weather_sent_flag : Dict[str, Dict[Location, bool]] = \
+            {SERVER_SUB_TYPE : {}, USER_SUB_TYPE : {}}
         self.__mutex_dict_flag = asyncio.Lock()
 
-    async def get_location_flag(self, location : Location, flag_type : str) -> bool:
-        """Return the flag for the specified location. The value of the flag is
-        `True` if the daily weather was already sent for the location, `False`
-        otherwise
+    async def get_location_flag(self, sub_type : SubType, location : Location) -> bool:
+        """Return the flag for the specified location and subscriber type. The
+        value of the flag is `True` if the daily weather was already sent for the
+        location and subscriber type, `False` otherwise. Possible value for
+        `sub_type` is `SERVER_SUB_TYPE` for servers and `USER_SUB_TYPE` for users.
         ## Parameters:
+        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server,
+        `USER_SUB_TYPE` for user
         * `location`: location for which flag has to be retrieved
-        * `flag_type`: type of flag to retrieve `u` or `s`
         ## Return value:
-        A boolean representing the flag
+        A boolean representing the flag value
+        ## Exception:
+        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
+        `USER_SUB_TYPE`
         """
-        if flag_type not in self.FLAG_TYPES:
-            raise ValueError()
+        # Argument checking:
+        self.check_sub_type(sub_type)
         flag = False
         await self.__mutex_dict_flag.acquire()
         try:
-            if flag_type == self.USER_FLAG_TYPE:
-                flag = self.__dict_weather_sent_flag_user[location]
-            else:
-                flag = self.__dict_weather_sent_flag_server[location]
+            flag = self.__dict_weather_sent_flag[sub_type][location]
         except KeyError:
             logging.error("Specified location (%s) is not in daily weather flag", location.name)
         finally:
             self.__mutex_dict_flag.release()
         return flag
 
-    async def set_location_flag(self, location : Location, flag_type : str, value : bool) -> None:
-        """Set the flag for the specified location and type to the `value` value.
+    async def set_location_flag(self, sub_type : SubType, location : Location, value : bool) -> None:
+        """Set the flag for the specified subscriber type and location to the
+        indicated value. Possible value for `sub_type` is `SERVER_SUB_TYPE` for
+        servers and `USER_SUB_TYPE` for users.
         ## Parameters:
+        * `sub_type`: type of subscribers, `SERVER_SUB_TYPE` for server,
+        `USER_SUB_TYPE` for user
         * `location` : location for which flag has to be set
-        * `flag_type`: type of flag to retrieve `u` or `s`
         * `value`: `True` or `False`
         ## Return value:
         Not applicable
+        ## Exception:
+        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
+        `USER_SUB_TYPE`
         """
-        if flag_type not in self.FLAG_TYPES:
-            raise ValueError()
+        # Argument checking:
+        self.check_sub_type(sub_type)
         await self.__mutex_dict_flag.acquire()
-        if flag_type == self.USER_FLAG_TYPE:
-            self.__dict_weather_sent_flag_user[location] = value
-        else:
-            self.__dict_weather_sent_flag_server[location] = value
+        self.__dict_weather_sent_flag[sub_type][location] = value
         self.__mutex_dict_flag.release()
 
-    async def add_srv2location(self, interaction : discord.Interaction, location_name : str, location_tz : str = "") -> bool:
-        """Add server whose Discord ID is specified to the `location_name` list
-        of subscribing servers, with indicated discord `interaction`
-
+    async def add_sub2location(self, sub_type : SubType, interaction : discord.Interaction, location_name : str, location_tz : str = "") -> bool:
+        """Add an entity contained in the specified `interaction `to the `location_name`
+        dict of subscribers.Possible value for `sub_type` is `SERVER_SUB_TYPE`
+        for servers and `USER_SUB_TYPE` for users. If the entity was already added
+        to the location, the corresponding interaction is updated.
         ## Parameters:
-        * `interaction` : Discord interaction, used to retrieve context data
-        * `location_name`: name of the location to which specified user whish
-        to subscribe
-        * `location_tz` : time zone of the location, optional
-        ## Return value:
-        `True` if the server was successfully added, `False` otherwise
-        """
-        # Only add specified location if there is not already known by the task:
-        current_location = Location(location_name, location_tz)
-        if current_location not in self.__dict_weather_sent_flag_server:
-            # Add current location to the task:
-            await self.set_location_flag(current_location, self.SERVER_FLAG_TYPE, False)
-        return (await super().add_srv2location(interaction, location_name, location_tz))
-
-    async def add_usr2location(self, interaction: discord.Interaction, location_name: str, location_tz="") -> bool:
-        """Add user whose Discord ID is specified to the `location_name` list
-        of subscribers
-
-        ## Parameters:
+        * `sub_type`: type of subscribers to add, `SERVER_SUB_TYPE` for server,
+        `USER_SUB_TYPE` for user
         * `interaction`: Discord interaction, use to retrieve context data
         * `location_name`: name of the location to which specified user whish
         to subscribe
         * `location_tz`: time zone of the location, optional
         ## Return value:
-        `True` if the user was successfully added, `False` otherwise
+        `True` if the subscriber was successfully added, `False` otherwise
+        ## Exception:
+        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
+        `USER_SUB_TYPE`
         """
-        current_location = Location(location_name, location_tz)
-        if current_location not in self.__dict_weather_sent_flag_user:
+        # Only add specified location if there is not already known by the task:
+        location = Location(location_name, location_tz)
+        if location not in self.__dict_weather_sent_flag[sub_type]:
             # Add current location to the task:
-            await self.set_location_flag(current_location, self.USER_FLAG_TYPE, False)
-        return await super().add_usr2location(interaction, location_name, location_tz)
+            await self.set_location_flag(sub_type, location, False)
+        return (await super().add_sub2location(sub_type, interaction, location_name, location_tz))
 
     async def run_event_task(self):
         logging.info("Starting daily weather task")
@@ -303,62 +296,49 @@ class DailyWeatherEvent(WeatherEvent):
             await asyncio.sleep(60)
             # Check for each known location if it is the time to send the daily
             # weather or reset flag:
-            for location, server_dict in (await self.get_server_location_dict()).items():
-                loc_cur_h = int(datetime.now(location.tz).strftime("%H"))
-                loc_cur_min = int(datetime.now(location.tz).strftime("%M"))
-                # Check if it is the time to reset flag. This flag is reset between 0h00 and 0h01:
-                if(loc_cur_h == sunbot.DAILY_WEATHER_RESET_HOUR) and (loc_cur_min in [0, 1]):
-                    await self.set_location_flag(location, self.SERVER_FLAG_TYPE, False)
-                elif(loc_cur_h == sunbot.DAILY_WEATHER_SEND_HOUR) and (loc_cur_min in [0, 1]) and not await self.get_location_flag(location, self.SERVER_FLAG_TYPE):
-                    await self.set_location_flag(location, self.SERVER_FLAG_TYPE, True)
-                    await self.__send_daily_weather2srv(location, server_dict)
-            for location, users_dict in (await self.get_users_location_dict()).items():
-                loc_cur_h = int(datetime.now(location.tz).strftime("%H"))
-                loc_cur_min = int(datetime.now(location.tz).strftime("%M"))
-                # Check if it is the time to reset flag. This flag is reset between 0h00 and 0h01:
-                if(loc_cur_h == sunbot.DAILY_WEATHER_RESET_HOUR) and (loc_cur_min in [0, 1]):
-                    await self.set_location_flag(location, self.USER_FLAG_TYPE, False)
-                elif(loc_cur_h == sunbot.DAILY_WEATHER_SEND_HOUR) and (loc_cur_min in [0, 1]) and not await self.get_location_flag(location, self.USER_FLAG_TYPE):
-                    await self.set_location_flag(location, self.USER_FLAG_TYPE, True)
-                    await self.__send_daily_weather2usr(location, users_dict)
+            for sub_type in SUB_TYPE_LIST:
+                for location, sub_dict in (await self.get_subscribers_list(sub_type)).items():
+                    loc_cur_h = int(datetime.now(location.tz).strftime("%H"))
+                    loc_cur_min = int(datetime.now(location.tz).strftime("%M"))
+                    # Check if it is the time to reset flag. It is reset between 0h00 and 0h01:
+                    if(loc_cur_h == sunbot.DAILY_WEATHER_RESET_HOUR) and (loc_cur_min in [0, 1]):
+                        await self.set_location_flag(sub_type, location, False)
+                    elif(loc_cur_h == sunbot.DAILY_WEATHER_SEND_HOUR) and (loc_cur_min in [0, 1]) and not await self.get_location_flag(sub_type, location):
+                        await self.set_location_flag(sub_type, location, True)
+                        await self.__send_daily_weather2sub(location, sub_type, sub_dict)
 
-    @staticmethod
-    async def __send_daily_weather2srv(location : Location, server_dict : Dict[int, discord.Interaction]) -> None:
-        """Private method that sends daily weather for the specified location on all
-        subscribing servers.
+    async def __send_daily_weather2sub(self, location : Location, sub_type : SubType, sub_dict : Dict[int, discord.Interaction]) -> None:
+        """Private method that sends daily weather for the specified location to
+        all subscribers. Possible value for `sub_type` is `SERVER_SUB_TYPE` for
+        servers and `USER_SUB_TYPE` for users.
         ## Parameters:
         * `location`: location for which the weather is sent to all subscribing servers
-        * `server_dict`: dict of subscribing servers
+        * `sub_type`: type of subscribers, `SERVER_SUB_TYPE` for server,
+        `USER_SUB_TYPE` for user
+        * `sub_dict`: dict of subscribers
         ## Return value:
-        Not applicable
+        None
+        ## Exception:
+        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
+        `USER_SUB_TYPE`
         """
+        self.check_sub_type(sub_type)
         # Get daily weather response from the API for current location:
         request_response = weather_api_handler.dailyWeatherRequest(location.name)
         # If a response was sent by the weather API:
         if request_response != {}:
             create_daily_weather_img(request_response, "./Data/Images")
             # Send data for current location on each registered server:
-            for server in server_dict:
+            for sub_id in sub_dict:
                 # Get interaction for current server, which contains a channel
                 # where send daily weather:
-                interaction = server_dict[server]
+                interaction = sub_dict[sub_id]
                 # Send daily weather:
-                await interaction.channel.send(content=f"Voici la météo prévue pour aujourd'hui à {location.name}\n", file=discord.File(f"{sunbot.DAILY_IMAGE_PATH}{sunbot.DAILY_IMAGE_NAME}"))
-                await asyncio.sleep(0.1)
-
-    @staticmethod
-    async def __send_daily_weather2usr(location : Location, users_dict : dict[int, discord.Interaction]) -> None:
-        """Private method that sends daily weather in private message for the
-        specified location to all users who have subscribed to each location
-        """
-        # Get daily weather response from the API for specified location:
-        request_response = weather_api_handler.dailyWeatherRequest(location.name)
-        if request_response != {}:
-            create_daily_weather_img(request_response, "./Data/Images")
-            # Send daily weather in private message to each user:
-            for user in users_dict:
-                interaction = users_dict[user]
-                await interaction.user.send(content=f"Voici la météo prévue pour aujourd'hui à {location.name}\n", file=discord.File(f"{sunbot.DAILY_IMAGE_PATH}{sunbot.DAILY_IMAGE_NAME}"))
+                logging.info("Sending daily weather for %s to subscriber n°%d", location.name, sub_id)
+                if sub_type == SERVER_SUB_TYPE:
+                    await interaction.channel.send(content=f"Voici la météo prévue pour aujourd'hui à {location.name}\n", file=discord.File(f"{sunbot.DAILY_IMAGE_PATH}{sunbot.DAILY_IMAGE_NAME}"))
+                else:
+                    await interaction.user.send(content=f"Voici la météo prévue pour aujourd'hui à {location.name}\n", file=discord.File(f"{sunbot.DAILY_IMAGE_PATH}{sunbot.DAILY_IMAGE_NAME}"))
                 await asyncio.sleep(0.1)
 
 
