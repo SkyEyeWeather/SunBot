@@ -184,7 +184,8 @@ class WeatherEvent(ABC):
         logging.info("Subscriber n°%d was successfully removed from the list for the location %s", sub_id, location_name)
         return True
 
-    def check_sub_type(self, sub_type : SubType):
+    @staticmethod
+    def check_sub_type(sub_type : SubType):
         """
         """
         if sub_type not in SUB_TYPE_LIST:
