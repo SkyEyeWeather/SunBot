@@ -51,7 +51,7 @@ class WeatherEvent(ABC):
         # Argument checking:
         self.check_sub_type(sub_type)
         await self.__mutex_access_dict.acquire()
-        #Get dictionnary corresponding to sub_type value
+        # Get dictionnary corresponding to sub_type value
         sub_type_dict = self.__sub_locations_dict[sub_type]
         dict_to_return = sub_type_dict.copy()  # /!\ shallow copy
         self.__mutex_access_dict.release()
@@ -133,7 +133,7 @@ class WeatherEvent(ABC):
         """
         # Argument checking:
         self.check_sub_type(sub_type)
-        #Retrieve entity ID:
+        # Retrieve entity ID:
         if sub_type == USER_SUB_TYPE:
             sub_id = interaction.user.id
         else:
@@ -185,7 +185,7 @@ class WeatherEvent(ABC):
 
     @staticmethod
     def check_sub_type(sub_type : SubType) -> None:
-        """ Check whether sub type correspond to a known type of subscriber.
+        """Check whether sub type correspond to a known type of subscriber.
         ## Parameters:
         * `sub_type`: type of subscribers, `SERVER_SUB_TYPE` for server,
         `USER_SUB_TYPE` for user
