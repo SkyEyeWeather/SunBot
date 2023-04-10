@@ -93,7 +93,7 @@ class WeatherEvent(ABC):
         subscribed to the indicated `location_name` or not. Possible value for
         `sub_type` is `SERVER_SUB_TYPE` for servers and `USER_SUB_TYPE` for users
         ## Parameters:
-        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server,
+        * `sub_type`: type of subscribers to check, `SERVER_SUB_TYPE` for server,
         `USER_SUB_TYPE` for user
         * `sub_id`: subscriber ID
         * `location_name`: name of the location
@@ -119,7 +119,7 @@ class WeatherEvent(ABC):
         for servers and `USER_SUB_TYPE` for users. If the entity was already added
         to the location, the corresponding interaction is updated.
         ## Parameters:
-        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server,
+        * `sub_type`: type of subscribers to add, `SERVER_SUB_TYPE` for server,
         `USER_SUB_TYPE` for user
         * `interaction`: Discord interaction, use to retrieve context data
         * `location_name`: name of the location to which specified user whish
@@ -154,7 +154,7 @@ class WeatherEvent(ABC):
         of subscribers for the indicated `location_name`. Possible value for
         `sub_type` is `SERVER_SUB_TYPE` for servers and `USER_SUB_TYPE` for users.
         ## Parameters:
-        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server,
+        * `sub_type`: type of subscribers to remove, `SERVER_SUB_TYPE` for server,
         `USER_SUB_TYPE` for user
         * `sub_id`: sub ID to delete from the list of subscribers
         * `location_name`: name of the location from which the subsriber will be
@@ -184,8 +184,16 @@ class WeatherEvent(ABC):
         return True
 
     @staticmethod
-    def check_sub_type(sub_type : SubType):
-        """
+    def check_sub_type(sub_type : SubType) -> None:
+        """ Check whether sub type correspond to a known type of subscriber.
+        ## Parameters:
+        * `sub_type`: type of subscribers, `SERVER_SUB_TYPE` for server,
+        `USER_SUB_TYPE` for user
+        ## Return value:
+        None
+        ## Exception:
+         * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
+        `USER_SUB_TYPE`
         """
         if sub_type not in SUB_TYPE_LIST:
             logging.error("Unknown subscriber type %s", sub_type)
@@ -240,7 +248,7 @@ class DailyWeatherEvent(WeatherEvent):
         indicated value. Possible value for `sub_type` is `SERVER_SUB_TYPE` for
         servers and `USER_SUB_TYPE` for users.
         ## Parameters:
-        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server,
+        * `sub_type`: type of subscribers, `SERVER_SUB_TYPE` for server,
         `USER_SUB_TYPE` for user
         * `location` : location for which flag has to be set
         * `value`: `True` or `False`
@@ -262,7 +270,7 @@ class DailyWeatherEvent(WeatherEvent):
         for servers and `USER_SUB_TYPE` for users. If the entity was already added
         to the location, the corresponding interaction is updated.
         ## Parameters:
-        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server,
+        * `sub_type`: type of subscribers to add, `SERVER_SUB_TYPE` for server,
         `USER_SUB_TYPE` for user
         * `interaction`: Discord interaction, use to retrieve context data
         * `location_name`: name of the location to which specified user whish
@@ -305,7 +313,7 @@ class DailyWeatherEvent(WeatherEvent):
         servers and `USER_SUB_TYPE` for users.
         ## Parameters:
         * `location`: location for which the weather is sent to all subscribing servers
-        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server,
+        * `sub_type`: type of subscribers, `SERVER_SUB_TYPE` for server,
         `USER_SUB_TYPE` for user
         * `sub_dict`: dict of subscribers
         ## Return value:
