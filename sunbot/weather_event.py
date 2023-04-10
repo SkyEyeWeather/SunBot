@@ -1,6 +1,4 @@
-"""
-Weather Event module
-"""
+"""Weather Event module"""
 
 from abc import ABC, abstractmethod
 import asyncio
@@ -201,8 +199,7 @@ class WeatherEvent(ABC):
 
 
 class DailyWeatherEvent(WeatherEvent):
-    """Class that handle daily weather event and send it to subscriber
-    """
+    """Class that handle daily weather event and send it to subscriber"""
 
     def __init__(self) -> None:
         super().__init__()
