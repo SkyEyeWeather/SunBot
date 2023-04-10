@@ -183,21 +183,21 @@ class SunController :
         * `location_name`: location to which the server have to be add / remove
         """
         server_id = interaction.guild_id
-        #If daily weather for specified location and server was already set:
+        # If daily weather for specified location and server was already set:
         if await self.daily_weather_handler.is_sub2location(weather_event.SERVER_SUB_TYPE, server_id, location_name):
-            #If specified interaction is the same as the current registered interaction for current server and location name:
+            # If specified interaction is the same as the current registered interaction for current server and location name:
             registered_interaction = await self.daily_weather_handler.get_interaction(weather_event.SERVER_SUB_TYPE, server_id, location_name)
-            #If the bot already sends daily weather on current channel, disable the sending
+            # If the bot already sends daily weather on current channel, disable the sending
             if interaction.channel_id == registered_interaction.channel_id:
                 await self.daily_weather_handler.del_sub_from_location(weather_event.SERVER_SUB_TYPE, server_id, location_name)
                 await interaction.response.send_message(f"Bien compris, je n'enverrai plus la météo quotidienne pour {location_name} 😀")
                 logging.info(f"Daily weather was disabled for the location {location_name} on the server n°{server_id}")
-            #Else replace registered interaction with the new one:
+            # Else replace registered interaction with the new one:
             else:
                 await self.daily_weather_handler.add_sub2location(weather_event.SERVER_SUB_TYPE, interaction, location_name)
                 await interaction.response.send_message(f"Ok, j'enverrai désormais la météo quotidienne pour {location_name} ici à la place du channel précédent!")
                 logging.info(f"Daily weather for location {location_name} on the server n°{server_id} was updated with a new channel")
-        #If daily weather for specified location and server is not set:
+        # If daily weather for specified location and server is not set:
         else:
             # Check if location is known by the API:
             daily_weather_test = weatherAPIHandler.dailyWeatherRequest(location_name)

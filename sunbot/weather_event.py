@@ -20,6 +20,7 @@ SERVER_SUB_TYPE = 's'
 SUB_TYPE_LIST = [USER_SUB_TYPE, SERVER_SUB_TYPE]
 SubType = Literal['u', 's']
 
+
 # One class for all locations in order to not have too many tasks running in the same time
 class WeatherEvent(ABC):
     """Abstract class representing a general weather event. Because this class
@@ -31,7 +32,7 @@ class WeatherEvent(ABC):
 
         # private attributes:
         self.__sub_locations_dict : dict[str, dict[Location, dict[int, discord.Interaction]]] = \
-        {SERVER_SUB_TYPE :{}, USER_SUB_TYPE : {}}
+            {SERVER_SUB_TYPE : {}, USER_SUB_TYPE : {}}
         self.__mutex_access_dict = asyncio.Lock()    # Mutex to handle access to user dict
 
     async def get_subscribers_list(self, sub_type : SubType) -> dict[Location, dict[int, discord.Interaction]]:
@@ -40,13 +41,13 @@ class WeatherEvent(ABC):
         and `USER_SUB_TYPE` for users. Returned dictionnary is a shallow copy of
         the original one, so directly modifying it can be dangerous.
         ## Parameters:
-        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server, 
+        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server,
         `USER_SUB_TYPE` for user
         ## Return value:
         A dictionnary that contains subscribers (server or user) for each registered
         location
         ## Exceptions:
-        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor 
+        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
         `USER_SUB_TYPE`
         """
         # Argument checking:
@@ -54,16 +55,16 @@ class WeatherEvent(ABC):
         await self.__mutex_access_dict.acquire()
         #Get dictionnary corresponding to sub_type value
         sub_type_dict = self.__sub_locations_dict[sub_type]
-        dict_to_return = sub_type_dict.copy() # /!\ shallow copy
+        dict_to_return = sub_type_dict.copy()  # /!\ shallow copy
         self.__mutex_access_dict.release()
         return dict_to_return
 
     async def get_interaction(self, sub_type : SubType, sub_id : int, location_name : str) -> discord.Interaction:
         """Return discord interaction linked to the specified `entity_id` and
-        `location_name`. Possible value for `sub_type` is `SERVER_SUB_TYPE` for 
+        `location_name`. Possible value for `sub_type` is `SERVER_SUB_TYPE` for
         servers and `USER_SUB_TYPE` for users
         ## Parameters:
-        * `sub_type`: type of subscribers, `SERVER_SUB_TYPE` for server, 
+        * `sub_type`: type of subscribers, `SERVER_SUB_TYPE` for server,
         `USER_SUB_TYPE` for user
         * `sub_id`: subscriber ID
         * `location_name`: name of the location
@@ -71,7 +72,7 @@ class WeatherEvent(ABC):
         Discord interaction corresponding to the specified `entity_id` and
         `location name`
         ## Exception:
-        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor 
+        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
         `USER_SUB_TYPE`
         """
         # Argument checking:
@@ -90,19 +91,19 @@ class WeatherEvent(ABC):
         return interaction
 
     async def is_sub2location(self, sub_type : SubType, sub_id : int, location_name : str) -> bool:
-        """Return whether the entity corresponding to the specified `entity_id` 
-        subscribed to the indicated `location_name` or not. Possible value for 
+        """Return whether the entity corresponding to the specified `entity_id`
+        subscribed to the indicated `location_name` or not. Possible value for
         `sub_type` is `SERVER_SUB_TYPE` for servers and `USER_SUB_TYPE` for users
         ## Parameters:
-        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server, 
+        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server,
         `USER_SUB_TYPE` for user
         * `sub_id`: subscriber ID
         * `location_name`: name of the location
         ## Return value:
-        `True` if the subscriber listen to the specified location, `False` 
+        `True` if the subscriber listen to the specified location, `False`
         otherwise
         ##Exception:
-        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor 
+        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
         `USER_SUB_TYPE`
         """
         # Argument checking:
@@ -115,12 +116,12 @@ class WeatherEvent(ABC):
         return sub_in_dict
 
     async def add_sub2location(self, sub_type : SubType, interaction : discord.Interaction, location_name : str, location_tz="") -> None:
-        """Add an entity contained in the specified `interaction `to the `location_name` 
-        dict of subscribers.Possible value for `sub_type` is `SERVER_SUB_TYPE` 
+        """Add an entity contained in the specified `interaction `to the `location_name`
+        dict of subscribers.Possible value for `sub_type` is `SERVER_SUB_TYPE`
         for servers and `USER_SUB_TYPE` for users. If the entity was already added
         to the location, the corresponding interaction is updated.
         ## Parameters:
-        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server, 
+        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server,
         `USER_SUB_TYPE` for user
         * `interaction`: Discord interaction, use to retrieve context data
         * `location_name`: name of the location to which specified user whish
@@ -129,7 +130,7 @@ class WeatherEvent(ABC):
         ## Return value:
         Not applicable
         ## Exception:
-        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor 
+        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
         `USER_SUB_TYPE`
         """
         # Argument checking:
@@ -151,11 +152,11 @@ class WeatherEvent(ABC):
         logging.info("Subscriber n°%d was successfully added to the list for the location %s", sub_id, location_name)
 
     async def del_sub_from_location(self, sub_type : SubType, sub_id : int, location_name : str) -> bool:
-        """Delete subscriber whose ID is specified in argument from the list 
-        of subscribers for the indicated `location_name`. Possible value for 
+        """Delete subscriber whose ID is specified in argument from the list
+        of subscribers for the indicated `location_name`. Possible value for
         `sub_type` is `SERVER_SUB_TYPE` for servers and `USER_SUB_TYPE` for users.
         ## Parameters:
-        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server, 
+        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server,
         `USER_SUB_TYPE` for user
         * `sub_id`: sub ID to delete from the list of subscribers
         * `location_name`: name of the location from which the subsriber will be
@@ -164,7 +165,7 @@ class WeatherEvent(ABC):
         `True` if the sub ID was successfully deleted from the list of
         subscribers for the specified location, `False` otherwise
         ## Exception:
-        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor 
+        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
         `USER_SUB_TYPE`
         """
         # Argument checking:
@@ -207,22 +208,22 @@ class DailyWeatherEvent(WeatherEvent):
         super().__init__()
         # Flag that indicates if daily weather was sent or not for each location:
         self.__dict_weather_sent_flag : Dict[str, Dict[Location, bool]] = \
-        {SERVER_SUB_TYPE : {}, USER_SUB_TYPE : {}}
+            {SERVER_SUB_TYPE : {}, USER_SUB_TYPE : {}}
         self.__mutex_dict_flag = asyncio.Lock()
 
     async def get_location_flag(self, sub_type : SubType, location : Location) -> bool:
-        """Return the flag for the specified location and subscriber type. The 
-        value of the flag is `True` if the daily weather was already sent for the 
-        location and subscriber type, `False` otherwise. Possible value for 
+        """Return the flag for the specified location and subscriber type. The
+        value of the flag is `True` if the daily weather was already sent for the
+        location and subscriber type, `False` otherwise. Possible value for
         `sub_type` is `SERVER_SUB_TYPE` for servers and `USER_SUB_TYPE` for users.
         ## Parameters:
-        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server, 
+        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server,
         `USER_SUB_TYPE` for user
         * `location`: location for which flag has to be retrieved
         ## Return value:
         A boolean representing the flag value
         ## Exception:
-        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor 
+        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
         `USER_SUB_TYPE`
         """
         # Argument checking:
@@ -238,18 +239,18 @@ class DailyWeatherEvent(WeatherEvent):
         return flag
 
     async def set_location_flag(self, sub_type : SubType, location : Location, value : bool) -> None:
-        """Set the flag for the specified subscriber type and location to the 
-        indicated value. Possible value for `sub_type` is `SERVER_SUB_TYPE` for 
+        """Set the flag for the specified subscriber type and location to the
+        indicated value. Possible value for `sub_type` is `SERVER_SUB_TYPE` for
         servers and `USER_SUB_TYPE` for users.
         ## Parameters:
-        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server, 
+        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server,
         `USER_SUB_TYPE` for user
         * `location` : location for which flag has to be set
         * `value`: `True` or `False`
         ## Return value:
         Not applicable
         ## Exception:
-        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor 
+        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
         `USER_SUB_TYPE`
         """
         # Argument checking:
@@ -259,12 +260,12 @@ class DailyWeatherEvent(WeatherEvent):
         self.__mutex_dict_flag.release()
 
     async def add_sub2location(self, sub_type : SubType, interaction : discord.Interaction, location_name : str, location_tz : str = "") -> bool:
-        """Add an entity contained in the specified `interaction `to the `location_name` 
-        dict of subscribers.Possible value for `sub_type` is `SERVER_SUB_TYPE` 
+        """Add an entity contained in the specified `interaction `to the `location_name`
+        dict of subscribers.Possible value for `sub_type` is `SERVER_SUB_TYPE`
         for servers and `USER_SUB_TYPE` for users. If the entity was already added
         to the location, the corresponding interaction is updated.
         ## Parameters:
-        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server, 
+        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server,
         `USER_SUB_TYPE` for user
         * `interaction`: Discord interaction, use to retrieve context data
         * `location_name`: name of the location to which specified user whish
@@ -273,7 +274,7 @@ class DailyWeatherEvent(WeatherEvent):
         ## Return value:
         `True` if the subscriber was successfully added, `False` otherwise
         ## Exception:
-        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor 
+        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
         `USER_SUB_TYPE`
         """
         # Only add specified location if there is not already known by the task:
@@ -294,7 +295,7 @@ class DailyWeatherEvent(WeatherEvent):
                 for location, sub_dict in (await self.get_subscribers_list(sub_type)).items():
                     loc_cur_h = int(datetime.now(location.tz).strftime("%H"))
                     loc_cur_min = int(datetime.now(location.tz).strftime("%M"))
-                    # Check if it is the time to reset flag. This flag is reset between 0h00 and 0h01:
+                    # Check if it is the time to reset flag. It is reset between 0h00 and 0h01:
                     if(loc_cur_h == sunbot.DAILY_WEATHER_RESET_HOUR) and (loc_cur_min in [0, 1]):
                         await self.set_location_flag(sub_type, location, False)
                     elif(loc_cur_h == sunbot.DAILY_WEATHER_SEND_HOUR) and (loc_cur_min in [0, 1]) and not await self.get_location_flag(sub_type, location):
@@ -303,17 +304,17 @@ class DailyWeatherEvent(WeatherEvent):
 
     async def __send_daily_weather2sub(self, location : Location, sub_type : SubType, sub_dict : Dict[int, discord.Interaction]) -> None:
         """Private method that sends daily weather for the specified location to
-        all subscribers. Possible value for `sub_type` is `SERVER_SUB_TYPE` for 
+        all subscribers. Possible value for `sub_type` is `SERVER_SUB_TYPE` for
         servers and `USER_SUB_TYPE` for users.
         ## Parameters:
         * `location`: location for which the weather is sent to all subscribing servers
-        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server, 
+        * `sub_type`: type of subscribers to retrieve, `SERVER_SUB_TYPE` for server,
         `USER_SUB_TYPE` for user
         * `sub_dict`: dict of subscribers
         ## Return value:
         None
         ## Exception:
-        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor 
+        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
         `USER_SUB_TYPE`
         """
         self.check_sub_type(sub_type)
