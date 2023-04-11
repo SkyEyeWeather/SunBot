@@ -6,7 +6,6 @@ Weather API handler module
 #   LIBRARIES USED BY THIS MODULE
 #=================================
 
-import json
 import logging
 import os
 import requests
