@@ -9,6 +9,7 @@ Weather API handler module
 import logging
 import os
 import requests
+from typing import Dict
 
 REQUEST_TIME_OUT = 10   # Timeout for a GET action, in seconds
 
@@ -16,7 +17,7 @@ REQUEST_TIME_OUT = 10   # Timeout for a GET action, in seconds
 #       MODULE'S FUNCTIONS
 #=================================
 
-def __perform_request(request : str) -> dict:
+def __perform_request(request : str, keys_list : Dict[]) -> dict:
     """Perform the request contained in the string specified as argument, and return
     the result provided by the weather API. This is a private function.
     ## Parameters:
@@ -56,6 +57,7 @@ def ask_daily_weather(location_name : str) -> dict:
     * `locationName` : name of the location for which we want to know the daily weather
     ## Return value:
     JSON response to the request, as a dictionnary"""
+
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{location_name}/today?unitGroup=metric&include=days&key={os.environ['idVisualCrossing']}&contentType=json&lang=id"
     logging.info("Retrieving the daily weather for the location %s", location_name)
     return __perform_request(request)
