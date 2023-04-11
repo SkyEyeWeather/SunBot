@@ -6,6 +6,7 @@ Weather API handler module
 #   LIBRARIES USED BY THIS MODULE
 #=================================
 
+import json
 import logging
 import os
 import requests
@@ -23,15 +24,15 @@ def __perform_request(request : str) -> dict:
     ## Return value :
     Dictionnary containing API response for the specified request. This dictionnary
     can be empty if an error occured when querying the API"""
-    logging.info(f"Sending request {request} to the weather API")
+    logging.info("Sending request %s to the weather API", request)
     response = requests.get(request)
     #If an error occured when querying weather API :
     if response.status_code != 200:
-        logging.error(f"An error occured when querying weather API. Error code: {response.status_code}")
+        logging.error("An error occured when querying weather API. Error code: %d", response.status_code)
         return {}
     #Return received response in JSON format, as a dictionnary:
     json_response = response.json()
-    logging.info(f"Response received: {json_response}")
+    logging.info("Response received: %s", json_response)
     return json_response
 
 
@@ -44,7 +45,7 @@ def ask_current_weather(location_name : str) -> dict:
     ## Return value:
     JSON response to the request, as a dictionnary"""
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{location_name}/today?unitGroup=metric&include=current&key={os.environ['idVisualCrossing']}&contentType=json&lang=id"
-    logging.info(f"Performing a current weather request for {location_name}")
+    logging.info("Performing a current weather request for %s", location_name)
     return __perform_request(request)["currentConditions"]
 
 
@@ -56,7 +57,7 @@ def ask_daily_weather(location_name : str) -> dict:
     ## Return value:
     JSON response to the request, as a dictionnary"""
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{location_name}/today?unitGroup=metric&include=days&key={os.environ['idVisualCrossing']}&contentType=json&lang=id"
-    logging.info(f"Retrieving the daily weather for the location {location_name}")
+    logging.info("Retrieving the daily weather for the location %s", location_name)
     return __perform_request(request)
 
 
@@ -68,5 +69,5 @@ def ask_daily_rain(location_name : str) -> dict :
     ## Return value:
     JSON request response from the weather API, as a dictionnary"""
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{location_name}/today?unitGroup=metric&elements=datetime%2CdatetimeEpoch%2Cprecip%2Cprecipprob%2Cprecipcover%2Cpreciptype%2Csnow%2Csource&include=hours%2Cdays&key={os.environ['idVisualCrossing']}&contentType=json&lang=fr"
-    logging.info(f"Performing a daily rainfall request for {location_name}")
+    logging.info("Performing a daily rainfall request for %s", location_name)
     return __perform_request(request)
