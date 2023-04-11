@@ -10,6 +10,7 @@ import logging
 import os
 import requests
 
+REQUEST_TIME_OUT = 10   # Timeout for a GET action, in seconds
 
 #=================================
 #       MODULE'S FUNCTIONS
@@ -24,7 +25,7 @@ def __perform_request(request : str) -> dict:
     Dictionnary containing API response for the specified request. This dictionnary
     can be empty if an error occured when querying the API"""
     logging.info("Sending a request to the weather API...")
-    response = requests.get(request)
+    response = requests.get(request, timeout=REQUEST_TIME_OUT)
     #If an error occured when querying weather API :
     if response.status_code != 200:
         logging.error("An error occured when querying weather API. Error code: %d", response.status_code)
