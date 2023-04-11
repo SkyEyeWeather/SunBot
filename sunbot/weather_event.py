@@ -10,7 +10,7 @@ import discord
 from sunbot.location import Location
 from sunbot.weather.Meteo import create_daily_weather_img
 import sunbot.sunbot as sunbot
-import sunbot.WeatherAPIHandler as weather_api_handler
+import sunbot.weather_api_handler as weather_api_handler
 
 
 USER_SUB_TYPE = 'u'

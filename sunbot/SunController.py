@@ -13,7 +13,7 @@ import numpy as np
 import sunbot.sunbot as sunbot
 from sunbot.SunServer import SunServer
 from sunbot.SunUser import SunUser
-import sunbot.WeatherAPIHandler as weatherAPIHandler
+import sunbot.weather_api_handler as weather_api_handler
 import sunbot.weather.Meteo as weather
 import sunbot.weather_event as weather_event
 from sunbot.weather_event import DailyWeatherEvent
@@ -153,7 +153,7 @@ class SunController :
         if place_name == "":
             place_name = self.usersDict[interaction.user.id].favLocation
         logging.info(f"{interaction.user.id} called the command `meteo` for the location {place_name}")
-        json_current_weather = weatherAPIHandler.currentWeatherRequest(place_name)
+        json_current_weather = weather_api_handler.ask_current_weather(place_name)
         #Create current weather image:
         weather.createCurrentWeatherImage(json_current_weather, sunbot.CURRENT_WEATHER_IMAGE_PATH)
         await interaction.response.send_message(f"Voici la météo actuelle sur {place_name}:", file=discord.File(f"{sunbot.CURRENT_WEATHER_IMAGE_PATH}{sunbot.CURRENT_WEATHER_IMAGE_NAME}"))
@@ -166,7 +166,7 @@ class SunController :
         if place_name == "":
             place_name = self.usersDict[interaction.user.id].favLocation
         logging.info(f"{interaction.user.id} called the command 'pluie' for the location {place_name}")
-        requestResponse = weatherAPIHandler.dailyRainRequest(place_name)
+        requestResponse = weather_api_handler.ask_daily_rain(place_name)
         if requestResponse == {}:
             logging.error(f"An error occured when trying to get daily rain informations for the place {place_name}")
             await interaction.response.send_message(f"Humm, quelque chose s'est mal passé en essayant de récupérer les informations de pluie pour {place_name} 😢")
@@ -201,7 +201,7 @@ class SunController :
         # If daily weather for specified location and server is not set:
         else:
             # Check if location is known by the API:
-            daily_weather_test = weatherAPIHandler.dailyWeatherRequest(location_name)
+            daily_weather_test = weather_api_handler.ask_daily_weather(location_name)
             if daily_weather_test == {}:
                 logging.error("Unknown location:  %s", location_name)
                 await interaction.response.send_message(f"Je n'ai pas {location_name} dans mes données, vérifies le nom !")
@@ -233,7 +233,7 @@ class SunController :
             return
         # User has not enable the pm for the specified location, so first check
         # that this city is known by the API to avoid future errors
-        daily_weather_test = weatherAPIHandler.dailyWeatherRequest(location_name)
+        daily_weather_test = weather_api_handler.ask_daily_weather(location_name)
         if daily_weather_test == {}:
             logging.error("Location %s is unknown by the API", location_name)
             interaction.response.send_message(content="Je ne connais pas %s, désolé ! Vérifiez l'orthographe de la localisation et reéessayez!")
