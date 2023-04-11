@@ -23,7 +23,7 @@ def __perform_request(request : str) -> dict:
     ## Return value :
     Dictionnary containing API response for the specified request. This dictionnary
     can be empty if an error occured when querying the API"""
-    logging.info("Sending request %s to the weather API", request)
+    logging.info("Sending a request to the weather API...")
     response = requests.get(request)
     #If an error occured when querying weather API :
     if response.status_code != 200:
