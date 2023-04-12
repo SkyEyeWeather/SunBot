@@ -9,7 +9,6 @@ Weather API handler module
 import logging
 import os
 import requests
-from typing import Dict
 
 REQUEST_TIME_OUT = 10   # Timeout for a GET action, in seconds
 
@@ -17,7 +16,7 @@ REQUEST_TIME_OUT = 10   # Timeout for a GET action, in seconds
 #       MODULE'S FUNCTIONS
 #=================================
 
-def __perform_request(request : str, keys_list : Dict[]) -> dict:
+def __perform_request(request : str) -> dict:
     """Perform the request contained in the string specified as argument, and return
     the result provided by the weather API. This is a private function.
     ## Parameters:
@@ -45,9 +44,23 @@ def ask_current_weather(location_name : str) -> dict:
     conditions
     ## Return value:
     JSON response to the request, as a dictionnary"""
+    keys_list = ['preciptype', 'precipprob', 'precip', 'windspeed', 'winddir',
+                 'windgust', 'humidity', 'conditions', 'temp', 'feelslike', 
+                 'pressure', 'visibility', 'uvindex', 'cloudcover']
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{location_name}/today?unitGroup=metric&include=current&key={os.environ['idVisualCrossing']}&contentType=json&lang=id"
-    logging.info("Performing a current weather request for %s", location_name)
-    return __perform_request(request)["currentConditions"]
+    logging.info("Retrieving current weather conditions for %s", location_name)
+    request_response = __perform_request(request)
+    if request_response == {}:
+        logging.error("Dict is empty!")
+        # Continue to execute function to have empty key
+    dict2return = {}
+    for key in keys_list:
+        try:
+            dict2return[key] = request_response['currentConditions'][key]
+        except KeyError:
+            logging.error("Key %s is not in the request response. Set to the default value", key)
+            dict2return[key] = ""
+    return dict2return
 
 
 def ask_daily_weather(location_name : str) -> dict:
@@ -57,10 +70,22 @@ def ask_daily_weather(location_name : str) -> dict:
     * `locationName` : name of the location for which we want to know the daily weather
     ## Return value:
     JSON response to the request, as a dictionnary"""
-
+    keys_list = ['temp', 'tempmin', 'tempmax', 'precip', 'preciptype' 'precipprob', 
+                 'windspeed', 'winddir', 'pressure', 'humidity', 'uvindex', 
+                 'sunrise', 'sunset', 'timezone', 'conditions']
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{location_name}/today?unitGroup=metric&include=days&key={os.environ['idVisualCrossing']}&contentType=json&lang=id"
     logging.info("Retrieving the daily weather for the location %s", location_name)
-    return __perform_request(request)
+    request_response = __perform_request(request)
+    if request_response == {}:
+        logging.error("Dict is empty!")
+    dict2return = {}
+    for key in keys_list:
+        try:
+            dict2return[key] = request_response["days"][0][key]
+        except KeyError:
+            logging.error("Key %s is not in the request response. Set to the default value", key)
+            dict2return[key] = ""
+    return dict2return
 
 
 def ask_daily_rain(location_name : str) -> dict :
