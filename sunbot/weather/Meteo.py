@@ -250,12 +250,12 @@ def createEmbedRainEmbed(requestResponse : dict):
     dictRainType = {"rain" : "averse", "snow" : "neige", "freezing rain " : "pluie verglaçante", "ice" : "grêle"}
     embedToSend = discord.Embed(title="Pluie prévue aujourd'hui", description="Voici la pluie prévue aujourd'hui sur {}".format(requestResponse["address"]), color=0x77b5fe)
     fieldAdded = False
-    for hour in requestResponse["days"][0]["hours"]:
-        preciptype = hour["preciptype"]
+    for hour_datetime, hour_data in requestResponse.items():
+        preciptype = hour_data["preciptype"]
         #If rain is forecast for the current hour, add it to the embed message:
-        if hour["precipprob"] > 0. and preciptype is not None:
+        if hour_data["precipprob"] > 0. and preciptype is not None:
             fieldAdded = True
-            embedToSend.add_field(name="Pluie prévue à {} : ".format(hour["datetime"]), value="Probabilité de {} à {} %, attendu {} mm".format(dictRainType.get(preciptype[0], "pluie"), hour["precipprob"], hour["precip"]), inline=False)
+            embedToSend.add_field(name="Pluie prévue à {} : ".format(hour_datetime), value="Probabilité de {} à {} %, attendu {} mm".format(dictRainType.get(preciptype[0], "pluie"), hour_data["precipprob"], hour_data["precip"]), inline=False)
     #If no rain is forecast for the day :
     if not fieldAdded:
         embedToSend.add_field(name="Pas de pluie prévue aujourd'hui !", value="\u2600\uFE0F", inline=False)

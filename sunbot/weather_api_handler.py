@@ -97,4 +97,16 @@ def ask_daily_rain(location_name : str) -> dict :
     JSON request response from the weather API, as a dictionnary"""
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{location_name}/today?unitGroup=metric&elements=datetime%2CdatetimeEpoch%2Cprecip%2Cprecipprob%2Cprecipcover%2Cpreciptype%2Csnow%2Csource&include=hours%2Cdays&key={os.environ['idVisualCrossing']}&contentType=json&lang=fr"
     logging.info("Performing a daily rainfall request for %s", location_name)
-    return __perform_request(request)
+    request_response = __perform_request(request)
+    if request_response == {}:
+        logging.error("Dict is empty")
+        return {}
+    dict2return = {}
+    for hour_data in request_response['days'][0]['hours']:
+        hour_dict = {
+            'preciptype' : hour_data['preciptype'],
+            'precipprob' : hour_data['precipprob'],
+            'precip' : hour_data['precip']
+        }
+        dict2return[hour_data['datetime']] = hour_dict
+    return dict2return
