@@ -249,7 +249,7 @@ def createEmbedRainEmbed(requestResponse : dict):
     """"""
     print(requestResponse)
     dictRainType = {"rain" : "averse", "snow" : "neige", "freezing rain " : "pluie verglaçante", "ice" : "grêle"}
-    embedToSend = discord.Embed(title="Pluie prévue aujourd'hui", description="Voici la pluie prévue aujourd'hui sur {}".format(requestResponse["address"]), color=0x77b5fe)
+    embedToSend = discord.Embed(title="Pluie prévue aujourd'hui", description=f"Voici la pluie prévue aujourd'hui sur {requestResponse['address']}", color=0x77b5fe)
     fieldAdded = False
     for hour_datetime, hour_data in requestResponse['rainfall_data'].items():
         preciptype = hour_data["preciptype"]

@@ -72,7 +72,7 @@ class SunController :
         ## Return value:
         not applicable
         """
-        logging.info(f"{member.name} joins the server {member.guild.name}")
+        logging.info("%s joins the server %s", member.name, member.guild.name)
         # Create a new user:
         newUser = SunUser(member.id)
         # If user is already known by the bot, for example because he / she is present
@@ -85,7 +85,7 @@ class SunController :
         systemChannel = member.guild.system_channel
         # If no system channel was set on the server, try to find another channel:
         if systemChannel is None:
-            logging.warning(f"No system channel was found for the server {member.guild.name}. Trying to send on another channel")
+            logging.warning("No system channel was found for the server %s. Trying to send on another channel", member.guild.name)
             systemChannel = member.guild.channels[0]
         systemChannel.send(f"Bienvenue sur le serveur {member.metion}! Je suis SunBot, bot spécialiste de la météo (ou pas)! Tu peux utiliser +help dans le channel des bots pour en savoir plus sur moi!")
 
@@ -113,7 +113,7 @@ class SunController :
                 # If the message was repeted three consecutive times, send the gif:
                 if msgServer.appleHead == 3:
                     msgServer.appleHead = 0
-                    logging.info(f"Invocation of apple head on server {message.guild.name}!")
+                    logging.info("Invocation of apple head on server %s!", message.guild.name)
                     embedToSend = discord.Embed(title="Et tu savais qu'à Jean Jaurès", color=0xff0000)
                     appleHeadGif = discord.File(f"{sunbot.GIF_REPERTORY_PATH}{sunbot.APPLE_HEAD_GIF_NAME}")
                     embedToSend.set_image(url=f"attachment://{sunbot.APPLE_HEAD_GIF_NAME}")
@@ -156,7 +156,7 @@ class SunController :
 
         if place_name == "":
             place_name = self.usersDict[interaction.user.id].favLocation
-        logging.info(f"{interaction.user.id} called the command `meteo` for the location {place_name}")
+        logging.info("User n°%d called the command `meteo` for the location %s", interaction.user.id, place_name)
         json_current_weather = weather_api_handler.ask_current_weather(place_name)
         # Create current weather image:
         weather.createCurrentWeatherImage(json_current_weather, sunbot.CURRENT_WEATHER_IMAGE_PATH)
@@ -172,7 +172,7 @@ class SunController :
         logging.info(f"{interaction.user.id} called the command 'pluie' for the location {place_name}")
         requestResponse = weather_api_handler.ask_daily_rain(place_name)
         if requestResponse == {}:
-            logging.error(f"An error occured when trying to get daily rain informations for the place {place_name}")
+            logging.error("An error occured when trying to get daily rain informations for the place %s", place_name)
             await interaction.response.send_message(f"Humm, quelque chose s'est mal passé en essayant de récupérer les informations de pluie pour {place_name} 😢")
             return
         # Build the embed message to send in response to the call of the command:
@@ -269,9 +269,9 @@ class SunController :
                 try:
                     await msg.add_reaction(user.emoji)
                 except discord.errors.NotFound:
-                    logging.error(f"Reaction cannot be added because the message was deleted or the emoji {user.emoji} doesn't exist")
+                    logging.error("Reaction cannot be added because the message was deleted or the emoji %s does not exist", user.emoji)
                 except TypeError:
-                    logging.error(f"Emoji {user.emoji}, set for the user n°{user.id} is not in a valid emoji format")
+                    logging.error("Emoji %s, set for the user n°%dis not in a valid emoji format", user.emoji, user.id)
 
 
     async def _deleteMsgCommand(ctx : commands.Context) -> None:
@@ -284,6 +284,6 @@ class SunController :
         try:
             await ctx.message.delete()
         except discord.Forbidden:
-            logging.error(f"The bot doesn't have the permissions to delete a message on the server {ctx.guild.name}")
+            logging.error("The bot doesn't have the permissions to delete a message on the server %s", ctx.guild.name)
         except (discord.NotFound, HTTPException):
-            logging.error(f"The message to be deleted was not found on the server {ctx.guild.name}")
+            logging.error("The message to be deleted was not found on the server %s", ctx.guild.name)
