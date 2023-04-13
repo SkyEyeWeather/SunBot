@@ -24,7 +24,8 @@ def __perform_request(request : str) -> dict:
     * `request`: request to send to the weather API, as a string
     ## Return value :
     Dictionnary containing API response for the specified request. This dictionnary
-    can be empty if an error occured when querying the API"""
+    can be empty if an error occured when querying the API
+    """
     logging.info("Sending a request to the weather API...")
     response = requests.get(request, timeout=REQUEST_TIME_OUT)
     #If an error occured when querying weather API :
@@ -45,7 +46,8 @@ def ask_current_weather(location_name : str) -> dict:
     weather
     conditions
     ## Return value:
-    JSON response to the request, as a dictionnary"""
+    JSON response to the request, as a dictionnary
+    """
     keys_list = ['preciptype', 'precipprob', 'precip', 'windspeed', 'winddir',
                  'windgust', 'humidity', 'conditions', 'temp', 'feelslike',
                  'pressure', 'visibility', 'uvindex', 'cloudcover']
@@ -72,7 +74,8 @@ def ask_daily_weather(location_name : str) -> dict:
     * `location_name` : name of the location for which we want to know the daily
     weather
     ## Return value:
-    JSON response to the request, as a dictionnary"""
+    JSON response to the request, as a dictionnary
+    """
     keys_list = ['temp', 'tempmin', 'tempmax', 'precip', 'preciptype', 'precipprob',
                  'windspeed', 'winddir', 'pressure', 'humidity', 'uvindex',
                  'sunrise', 'sunset', 'timezone', 'conditions']
@@ -98,7 +101,8 @@ def ask_daily_rain(location_name : str) -> dict :
     * `location_name`: name of the locality whose we want to get data about rainfalls
        for the current day
     ## Return value:
-    JSON request response from the weather API, as a dictionnary"""
+    JSON request response from the weather API, as a dictionnary
+    """
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{location_name}/today?unitGroup=metric&elements=datetime%2CdatetimeEpoch%2Cprecip%2Cprecipprob%2Cprecipcover%2Cpreciptype%2Csnow%2Csource&include=hours%2Cdays&key={os.environ['idVisualCrossing']}&contentType=json&lang=fr"
     dict2return = {'address': "", 'rainfall_data' : {}}
     logging.info("Performing a daily rainfall request for %s", location_name)

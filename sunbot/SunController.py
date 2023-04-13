@@ -26,7 +26,8 @@ from sunbot.weather_event import DailyWeatherEvent
 class SunController :
     """This class is the core class of the SunBot. This is the class that makes
     the link between server that contains users, the discord API, the bot weather part
-    and the weather API handler"""
+    and the weather API handler
+    """
 
     def __init__(self, discordBot : commands.Bot) -> None:
         """Constructor of this class. Bind the specified bot to this controller.
@@ -69,7 +70,8 @@ class SunController :
         ## Parameter:
         * `member` : reference to the new member that joined a server known by the bot
         ## Return value:
-        not applicable"""
+        not applicable
+        """
         logging.info(f"{member.name} joins the server {member.guild.name}")
         # Create a new user:
         newUser = SunUser(member.id)
@@ -93,7 +95,8 @@ class SunController :
         ## Parameters:
         * `message` : discord message sent
         ## Return value:
-        not applicable"""
+        not applicable
+        """
         logging.info("A message was received")
         msgServer = self.serversDict[message.guild.id]
          #Firstly process the command (if message is a command):
@@ -255,7 +258,8 @@ class SunController :
         ## Parameters:
         * `msg` : discord message that triggered this method
         ## Return value:
-        not applicable"""
+        not applicable
+        """
         # Add a reaction only if the user is not a bot:
         if not msg.author.bot:
             # Get the user that sent the message:
@@ -275,7 +279,8 @@ class SunController :
         ## Parameters:
         * `ctx` : discord context in which the command has been invoked
         ## Return value:
-        not applicable"""
+        not applicable
+        """
         try:
             await ctx.message.delete()
         except discord.Forbidden:
