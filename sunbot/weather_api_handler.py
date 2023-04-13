@@ -37,16 +37,16 @@ def __perform_request(request : str) -> dict:
 
 
 def ask_current_weather(location_name : str) -> dict:
-    """Perform a request to the weather API to get the current weather conditions 
+    """Perform a request to the weather API to get the current weather conditions
     for the specified location.
     ## Parameters:
-    * `location_name`: name of the location for which we want to know current 
+    * `location_name`: name of the location for which we want to know current
     weather
     conditions
     ## Return value:
     JSON response to the request, as a dictionnary"""
     keys_list = ['preciptype', 'precipprob', 'precip', 'windspeed', 'winddir',
-                 'windgust', 'humidity', 'conditions', 'temp', 'feelslike', 
+                 'windgust', 'humidity', 'conditions', 'temp', 'feelslike',
                  'pressure', 'visibility', 'uvindex', 'cloudcover']
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{location_name}/today?unitGroup=metric&include=current&key={os.environ['idVisualCrossing']}&contentType=json&lang=id"
     logging.info("Retrieving current weather conditions for %s", location_name)
@@ -68,12 +68,12 @@ def ask_daily_weather(location_name : str) -> dict:
     """Perform a request to the weather API to get the daily weather for the
     specified location passed in argument
     ## Parameter:
-    * `location_name` : name of the location for which we want to know the daily 
+    * `location_name` : name of the location for which we want to know the daily
     weather
     ## Return value:
     JSON response to the request, as a dictionnary"""
-    keys_list = ['temp', 'tempmin', 'tempmax', 'precip', 'preciptype' 'precipprob', 
-                 'windspeed', 'winddir', 'pressure', 'humidity', 'uvindex', 
+    keys_list = ['temp', 'tempmin', 'tempmax', 'precip', 'preciptype' 'precipprob',
+                 'windspeed', 'winddir', 'pressure', 'humidity', 'uvindex',
                  'sunrise', 'sunset', 'timezone', 'conditions']
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{location_name}/today?unitGroup=metric&include=days&key={os.environ['idVisualCrossing']}&contentType=json&lang=id"
     logging.info("Retrieving the daily weather for the location %s", location_name)

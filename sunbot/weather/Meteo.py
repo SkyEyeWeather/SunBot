@@ -83,7 +83,7 @@ dictWeatherType = {
 }
 
 def getPathImageWeatherType(weatherCondition : str) -> str :
-    """Returns the path to the image corresponding to the weather conditions type 
+    """Returns the path to the image corresponding to the weather conditions type
     specified in arguments
     ## Parameter:
     * `weatherCondition`: weather condition type, as a string
@@ -94,7 +94,7 @@ def getPathImageWeatherType(weatherCondition : str) -> str :
 
 
 def getDescriptionWeatherType(weatherCondition : str) -> str :
-    """Returns the weather description for the weather condition type specified 
+    """Returns the weather description for the weather condition type specified
     in arguments
     ## Parameter:
     * `weatherCondition`: weather condition type, as a string
@@ -105,7 +105,7 @@ def getDescriptionWeatherType(weatherCondition : str) -> str :
 
 
 def getIconPathWeatherType(weatherCondition : str) -> str :
-    """Returns the weather icon path corresponding to the weather condition type 
+    """Returns the weather icon path corresponding to the weather condition type
     specified in arguments
     ## Parameter:
     * `weatherCondition`: weather condition type, as a string
@@ -139,7 +139,7 @@ def degToStrDirectVent(directionVent: int) -> tuple:
 
 
 def generateWeatherImage(weatherConditionCode : str) -> SunImage:
-    """Generates a basic image with adapted background and weather icon according 
+    """Generates a basic image with adapted background and weather icon according
     to the specified weather condition type
     ## Parameter:
     * `weatherConditionCode` : weather conditon type, as a string
@@ -265,7 +265,7 @@ def createEmbedRainEmbed(requestResponse : dict):
 
 
 def create_daily_weather_img(day_info : dict, path : str) -> None :
-    """Creates an image for the daily weather, according to the specified `requestResponse` 
+    """Creates an image for the daily weather, according to the specified `requestResponse`
     passed in arguments.
     ## Parameters:
         * `request_response` : response to the request for daily weather returned by Visual Crossing handler
@@ -382,7 +382,7 @@ class DailyMeteo(WebhookEvent):
 
 
     def addUserToList(self, idUser : int) -> None :
-        """Adds the user whose `idUser` is specified to the list to receive daily 
+        """Adds the user whose `idUser` is specified to the list to receive daily
         weather newsletter
         ## Parameter:
         * idUser : user's id to add to the list"""
@@ -390,12 +390,12 @@ class DailyMeteo(WebhookEvent):
 
 
     def delUserFromList(self, idUser : int) -> bool :
-        """Removes the user whose id is passed in arguments from the list to receive 
+        """Removes the user whose id is passed in arguments from the list to receive
         daily weather newsletter
         ## Parameter:
         *idUser : id of the user to remove from the list
         #Return value:
-        Returns `True` if the user was successfully deleted from the list, 
+        Returns `True` if the user was successfully deleted from the list,
         `False` if id does not exist in the list"""
         try:
             self.listUserToSend.remove(idUser)
@@ -406,7 +406,7 @@ class DailyMeteo(WebhookEvent):
 
     @staticmethod
     def createDailyWeatherImage(requestResponse : str, path : str) -> None :
-        """Creates an image for the daily weather, according to the specified `requestResponse` 
+        """Creates an image for the daily weather, according to the specified `requestResponse`
         passed in arguments.
         ## Parameters:
          * `requestResponse` : response to the request for daily weather returned by Visual Crossing handler
