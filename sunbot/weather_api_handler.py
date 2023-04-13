@@ -72,7 +72,7 @@ def ask_daily_weather(location_name : str) -> dict:
     weather
     ## Return value:
     JSON response to the request, as a dictionnary"""
-    keys_list = ['temp', 'tempmin', 'tempmax', 'precip', 'preciptype' 'precipprob',
+    keys_list = ['temp', 'tempmin', 'tempmax', 'precip', 'preciptype', 'precipprob',
                  'windspeed', 'winddir', 'pressure', 'humidity', 'uvindex',
                  'sunrise', 'sunset', 'timezone', 'conditions']
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{location_name}/today?unitGroup=metric&include=days&key={os.environ['idVisualCrossing']}&contentType=json&lang=id"
