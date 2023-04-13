@@ -40,7 +40,8 @@ def ask_current_weather(location_name : str) -> dict:
     """Perform a request to the weather API to get the current weather conditions 
     for the specified location.
     ## Parameters:
-    * `locationName`: name of the location for which we want to know current weather
+    * `location_name`: name of the location for which we want to know current 
+    weather
     conditions
     ## Return value:
     JSON response to the request, as a dictionnary"""
@@ -67,7 +68,8 @@ def ask_daily_weather(location_name : str) -> dict:
     """Perform a request to the weather API to get the daily weather for the
     specified location passed in argument
     ## Parameter:
-    * `locationName` : name of the location for which we want to know the daily weather
+    * `location_name` : name of the location for which we want to know the daily 
+    weather
     ## Return value:
     JSON response to the request, as a dictionnary"""
     keys_list = ['temp', 'tempmin', 'tempmax', 'precip', 'preciptype' 'precipprob', 
@@ -92,7 +94,8 @@ def ask_daily_rain(location_name : str) -> dict :
     """Perform a request to the weather API to retrieve hourly rainfall data
     for the current day for the location whose name was specified in argument.
     ## Parameters:
-    * `locationName`: name of the locality whose we want to get data about rain conditions for the current day
+    * `location_name`: name of the locality whose we want to get data about rain
+    conditions for the current day
     ## Return value:
     JSON request response from the weather API, as a dictionnary"""
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{location_name}/today?unitGroup=metric&elements=datetime%2CdatetimeEpoch%2Cprecip%2Cprecipprob%2Cprecipcover%2Cpreciptype%2Csnow%2Csource&include=hours%2Cdays&key={os.environ['idVisualCrossing']}&contentType=json&lang=fr"
