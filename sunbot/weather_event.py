@@ -18,6 +18,7 @@ SERVER_SUB_TYPE = 's'
 SUB_TYPE_LIST = [USER_SUB_TYPE, SERVER_SUB_TYPE]
 SubType = Literal['u', 's']
 
+
 # One class for all locations in order to not have too many tasks running in the same time
 class WeatherEvent(ABC):
     """Abstract class representing a general weather event. Because this class

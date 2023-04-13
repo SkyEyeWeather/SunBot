@@ -2,9 +2,9 @@
 Weather API handler module
 """
 
-#=================================
+# =================================
 #   LIBRARIES USED BY THIS MODULE
-#=================================
+# =================================
 
 import logging
 import os
@@ -12,9 +12,10 @@ import requests
 
 REQUEST_TIME_OUT = 10   # Timeout for a GET action, in seconds
 
-#=================================
+# =================================
 #       MODULE'S FUNCTIONS
-#=================================
+# =================================
+
 
 def __perform_request(request : str) -> dict:
     """Perform the request contained in the string specified as argument, and return
