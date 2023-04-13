@@ -247,10 +247,11 @@ def createCurrentWeatherImage(currentWeather : dict, path : str) -> None:
 
 def createEmbedRainEmbed(requestResponse : dict):
     """"""
+    print(requestResponse)
     dictRainType = {"rain" : "averse", "snow" : "neige", "freezing rain " : "pluie verglaçante", "ice" : "grêle"}
     embedToSend = discord.Embed(title="Pluie prévue aujourd'hui", description="Voici la pluie prévue aujourd'hui sur {}".format(requestResponse["address"]), color=0x77b5fe)
     fieldAdded = False
-    for hour_datetime, hour_data in requestResponse.items():
+    for hour_datetime, hour_data in requestResponse['rainfall_data'].items():
         preciptype = hour_data["preciptype"]
         #If rain is forecast for the current hour, add it to the embed message:
         if hour_data["precipprob"] > 0. and preciptype is not None:

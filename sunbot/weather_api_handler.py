@@ -94,22 +94,23 @@ def ask_daily_rain(location_name : str) -> dict :
     """Perform a request to the weather API to retrieve hourly rainfall data
     for the current day for the location whose name was specified in argument.
     ## Parameters:
-    * `location_name`: name of the locality whose we want to get data about rain
-    conditions for the current day
+    * `location_name`: name of the locality whose we want to get data about rainfalls
+       for the current day
     ## Return value:
     JSON request response from the weather API, as a dictionnary"""
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{location_name}/today?unitGroup=metric&elements=datetime%2CdatetimeEpoch%2Cprecip%2Cprecipprob%2Cprecipcover%2Cpreciptype%2Csnow%2Csource&include=hours%2Cdays&key={os.environ['idVisualCrossing']}&contentType=json&lang=fr"
+    dict2return = {'address': "", 'rainfall_data' : {}}
     logging.info("Performing a daily rainfall request for %s", location_name)
     request_response = __perform_request(request)
     if request_response == {}:
         logging.error("Dict is empty")
-        return {}
-    dict2return = {}
+        return dict2return
+    dict2return['address'] = request_response['address']
     for hour_data in request_response['days'][0]['hours']:
         hour_dict = {
             'preciptype' : hour_data['preciptype'],
             'precipprob' : hour_data['precipprob'],
             'precip' : hour_data['precip']
         }
-        dict2return[hour_data['datetime']] = hour_dict
+        dict2return['rainfall_data'][hour_data['datetime']] = hour_dict
     return dict2return
