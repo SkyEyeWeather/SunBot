@@ -10,7 +10,7 @@ import discord
 from sunbot.location import Location
 from sunbot.weather.Meteo import create_daily_weather_img
 import sunbot.sunbot as sunbot
-import sunbot.WeatherAPIHandler as weather_api_handler
+import sunbot.weather_api_handler as weather_api_handler
 
 
 USER_SUB_TYPE = 'u'
@@ -18,7 +18,7 @@ SERVER_SUB_TYPE = 's'
 SUB_TYPE_LIST = [USER_SUB_TYPE, SERVER_SUB_TYPE]
 SubType = Literal['u', 's']
 
-
+    
 # One class for all locations in order to not have too many tasks running in the same time
 class WeatherEvent(ABC):
     """Abstract class representing a general weather event. Because this class
