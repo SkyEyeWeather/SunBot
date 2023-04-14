@@ -67,7 +67,7 @@ class SunImage() :
         * `height`: new height for this image
         ## Return value: not applicable"""
         self.backgroundImage.resize((width, height))
-        logging(f"Image {self.backgroundImage.__str__}")
+        logging.info("Image %s", self.backgroundImage.__str__)
 
 
     def addMask(self, maskColor : str, alpha : int, size : tuple, position : tuple, rotationAngle : float = 0.) -> None:
