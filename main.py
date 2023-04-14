@@ -14,7 +14,6 @@ from sunbot.apiHandler.discordHandler import DiscordHandler
 import sunbot.sunbot as sunbot
 from sunbot.SunBotHelpCommand import SunBotHelpCommand
 from sunbot.SunController import SunController
-import sunbot.weather.Meteo as Meteo
 
 
 #=======================
