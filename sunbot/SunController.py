@@ -92,13 +92,19 @@ class SunController :
 
     async def on_message(self, message : discord.Message) -> None:
         """This method is called when a message is published on one of the server the bot belongs
+        or in PM
         ## Parameters:
         * `message` : discord message sent
         ## Return value:
         not applicable
         """
-        logging.info("A message was received")
+        # In the case where specified message is a PM, there is no guild attached
+        # to it, so it is needed to check the channel type where message was sent
+        if isinstance(message.channel, (discord.DMChannel, discord.GroupChannel)):
+            logging.info("A private message was received")
+            return # Do nothing
         msgServer = self.serversDict[message.guild.id]
+        logging.info("A message was received on server n°%d", msgServer.id)
          #Firstly process the command (if message is a command):
         await self.bot.process_commands(message)
 
