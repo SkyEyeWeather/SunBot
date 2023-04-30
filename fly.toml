@@ -1,6 +1,7 @@
 # fly.toml file generated for sun-bot on 2022-08-27T17:52:47+02:00
 
-app = "sun-bot"
+app = "sunbot"
+primary_region = "cdg"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []
