@@ -32,6 +32,11 @@ an access to the bot application server:
 ```
 curl -L https://fly.io/install.sh | sh
 ```
+* Add these two lines to your `.bashrc` file by replacing `user-name` by your user name:
+```
+echo 'export FLYCTL_INSTALL="/home/<user-name>/.fly"' >> ~/.bashrc  
+echo 'export PATH="$FLYCTL_INSTALL/bin:$PATH"' >> ~/.bashrc
+```
 * If you don't have an account, sign up using following command:
 ```
 fly auth signup
