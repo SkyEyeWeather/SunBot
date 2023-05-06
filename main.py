@@ -201,4 +201,4 @@ async def disconnect(unused_ctx):
 #ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES - ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES
 #####################################################################################################
 
-sunBot.run("ODk2MTMwNzY5MTE2ODg5MDg4.YWCo0A.D85z93cfwKwfcHSkeGdPW7PJpJo")
+sunBot.run(os.environ[' token '])
