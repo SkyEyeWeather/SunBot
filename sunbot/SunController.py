@@ -37,9 +37,9 @@ class SunController :
         * `discordBot`: bot to bind to the new controller
         ## Return value :
         Not applicable"""
-        self.bot : commands.Bot = bot # Reference to the discord client for the bot
-        self.usr_dict : dict = {}     # Dict containing all Discord users who can use the bot
-        self.srv_dict : dict = {}     # Dict containing all the servers to which the bot belongs
+        self.bot : commands.Bot = bot  # Reference to the discord client for the bot
+        self.usr_dict : dict = {}      # Dict containing all Discord users who can use the bot
+        self.srv_dict : dict = {}      # Dict containing all the servers to which the bot belongs
         self.daily_weather_handler = DailyWeatherEvent()  # Handler for daily weather events
 
     async def on_ready(self) -> None:
@@ -66,9 +66,11 @@ class SunController :
         logging.info("Bot is ready !")
 
     async def on_member_join(self, member : discord.Member) -> None:
-        """This method is called when a new member joins a server where the bot belongs
+        """This method is called when a new member joins a server where the bot 
+        belongs
         ## Parameter:
-        * `member` : reference to the new member that has joined a server known by the bot
+        * `member` : reference to the new member that has joined a server known 
+        by the bot
         ## Return value:
         not applicable
         """
@@ -86,7 +88,7 @@ class SunController :
         # If no system channel was set on the server, try to find another channel:
         if system_channel is None:
             logging.warning("No system channel was found for the server %s. Trying to send on another channel",
-                                member.guild.name)
+                            member.guild.name)
             system_channel = member.guild.channels[0]
         system_channel.send(f"Bienvenue sur le serveur {member.metion}! Je suis SunBot, bot spécialiste de la météo (ou pas)! Tu peux utiliser +help dans le channel des bots pour en savoir plus sur moi!")
 
@@ -119,7 +121,7 @@ class SunController :
                     msg_srv.appleHead = 0
                     logging.info("Invocation of apple head on server %s!", message.guild.name)
                     embed2send = discord.Embed(title="Et tu savais qu'à Jean Jaurès",
-                                                color=0xff0000)
+                                               color=0xff0000)
                     apple_head_gif = discord.File(f"{sunbot.GIF_REPERTORY_PATH}{sunbot.APPLE_HEAD_GIF_NAME}")
                     embed2send.set_image(url=f"attachment://{sunbot.APPLE_HEAD_GIF_NAME}")
                     await message.channel.send(embed=embed2send, file=apple_head_gif)
@@ -129,7 +131,7 @@ class SunController :
                 # Easter eggs:
                 if "me foutre au sol" in lowered_msg and np.random.uniform() > 0.5:
                     await message.reply("Tu sais, il y a des gens qui disaient ça \
-                                         et qui ont fini ingénieurs chez Boeing. \
+                                        et qui ont fini ingénieurs chez Boeing. \
                                         Donc tu as du potentiel \U0001f31e !")
                 elif lowered_msg == "sinus":
                     await message.channel.send("Tangente")
@@ -143,7 +145,7 @@ class SunController :
     #                                   COMMANDS PART
     #====================================================================================
 
-    #TODO Replace this classic command by it slash counterpart:
+    # TODO Replace this classic command by it slash counterpart:
     async def setEmoji(self, ctx : commands.Context, userId : int, emoji : str, emojiFreq : float):
         """"""
         try:
@@ -179,8 +181,8 @@ class SunController :
         json_current_weather = weather_api_handler.ask_current_weather(location_name)
         # Create current weather image:
         weather.createCurrentWeatherImage(json_current_weather, sunbot.CURRENT_WEATHER_IMAGE_PATH)
-        await interaction.response.send_message(f"Voici la météo actuelle sur {location_name}:", 
-                                                    file=discord.File(f"{sunbot.CURRENT_WEATHER_IMAGE_PATH}{sunbot.CURRENT_WEATHER_IMAGE_NAME}"))
+        await interaction.response.send_message(f"Voici la météo actuelle sur {location_name}:",
+                                                file=discord.File(f"{sunbot.CURRENT_WEATHER_IMAGE_PATH}{sunbot.CURRENT_WEATHER_IMAGE_NAME}"))
 
 
     async def pluie(self, interaction : discord.Interaction, location_name : str) -> None:
@@ -201,7 +203,7 @@ class SunController :
         request_response = weather_api_handler.ask_daily_rain(location_name)
         if request_response == {}:
             logging.error("An error occured when trying to get daily rain informations for the place %s",
-                            location_name)
+                        location_name)
             await interaction.response.send_message(f"Humm, quelque chose s'est mal passé en essayant de récupérer les informations de pluie pour {location_name} 😢")
             return
         # Build the embed message to send in response to the command call:
@@ -210,7 +212,7 @@ class SunController :
 
 
     async def set_daily_weather_channel(self, interaction : discord.Interaction, location_name : str) -> None:
-        """Handle the call to the `daily_weather` slash command by adding or 
+        """Handle the call to the `daily_weather` slash command by adding or
         removing a server to / from the list of subscribing servers
         ## Parameters:
         * `interaction`: discord interaction which contains context data
@@ -247,8 +249,8 @@ class SunController :
                 await interaction.response.send_message(f"C'est compris, j'enverrai désormais quotidiennement la météo du jour pour {location_name} ici 😉")
 
     async def set_daily_weather_pm(self, interaction : discord.Interaction, location_name : str) -> None:
-        """Handle a call to the `mp_daily_weather` slash command by adding or 
-        removing user that invoked it to/from the list of user subscribing 
+        """Handle a call to the `mp_daily_weather` slash command by adding or
+        removing user that invoked it to/from the list of user subscribing
         to the specified location.
         ## Parameters:
         * `interaction`: command context
