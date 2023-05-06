@@ -149,11 +149,21 @@ class SunController:
     # ====================================================================================
 
     # TODO Replace this classic command by it slash counterpart:
-
-    async def setEmoji(self, ctx: commands.Context, userId: int, emoji: str, emojiFreq: float):
-        """"""
+    @np.deprecate_with_doc
+    async def set_emoji(self, ctx: commands.Context, usr_id: int, emoji: str, emoji_freq: float):
+        """Set an emoji for specified user that the bot will used to randomly 
+        react to a message from this user
+        ## Parameters:
+        - `ctx`: command call context
+        - `usr_id`: id of the user for which the emoji will be set
+        - `emoji`: emoji to set
+        - `emoji_freq`: probability that the bot reacts to an user message using
+        specified emoji
+        ## Return value:
+        not applicable
+        """
         try:
-            self.usr_dict[userId].emoji = emoji
+            self.usr_dict[usr_id].emoji = emoji
         except KeyError:
             pass
 
@@ -322,6 +332,7 @@ class SunController:
                         "Emoji %s, set for the user n°%dis not in a valid emoji format", user.emoji, user.id)
 
     # TODO Remove this unused private method:
+    @np.deprecate_with_doc
     async def __delete_command_msg(self, ctx: commands.Context) -> None:
         """Private method to delete the message written by an user to invoke a bot command
         ## Parameters:
