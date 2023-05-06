@@ -197,7 +197,8 @@ class SunController :
         # If no location was provided by the user, use its favorite one:
         if location_name == "":
             location_name = self.usr_dict[interaction.user.id].favLocation
-        logging.info(f"{interaction.user.id} called the command 'pluie' for the location {location_name}")
+        logging.info("%d called the command 'pluie' for the location %s",
+                     interaction.user.id, location_name)
         request_response = weather_api_handler.ask_daily_rain(location_name)
         if request_response == {}:
             logging.error("An error occured when trying to get daily rain informations for the place %s",
