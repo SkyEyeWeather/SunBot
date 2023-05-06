@@ -1,14 +1,16 @@
-
+"""
+SunController.py
+"""
 # =================================
 #   LIBRARIES USED BY THIS CLASS
 # =================================
 
 import asyncio
+import logging
+from http.client import HTTPException
+import numpy as np
 import discord
 from discord.ext import commands
-from http.client import HTTPException
-import logging
-import numpy as np
 
 import sunbot.sunbot as sunbot
 from sunbot.SunServer import SunServer
