@@ -29,20 +29,19 @@ class SunController :
     and the weather API handler
     """
 
-    def __init__(self, discordBot : commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         """Constructor of this class. Bind the specified bot to this controller.
         ## Parameter :
         * `discordBot`: bot to bind to the new controller
         ## Return value :
         Not applicable"""
-        self.bot : commands.Bot = discordBot       # Reference to the discord client for the bot
-        self.usersDict : dict = {}                 # Dict that contains all Discord users who can use the bot
-        self.serversDict : dict = {}               # Dict that contains all the servers to which the bot belongs
-        self.daily_weather_handler = DailyWeatherEvent()  # Handler for daily weather event
-
+        self.bot : commands.Bot = bot # Reference to the discord client for the bot
+        self.usr_dict : dict = {}     # Dict containing all Discord users who can use the bot
+        self.srv_dict : dict = {}     # Dict containing all the servers to which the bot belongs
+        self.daily_weather_handler = DailyWeatherEvent()  # Handler for daily weather events
 
     async def on_ready(self) -> None:
-        """This method specifies the actions to be performed when the bot is
+        """This method specifies actions to be performed when the bot is
         launched"""
         logging.info("Starting bot initialization...")
         logging.info("Synchronize bot commands tree to discord")
@@ -50,45 +49,44 @@ class SunController :
         logging.info("Loading user data")
         # For all servers known by the bot:
         for server in self.bot.guilds:
-            self.serversDict[server.id] = SunServer(server.id)
+            self.srv_dict[server.id] = SunServer(server.id)
             # For all members in the current server (bot users):
             for user in server.members:
-                currentUser = SunUser(user.id)
+                current_usr = SunUser(user.id)
                 # If the current user was not already added to the known users dict:
-                if user.id not in self.usersDict :
-                    self.usersDict[user.id] = currentUser
-                self.serversDict[server.id].addUser(currentUser)
+                if user.id not in self.usr_dict :
+                    self.usr_dict[user.id] = current_usr
+                self.srv_dict[server.id].addUser(current_usr)
         # Create and launch tasks:
         logging.info("Launching weather tasks...")
         loop = asyncio.get_event_loop()
         loop.create_task(self.daily_weather_handler.run_event_task())
         logging.info("Bot is ready !")
 
-
     async def on_member_join(self, member : discord.Member) -> None:
         """This method is called when a new member joins a server where the bot belongs
         ## Parameter:
-        * `member` : reference to the new member that joined a server known by the bot
+        * `member` : reference to the new member that has joined a server known by the bot
         ## Return value:
         not applicable
         """
         logging.info("%s joins the server %s", member.name, member.guild.name)
         # Create a new user:
-        newUser = SunUser(member.id)
+        new_usr = SunUser(member.id)
         # If user is already known by the bot, for example because he / she is present
         # on another server where the bot is, do not add him to the list of bot users:
-        if member.id not in self.usersDict:
-            self.usersDict[member.id] = newUser
+        if member.id not in self.usr_dict:
+            self.usr_dict[member.id] = new_usr
         # Add new user to the corresponding server:
-        self.serversDict[member.guild.id].addUser(newUser)
+        self.srv_dict[member.guild.id].addUser(new_usr)
         # Send a welcome message to the new user on system channel of the server:
-        systemChannel = member.guild.system_channel
+        system_channel = member.guild.system_channel
         # If no system channel was set on the server, try to find another channel:
-        if systemChannel is None:
-            logging.warning("No system channel was found for the server %s. Trying to send on another channel", member.guild.name)
-            systemChannel = member.guild.channels[0]
-        systemChannel.send(f"Bienvenue sur le serveur {member.metion}! Je suis SunBot, bot spécialiste de la météo (ou pas)! Tu peux utiliser +help dans le channel des bots pour en savoir plus sur moi!")
-
+        if system_channel is None:
+            logging.warning("No system channel was found for the server %s. Trying to send on another channel",
+                                member.guild.name)
+            system_channel = member.guild.channels[0]
+        system_channel.send(f"Bienvenue sur le serveur {member.metion}! Je suis SunBot, bot spécialiste de la météo (ou pas)! Tu peux utiliser +help dans le channel des bots pour en savoir plus sur moi!")
 
     async def on_message(self, message : discord.Message) -> None:
         """This method is called when a message is published on one of the server the bot belongs
@@ -102,39 +100,40 @@ class SunController :
         # to it, so it is needed to check the channel type where message was sent
         if isinstance(message.channel, (discord.DMChannel, discord.GroupChannel)):
             logging.info("A private message was received")
-            return # Do nothing
-        msgServer = self.serversDict[message.guild.id]
-        logging.info("A message was received on server n°%d", msgServer.id)
-         #Firstly process the command (if message is a command):
+            return # Nothing to do
+        msg_srv = self.srv_dict[message.guild.id]
+        logging.info("A message was received on server n°%d", msg_srv.id)
+        # Commands must be processed first
         await self.bot.process_commands(message)
-
-        # If the server where the message was sent is a "fun" server:
-        if msgServer.fun:
+        # Enable eastereggs only on "fun" servers:
+        if msg_srv.fun:
             # Randomly add a reaction to the message:
-            await self._addReaction(message)
-            lowerMsg = message.content.lower()
-            # If the message corresponds to the "apple head" invocation and the server is a funny server:
-            if lowerMsg in ["tête de pomme", "tete de pomme", "#tetedepomme"]:
-                msgServer.appleHead += 1
+            await self.__add_reaction(message)
+            lowered_msg = message.content.lower()
+            if lowered_msg in ["tête de pomme", "tete de pomme", "#tetedepomme"]:
+                msg_srv.appleHead += 1
                 # If the message was repeted three consecutive times, send the gif:
-                if msgServer.appleHead == 3:
-                    msgServer.appleHead = 0
+                if msg_srv.appleHead == 3:
+                    msg_srv.appleHead = 0
                     logging.info("Invocation of apple head on server %s!", message.guild.name)
-                    embedToSend = discord.Embed(title="Et tu savais qu'à Jean Jaurès", color=0xff0000)
-                    appleHeadGif = discord.File(f"{sunbot.GIF_REPERTORY_PATH}{sunbot.APPLE_HEAD_GIF_NAME}")
-                    embedToSend.set_image(url=f"attachment://{sunbot.APPLE_HEAD_GIF_NAME}")
-                    await message.channel.send(embed=embedToSend, file=appleHeadGif)
+                    embed2send = discord.Embed(title="Et tu savais qu'à Jean Jaurès",
+                                                color=0xff0000)
+                    apple_head_gif = discord.File(f"{sunbot.GIF_REPERTORY_PATH}{sunbot.APPLE_HEAD_GIF_NAME}")
+                    embed2send.set_image(url=f"attachment://{sunbot.APPLE_HEAD_GIF_NAME}")
+                    await message.channel.send(embed=embed2send, file=apple_head_gif)
             # Other types of messages:
             else:
-                msgServer.appleHead = 0
+                msg_srv.appleHead = 0
                 # Easter eggs:
-                if "me foutre au sol" in lowerMsg and np.random.uniform() > 0.5:
-                    await message.reply("Tu sais, il y a des gens qui disaient ça et qui ont fini ingénieurs chez Boeing. Donc tu as du potentiel \U0001f31e !")
-                elif lowerMsg == "sinus":
+                if "me foutre au sol" in lowered_msg and np.random.uniform() > 0.5:
+                    await message.reply("Tu sais, il y a des gens qui disaient ça \
+                                         et qui ont fini ingénieurs chez Boeing. \
+                                        Donc tu as du potentiel \U0001f31e !")
+                elif lowered_msg == "sinus":
                     await message.channel.send("Tangente")
-                elif lowerMsg in ["patrick", "patou", "patoche", "pata", "patrikou"] and np.random.uniform() > 0.25:
+                elif lowered_msg in ["patrick", "patou", "patoche", "pata", "patrikou"] and np.random.uniform() > 0.25:
                     pass  # TODO add the list of gifs
-                elif "kernel is dead" in lowerMsg:
+                elif "kernel is dead" in lowered_msg:
                     pass    # TODO add corresponding list of gifs
 
 
@@ -142,60 +141,85 @@ class SunController :
     #                                   COMMANDS PART
     #====================================================================================
 
+    #TODO Replace this classic command by it slash counterpart:
     async def setEmoji(self, ctx : commands.Context, userId : int, emoji : str, emojiFreq : float):
         """"""
         try:
-            self.usersDict[userId].emoji = emoji
+            self.usr_dict[userId].emoji = emoji
         except KeyError:
             pass
 
-
     @staticmethod
     async def ping(interaction : discord.Interaction) -> None:
-        """"""
-
+        """Send a string to indicate that the bot is alive
+        ## Parameters:
+        * `interaction`: discord interaction which contains context data for
+        current command call
+        ## Return value:
+        not applicable
+        """
         await interaction.response.send_message("Pong !")
 
-
-    async def meteo(self, interaction : discord.Interaction, place_name : str) -> None:
-        """"""
-
-        if place_name == "":
-            place_name = self.usersDict[interaction.user.id].favLocation
-        logging.info("User n°%d called the command `meteo` for the location %s", interaction.user.id, place_name)
-        json_current_weather = weather_api_handler.ask_current_weather(place_name)
+    async def meteo(self, interaction : discord.Interaction, location_name : str) -> None:
+        """Handle a call to the `meteo` slash command by querying current weather
+        condition for the indicated `location_name` and sending the generated
+        weather image to discord in response to the command
+        ## Parameters:
+        * `interaction`: discord interaction which contains context data for
+        current command call
+        ## Return value:
+        not applicable
+        """
+        if location_name == "":
+            location_name = self.usr_dict[interaction.user.id].favLocation
+        logging.info("User n°%d called the command `meteo` for the location %s",
+                        interaction.user.id, location_name)
+        json_current_weather = weather_api_handler.ask_current_weather(location_name)
         # Create current weather image:
         weather.createCurrentWeatherImage(json_current_weather, sunbot.CURRENT_WEATHER_IMAGE_PATH)
-        await interaction.response.send_message(f"Voici la météo actuelle sur {place_name}:", file=discord.File(f"{sunbot.CURRENT_WEATHER_IMAGE_PATH}{sunbot.CURRENT_WEATHER_IMAGE_NAME}"))
+        await interaction.response.send_message(f"Voici la météo actuelle sur {location_name}:", 
+                                                    file=discord.File(f"{sunbot.CURRENT_WEATHER_IMAGE_PATH}{sunbot.CURRENT_WEATHER_IMAGE_NAME}"))
 
 
-    async def pluie(self, interaction : discord.Interaction, place_name : str) -> None:
-        """"""
-
+    async def pluie(self, interaction : discord.Interaction, location_name : str) -> None:
+        """Handle a call to the `pluie` slash command by requesting rain information
+        for the specified location name and returning acquired data to discord.
+        ## Parameters:
+        * `interaction`: discord interaction which contains context dara for
+        current command call
+        * `location_name`: name of the location for which the user wants to retrieve
+        rain data
+        ## Return value:
+        not applicable
+        """
         # If no location was provided by the user, use its favorite one:
-        if place_name == "":
-            place_name = self.usersDict[interaction.user.id].favLocation
-        logging.info(f"{interaction.user.id} called the command 'pluie' for the location {place_name}")
-        requestResponse = weather_api_handler.ask_daily_rain(place_name)
-        if requestResponse == {}:
-            logging.error("An error occured when trying to get daily rain informations for the place %s", place_name)
-            await interaction.response.send_message(f"Humm, quelque chose s'est mal passé en essayant de récupérer les informations de pluie pour {place_name} 😢")
+        if location_name == "":
+            location_name = self.usr_dict[interaction.user.id].favLocation
+        logging.info(f"{interaction.user.id} called the command 'pluie' for the location {location_name}")
+        request_response = weather_api_handler.ask_daily_rain(location_name)
+        if request_response == {}:
+            logging.error("An error occured when trying to get daily rain informations for the place %s",
+                            location_name)
+            await interaction.response.send_message(f"Humm, quelque chose s'est mal passé en essayant de récupérer les informations de pluie pour {location_name} 😢")
             return
-        # Build the embed message to send in response to the call of the command:
-        embedToSend = weather.createEmbedRainEmbed(requestResponse)
-        await interaction.response.send_message(embed=embedToSend)
+        # Build the embed message to send in response to the command call:
+        embed2send = weather.createEmbedRainEmbed(request_response)
+        await interaction.response.send_message(embed=embed2send)
 
 
     async def set_daily_weather_channel(self, interaction : discord.Interaction, location_name : str) -> None:
-        """Add or remove a server to / from the list of subscribing servers
+        """Handle the call to the `daily_weather` slash command by adding or 
+        removing a server to / from the list of subscribing servers
         ## Parameters:
         * `interaction`: discord interaction which contains context data
         * `location_name`: location to which the server have to be add / remove
+        ## Return value:
+        not applicable
         """
         server_id = interaction.guild_id
         # If daily weather for specified location and server was already set:
         if await self.daily_weather_handler.is_sub2location(weather_event.SERVER_SUB_TYPE, server_id, location_name):
-            # If specified interaction is the same as the current registered interaction 
+            # If specified interaction is the same as the current registered interaction
             # for current server and location name:
             registered_interaction = await self.daily_weather_handler.get_interaction(weather_event.SERVER_SUB_TYPE, server_id, location_name)
             # If the bot already sends daily weather on current channel, disable the sending
@@ -221,15 +245,15 @@ class SunController :
                 await interaction.response.send_message(f"C'est compris, j'enverrai désormais quotidiennement la météo du jour pour {location_name} ici 😉")
 
     async def set_daily_weather_pm(self, interaction : discord.Interaction, location_name : str) -> None:
-        """Add or remove user that invoke the command for set the sending of
-        daily weather in private message to/from the list of subscribers for the
-        specified location.
+        """Handle a call to the `mp_daily_weather` slash command by adding or 
+        removing user that invoked it to/from the list of user subscribing 
+        to the specified location.
         ## Parameters:
         * `interaction`: command context
         * `location_name`: location name for which the user want to enable or
         disable the sending of daily weather in private message
         ## Return value:
-        Not applicable
+        not applicable
         """
         user_id = interaction.user.id
         # Two cases depending on whether user has already used this command or not
@@ -258,7 +282,7 @@ class SunController :
     #                                   PRIVATE METHODS PART
     #====================================================================================
 
-    async def _addReaction(self, msg : discord.Message) -> None:
+    async def __add_reaction(self, msg : discord.Message) -> None:
         """Private method to add a reaction to the specified message published
         by an user, according to the user probability for this action
         ## Parameters:
@@ -269,7 +293,7 @@ class SunController :
         # Add a reaction only if the user is not a bot:
         if not msg.author.bot:
             # Get the user that sent the message:
-            user : SunUser = self.usersDict[msg.author.id]
+            user : SunUser = self.usr_dict[msg.author.id]
             # If an emoji is define for this user and probability is under freqEmoji proba:
             if user.emoji != "" and np.random.uniform() <= user.freqEmoji:
                 try:
@@ -279,8 +303,8 @@ class SunController :
                 except TypeError:
                     logging.error("Emoji %s, set for the user n°%dis not in a valid emoji format", user.emoji, user.id)
 
-
-    async def _deleteMsgCommand(ctx : commands.Context) -> None:
+    # TODO Remove this unused private method:
+    async def __delete_command_msg(self, ctx : commands.Context) -> None:
         """Private method to delete the message written by an user to invoke a bot command
         ## Parameters:
         * `ctx` : discord context in which the command has been invoked
