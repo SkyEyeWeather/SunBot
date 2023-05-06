@@ -1,6 +1,4 @@
-"""
-SunController.py
-"""
+"""SunController.py"""
 # =================================
 #   LIBRARIES USED BY THIS CLASS
 # =================================
