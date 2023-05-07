@@ -66,10 +66,10 @@ class SunController:
         logging.info("Bot is ready !")
 
     async def on_member_join(self, member: discord.Member) -> None:
-        """This method is called when a new member joins a server where the bot 
+        """This method is called when a new member joins a server where the bot
         belongs
         ## Parameter:
-        * `member` : reference to the new member that has joined a server known 
+        * `member` : reference to the new member that has joined a server known
         by the bot
         ## Return value:
         not applicable
@@ -151,7 +151,7 @@ class SunController:
     # TODO Replace this classic command by it slash counterpart:
     @np.deprecate_with_doc
     async def set_emoji(self, ctx: commands.Context, usr_id: int, emoji: str, emoji_freq: float):
-        """Set an emoji for specified user that the bot will used to randomly 
+        """Set an emoji for specified user that the bot will used to randomly
         react to a message from this user
         ## Parameters:
         - `ctx`: command call context
