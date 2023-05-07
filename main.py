@@ -14,7 +14,6 @@ from sunbot.apiHandler.discordHandler import DiscordHandler
 import sunbot.sunbot as sunbot
 from sunbot.SunBotHelpCommand import SunBotHelpCommand
 from sunbot.SunController import SunController
-import sunbot.weather.Meteo as Meteo
 
 
 #=======================
@@ -50,7 +49,6 @@ sunController = SunController(sunBot)
 vcRequestHandler = VisualCrossingHandler()
 discordAPI_handler = DiscordHandler()
 dictUsersBot = {}
-dailyMeteo = Meteo.DailyMeteo(vcRequestHandler, dictUsersBot)
 
 
 
@@ -73,11 +71,6 @@ async def on_ready():
   #alerteMeteo.addWebhook(webhookServeurPrive)
   alerteMeteo.start()
   print("Webhook alerte météo prêt")
-  #Création du thread écoutant les informations météo quotidiennes :
-  dailyMeteo.addWebhook(webhookServeurCUPGE)
-  #dailyMeteo.addWebhook(webhookServeurTest1)
-  dailyMeteo.addWebhook(webhookServeurPrive)
-  dailyMeteo.start()
 """
 
 
@@ -103,18 +96,6 @@ async def on_message(message):
 #====================
 #    BOT'S COMMANDS
 #====================
-
-@sunBot.command(name="setMP", brief="Autorise / Interdit les MP du bot (dailyMeteo...)")
-async def mp(ctx):
-  """Enable / Disable private message for the user that call this command"""
-  dictUsersBot[ctx.author.id].mp = not dictUsersBot[ctx.author.id].mp
-  if dictUsersBot[ctx.author.id].mp:
-    dailyMeteo.addUserToList(ctx.author.id)
-    await ctx.channel.send("Je vous enverrai maintenant les bulletins météo par message privé \U0001f973 !")
-  else:
-    if not dailyMeteo.delUserFromList(ctx.author.id):
-      print(f"MP : L'identifiant {ctx.author.id} n'est pas dans la liste des ID")
-    await ctx.channel.send("Je ne vous enverrai plus de message privé !")
 
 
 @sunbot.adminFunction
@@ -204,10 +185,6 @@ async def setEmoji(ctx, userId : int, emoji : str, freq : float) -> None:
   """
   await adminSetEmoji(ctx, userId, emoji, freq)
 
-@sunBot.command(name="test", brief="Commande de test [Admin]")
-async def test(ctx : commands.Context) -> None:
-  """"""
-  Meteo.DailyMeteo.createDailyWeatherImage("")
 
 @sunBot.command(name="disconnect", brief="Vous voulez vraiment me tuer ?!! [Admin]")
 @sunbot.adminFunction
@@ -224,4 +201,4 @@ async def disconnect(unused_ctx):
 #ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES - ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES
 #####################################################################################################
 
-sunBot.run("ODk2MTMwNzY5MTE2ODg5MDg4.YWCo0A.D85z93cfwKwfcHSkeGdPW7PJpJo")
+sunBot.run(os.environ[' token '])
