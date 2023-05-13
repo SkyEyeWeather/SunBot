@@ -40,7 +40,7 @@ class SunController:
         # Dict containing all the servers to which the bot belongs
         self.srv_dict: dict = {}
         # Handler for daily weather events
-        self.daily_weather_handler = DailyWeatherEvent()
+        self.daily_weather_handler = DailyWeatherEvent("./Data/Save/save.json")
 
     async def on_ready(self) -> None:
         """This method specifies actions to be performed when the bot is

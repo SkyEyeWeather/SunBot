@@ -2,7 +2,9 @@
 
 from abc import ABC, abstractmethod
 import asyncio
+import copy
 from datetime import datetime
+import json
 import logging
 from typing import Dict, Literal, Union
 
@@ -25,10 +27,14 @@ class WeatherEvent(ABC):
     is abstract, it cannot be directly instantiate
     """
 
-    def __init__(self) -> None:
-        """Constructor for this class, which can only be called by inheriting classes"""
+    def __init__(self, save_path : str) -> None:
+        """Constructor for this class, which can only be called by inheriting classes
+        ## Parameters:
+        * `save_path`: path to the file where saving locations' subscribers data
+        """
 
         # private attributes:
+        self.save_file_path = save_path
         self.__sub_locations_dict : dict[str, dict[Location, dict[int, Union[discord.TextChannel, discord.User]]]] = \
             {SERVER_SUB_TYPE : {}, USER_SUB_TYPE : {}}
         self.__mutex_access_dict = asyncio.Lock()    # Mutex to handle access to user dict
@@ -202,6 +208,25 @@ class WeatherEvent(ABC):
             logging.error("Unknown subscriber type %s", sub_type)
             raise ValueError("Unknown subscriber type")
 
+    async def save_locations_subscribers(self) -> None:
+        """Save all locations' subscribers into a file at JSON format"""
+        logging.info("Saving locations' subscribers data...")
+        await self.__mutex_access_dict.acquire()
+        copy_dict = {}
+        for sub_type, sub_dict in self.__sub_locations_dict.items():
+            copy_dict[sub_type] = []
+            for location, location_subs_dict in sub_dict.items():
+                # Replace location by their name and tz to allow serialization:
+                location_dict = {'name': location.name, 'tz': location.tz, 'subscribers': []}
+                # Only subsribers' id need to be saved:
+                for subscriber_id in location_subs_dict.keys():
+                    location_dict['subscribers'].append(subscriber_id)
+                copy_dict[sub_type].append(location_dict)
+        self.__mutex_access_dict.release()
+        with open(self.save_file_path, 'w', encoding='UTF-8') as save_json_file:
+            json.dump(copy_dict, save_json_file, ensure_ascii=False, indent=2)
+        logging.info("Location's subscribers data saved into %s", self.save_file_path)
+
     @abstractmethod
     async def run_event_task(self):
         """Abstract method that listen for an event and handle it when it is
@@ -212,8 +237,8 @@ class WeatherEvent(ABC):
 class DailyWeatherEvent(WeatherEvent):
     """Class that handle daily weather event and send it to subscriber"""
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, save_path) -> None:
+        super().__init__(save_path)
         # Flag that indicates if daily weather was sent or not for each location:
         self.__dict_weather_sent_flag : Dict[str, Dict[Location, bool]] = \
             {SERVER_SUB_TYPE : {}, USER_SUB_TYPE : {}}
@@ -340,8 +365,8 @@ class DailyWeatherEvent(WeatherEvent):
 class WeatherAlertEvent(WeatherEvent):
     """"""
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, save_path) -> None:
+        super().__init__(save_path)
 
     async def run_event_task(self):
         """"""
