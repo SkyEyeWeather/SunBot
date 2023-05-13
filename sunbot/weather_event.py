@@ -227,6 +227,43 @@ class WeatherEvent(ABC):
             json.dump(copy_dict, json_file, ensure_ascii=False, indent=2)
         logging.info("Location's subscribers data saved into %s", self.save_file_path)
 
+    async def load_locations_subscribers(self, usr_loader, srv_loader) -> None:
+        """Load data from a JSON save file into the structure that contains
+        entities that subscribe to each location
+        ## Parameters:
+        * `usr_loader`: function or method used to load a discor user
+        * `srv_loader`: function or method used to load a discord server
+        ## Return value:
+        None
+        ## Exceptions:
+        * `FileNotFoundError` in the case where save file is not found
+        """
+        logging.info("Loading subscriber data for each location...")
+        try:
+            with open(self.save_file_path, 'r', encoding='UTF-8') as json_file:
+                loaded_dict = json.load(json_file)
+                print(loaded_dict)
+        except FileNotFoundError:
+            logging.error("Unable to load data from the JSON file at %s : file not found",
+                          self.save_file_path)
+        #Copy loaded dict into subscribers structure:
+        for sub_type, locations_dict_list in loaded_dict.items():
+            for location_dict in locations_dict_list:
+                location = Location(location_dict['name'], location_dict['tz'])
+                for subscriber_id in location_dict['subscribers']:
+                    if sub_type == USER_SUB_TYPE:
+                        subscriber = usr_loader(subscriber_id)
+                    else:
+                        subscriber = srv_loader(subscriber_id)
+                    # subscriber is None if current subscriber is not linked to an
+                    # existent discord entity:
+                    if subscriber is None:
+                        logging.error("ID %d does not correspond to any discord entity",
+                                      subscriber_id)
+                        continue # Do not add a None subscriber, as it can broke the bot
+                    self.add_sub2location(subscriber, location.name, location.tz)
+        logging.info("Subscribers data was successfully loaded")
+
     @abstractmethod
     async def run_event_task(self):
         """Abstract method that listen for an event and handle it when it is
