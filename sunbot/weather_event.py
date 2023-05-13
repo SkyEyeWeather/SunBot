@@ -31,7 +31,6 @@ class WeatherEvent(ABC):
         ## Parameters:
         * `save_path`: path to the file where saving locations' subscribers data
         """
-
         # private attributes:
         self.save_file_path = save_path
         self.__sub_locations_dict : dict[str, dict[Location, dict[int, Union[discord.TextChannel, discord.User]]]] = \
@@ -245,7 +244,7 @@ class WeatherEvent(ABC):
         except FileNotFoundError:
             logging.error("Unable to load data from the JSON file at %s : file not found",
                           self.save_file_path)
-        #Copy loaded dict into subscribers structure:
+        # Copy loaded dict into subscribers structure:
         for sub_type, locations_dict_list in loaded_dict.items():
             for location_dict in locations_dict_list:
                 location = Location(location_dict['name'], location_dict['tz'])
@@ -259,7 +258,7 @@ class WeatherEvent(ABC):
                     if subscriber is None:
                         logging.error("ID %d does not correspond to any discord entity",
                                       subscriber_id)
-                        continue # Do not add a None subscriber, as it can broke the bot
+                        continue  # Do not add a None subscriber, as it can broke the bot
                     self.add_sub2location(subscriber, location.name, location.tz)
         logging.info("Subscribers data was successfully loaded")
 
@@ -345,7 +344,7 @@ class DailyWeatherEvent(WeatherEvent):
         * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
         `USER_SUB_TYPE`
         """
-        #TODO : Unneeded double check here
+        # TODO : Unneeded double check here
         if isinstance(subscriber, (discord.User, discord.Member)):
             sub_type = USER_SUB_TYPE
         elif isinstance(subscriber, discord.TextChannel):
