@@ -249,7 +249,7 @@ class SunController:
                     "Daily weather was disabled for the location %s on the server n°%d", location_name, server_id)
             # Else replace registered interaction with the new one:
             else:
-                await self.daily_weather_handler.add_sub2location(weather_event.SERVER_SUB_TYPE, interaction, location_name)
+                await self.daily_weather_handler.add_sub2location(interaction.channel, location_name)
                 await interaction.response.send_message(f"Ok, j'enverrai désormais la météo quotidienne pour {location_name} ici à la place du channel précédent!")
                 logging.info(
                     "Daily weather for location %s on the server n°%d was updated with a new channel", location_name, server_id)
@@ -263,7 +263,7 @@ class SunController:
                 await interaction.response.send_message(f"Je n'ai pas {location_name} dans mes données, vérifies le nom !")
             else:
                 location_tz: str = daily_weather_test['timezone']
-                await self.daily_weather_handler.add_sub2location(weather_event.SERVER_SUB_TYPE, interaction, location_name, location_tz)
+                await self.daily_weather_handler.add_sub2location(interaction.channel, location_name, location_tz)
                 await interaction.response.send_message(f"C'est compris, j'enverrai désormais quotidiennement la météo du jour pour {location_name} ici 😉")
 
     async def set_daily_weather_pm(self, interaction: discord.Interaction, location_name: str) -> None:
@@ -299,11 +299,10 @@ class SunController:
             return
         # Add the user to the location subscribers list:
         location_tz: str = daily_weather_test["timezone"]
-        await self.daily_weather_handler.add_sub2location(weather_event.USER_SUB_TYPE, interaction, location_name, location_tz)
+        await self.daily_weather_handler.add_sub2location(interaction.user, location_name, location_tz)
         logging.info(
             "User n°%d has subscribed to receive daily weather for the location %s", user_id, location_name)
         await interaction.response.send_message(content=f"Super ! Je vous enverrez désormais la météo pour {location_name} chaque jour en message privé! (à 7h00 heure locale de la localisation)")
-
     # ====================================================================================
     #                                   PRIVATE METHODS PART
     # ====================================================================================

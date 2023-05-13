@@ -119,15 +119,14 @@ class WeatherEvent(ABC):
         self.__mutex_access_dict.release()
         return sub_in_dict
 
-    async def add_sub2location(self, sub_type : SubType, interaction : discord.Interaction, location_name : str, location_tz="") -> None:
+    async def add_sub2location(self, subscriber : Union[discord.TextChannel, discord.User], location_name : str, location_tz="") -> None:
         """Add an entity contained in the specified `interaction `to the `location_name`
         dict of subscribers.Possible value for `sub_type` is `SERVER_SUB_TYPE`
         for servers and `USER_SUB_TYPE` for users. If the entity was already added
         to the location, the corresponding interaction is updated.
         ## Parameters:
-        * `sub_type`: type of subscribers to add, `SERVER_SUB_TYPE` for server,
-        `USER_SUB_TYPE` for user
-        * `interaction`: Discord interaction, use to retrieve context data
+        * `subscriber`: discord subscriber entity, must be a `TextChannel` or an
+        `User`.
         * `location_name`: name of the location to which specified user whish
         to subscribe
         * `location_tz`: time zone of the location, optional
@@ -137,15 +136,16 @@ class WeatherEvent(ABC):
         * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
         `USER_SUB_TYPE`
         """
-        # Argument checking:
-        self.check_sub_type(sub_type)
-        # Retrieve entity object:
-        if sub_type == USER_SUB_TYPE:
-            sub_id = interaction.user.id
-            sub_object = interaction.user
+        # Check subscriber type:
+        if isinstance(subscriber, (discord.User, discord.Member)):
+            sub_id = subscriber.id
+            sub_type = USER_SUB_TYPE
+        elif isinstance(subscriber, discord.TextChannel):
+            sub_id = subscriber.guild.id
+            sub_type = SERVER_SUB_TYPE
         else:
-            sub_id = interaction.guild_id
-            sub_object = interaction.channel
+            logging.error("Unknown subscriber type %s", sub_type)
+            raise ValueError("Unknown subscriber type")
         # It is not needed to check if entity was already added, the corresponding
         # discord interaction will just be updated
         await self.__mutex_access_dict.acquire()
@@ -153,10 +153,10 @@ class WeatherEvent(ABC):
         # If location is not yet known by the bot:
         if current_location not in self.__sub_locations_dict[sub_type]:
             self.__sub_locations_dict[sub_type][current_location] = {}
-        self.__sub_locations_dict[sub_type][current_location][sub_id] = sub_object
+        self.__sub_locations_dict[sub_type][current_location][sub_id] = subscriber
         self.__mutex_access_dict.release()
         logging.info("Subscriber n°%d was successfully added to the list for the location %s",
-                     sub_object.id, location_name)
+                     sub_id, location_name)
 
     async def del_sub_from_location(self, sub_type : SubType, sub_id : int, location_name : str) -> bool:
         """Delete subscriber whose ID is specified in argument from the list
@@ -223,8 +223,8 @@ class WeatherEvent(ABC):
                     location_dict['subscribers'].append(subscriber_id)
                 copy_dict[sub_type].append(location_dict)
         self.__mutex_access_dict.release()
-        with open(self.save_file_path, 'w', encoding='UTF-8') as save_json_file:
-            json.dump(copy_dict, save_json_file, ensure_ascii=False, indent=2)
+        with open(self.save_file_path, 'w', encoding='UTF-8') as json_file:
+            json.dump(copy_dict, json_file, ensure_ascii=False, indent=2)
         logging.info("Location's subscribers data saved into %s", self.save_file_path)
 
     @abstractmethod
@@ -292,30 +292,37 @@ class DailyWeatherEvent(WeatherEvent):
         self.__dict_weather_sent_flag[sub_type][location] = value
         self.__mutex_dict_flag.release()
 
-    async def add_sub2location(self, sub_type : SubType, interaction : discord.Interaction, location_name : str, location_tz : str = "") -> bool:
+    async def add_sub2location(self, subscriber : Union[discord.TextChannel, discord.User], location_name : str, location_tz : str = "") -> bool:
         """Add an entity contained in the specified `interaction `to the `location_name`
         dict of subscribers.Possible value for `sub_type` is `SERVER_SUB_TYPE`
         for servers and `USER_SUB_TYPE` for users. If the entity was already added
         to the location, the corresponding interaction is updated.
         ## Parameters:
-        * `sub_type`: type of subscribers to add, `SERVER_SUB_TYPE` for server,
-        `USER_SUB_TYPE` for user
-        * `interaction`: Discord interaction, use to retrieve context data
+        * `subscriber`: discord subscriber entity, must be a `TextChannel` or an
+        `User`.
         * `location_name`: name of the location to which specified user whish
         to subscribe
         * `location_tz`: time zone of the location, optional
         ## Return value:
-        `True` if the subscriber was successfully added, `False` otherwise
+        Not applicable
         ## Exception:
         * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
         `USER_SUB_TYPE`
         """
+        #TODO : Unneeded double check here
+        if isinstance(subscriber, (discord.User, discord.Member)):
+            sub_type = USER_SUB_TYPE
+        elif isinstance(subscriber, discord.TextChannel):
+            sub_type = SERVER_SUB_TYPE
+        else:
+            logging.error("Unknown subscriber type %s", sub_type)
+            raise ValueError("Unknown subscriber type")
         # Only add specified location if there is not already known by the task:
         location = Location(location_name, location_tz)
         if location not in self.__dict_weather_sent_flag[sub_type]:
             # Add current location to the task:
             await self.set_location_flag(sub_type, location, False)
-        return (await super().add_sub2location(sub_type, interaction, location_name, location_tz))
+        return (await super().add_sub2location(subscriber, location_name, location_tz))
 
     async def run_event_task(self):
         logging.info("Starting daily weather task")
