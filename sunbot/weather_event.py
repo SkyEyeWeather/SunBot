@@ -2,7 +2,6 @@
 
 from abc import ABC, abstractmethod
 import asyncio
-import copy
 from datetime import datetime
 import json
 import logging
@@ -11,8 +10,8 @@ from typing import Dict, Literal, Union
 import discord
 from sunbot.location import Location
 from sunbot.weather.Meteo import create_daily_weather_img
-import sunbot.sunbot as sunbot
-import sunbot.weather_api_handler as weather_api_handler
+from sunbot import sunbot
+from sunbot import weather_api_handler
 
 
 USER_SUB_TYPE = 'u'
