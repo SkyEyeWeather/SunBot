@@ -29,7 +29,7 @@ class WeatherEvent(ABC):
         """Constructor for this class, which can only be called by inheriting classes"""
 
         # private attributes:
-        self.__sub_locations_dict : dict[str, dict[Location, dict[int, Union[discord.TextChannel, discord.Member]]]] = \
+        self.__sub_locations_dict : dict[str, dict[Location, dict[int, Union[discord.TextChannel, discord.User]]]] = \
             {SERVER_SUB_TYPE : {}, USER_SUB_TYPE : {}}
         self.__mutex_access_dict = asyncio.Lock()    # Mutex to handle access to user dict
 
@@ -57,7 +57,7 @@ class WeatherEvent(ABC):
         self.__mutex_access_dict.release()
         return dict_to_return
 
-    async def get_sub_entity(self, sub_type : SubType, sub_id : int, location_name : str) -> Union[discord.TextChannel, discord.Member]:
+    async def get_sub_entity(self, sub_type : SubType, sub_id : int, location_name : str) -> Union[discord.TextChannel, discord.User]:
         """Return discord object linked to the specified `entity_id` and
         `location_name`. Possible value for `sub_type` is `SERVER_SUB_TYPE` for
         servers and `USER_SUB_TYPE` for users
