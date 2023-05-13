@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 import asyncio
 from datetime import datetime
 import logging
-from typing import Dict, Literal
+from typing import Dict, Literal, Union
 
 import discord
 from sunbot.location import Location
@@ -18,7 +18,7 @@ SERVER_SUB_TYPE = 's'
 SUB_TYPE_LIST = [USER_SUB_TYPE, SERVER_SUB_TYPE]
 SubType = Literal['u', 's']
 
-    
+
 # One class for all locations in order to not have too many tasks running in the same time
 class WeatherEvent(ABC):
     """Abstract class representing a general weather event. Because this class
@@ -29,7 +29,7 @@ class WeatherEvent(ABC):
         """Constructor for this class, which can only be called by inheriting classes"""
 
         # private attributes:
-        self.__sub_locations_dict : dict[str, dict[Location, dict[int, discord.Interaction]]] = \
+        self.__sub_locations_dict : dict[str, dict[Location, dict[int, Union[discord.TextChannel, discord.User]]]] = \
             {SERVER_SUB_TYPE : {}, USER_SUB_TYPE : {}}
         self.__mutex_access_dict = asyncio.Lock()    # Mutex to handle access to user dict
 
@@ -57,8 +57,8 @@ class WeatherEvent(ABC):
         self.__mutex_access_dict.release()
         return dict_to_return
 
-    async def get_interaction(self, sub_type : SubType, sub_id : int, location_name : str) -> discord.Interaction:
-        """Return discord interaction linked to the specified `entity_id` and
+    async def get_sub_entity(self, sub_type : SubType, sub_id : int, location_name : str) -> Union[discord.TextChannel, discord.User]:
+        """Return discord object linked to the specified `entity_id` and
         `location_name`. Possible value for `sub_type` is `SERVER_SUB_TYPE` for
         servers and `USER_SUB_TYPE` for users
         ## Parameters:
@@ -67,7 +67,7 @@ class WeatherEvent(ABC):
         * `sub_id`: subscriber ID
         * `location_name`: name of the location
         ## Return value:
-        Discord interaction corresponding to the specified `entity_id` and
+        Discord object corresponding to the specified `entity_id` and
         `location name`
         ## Exception:
         * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
@@ -80,13 +80,13 @@ class WeatherEvent(ABC):
         try:
             for location in sub_type_dict:
                 if location.name == location_name:
-                    interaction = sub_type_dict[Location(location_name, "")][sub_id]
+                    sub_entity = sub_type_dict[Location(location_name, "")][sub_id]
         except KeyError as err:
             logging.error(err.__cause__)
             return None
         finally:
             self.__mutex_access_dict.release()
-        return interaction
+        return sub_entity
 
     async def is_sub2location(self, sub_type : SubType, sub_id : int, location_name : str) -> bool:
         """Return whether the entity corresponding to the specified `entity_id`
@@ -133,11 +133,13 @@ class WeatherEvent(ABC):
         """
         # Argument checking:
         self.check_sub_type(sub_type)
-        # Retrieve entity ID:
+        # Retrieve entity object:
         if sub_type == USER_SUB_TYPE:
             sub_id = interaction.user.id
+            sub_object = interaction.user
         else:
-            sub_id = interaction.guild.id
+            sub_id = interaction.guild_id
+            sub_object = interaction.channel
         # It is not needed to check if entity was already added, the corresponding
         # discord interaction will just be updated
         await self.__mutex_access_dict.acquire()
@@ -145,9 +147,10 @@ class WeatherEvent(ABC):
         # If location is not yet known by the bot:
         if current_location not in self.__sub_locations_dict[sub_type]:
             self.__sub_locations_dict[sub_type][current_location] = {}
-        self.__sub_locations_dict[sub_type][current_location][sub_id] = interaction
+        self.__sub_locations_dict[sub_type][current_location][sub_id] = sub_object
         self.__mutex_access_dict.release()
-        logging.info("Subscriber n°%d was successfully added to the list for the location %s", sub_id, location_name)
+        logging.info("Subscriber n°%d was successfully added to the list for the location %s",
+                     sub_object.id, location_name)
 
     async def del_sub_from_location(self, sub_type : SubType, sub_id : int, location_name : str) -> bool:
         """Delete subscriber whose ID is specified in argument from the list
@@ -305,26 +308,20 @@ class DailyWeatherEvent(WeatherEvent):
                         await self.set_location_flag(sub_type, location, False)
                     elif(loc_cur_h == sunbot.DAILY_WEATHER_SEND_HOUR) and (loc_cur_min in [0, 1]) and not await self.get_location_flag(sub_type, location):
                         await self.set_location_flag(sub_type, location, True)
-                        await self.__send_daily_weather2sub(location, sub_type, sub_dict)
+                        await self.__send_daily_weather2sub(location, sub_dict)
 
-    async def __send_daily_weather2sub(self, location : Location, sub_type : SubType, sub_dict : Dict[int, discord.Interaction]) -> None:
+    async def __send_daily_weather2sub(self, location : Location, sub_dict : Dict[int, discord.Interaction]) -> None:
         """Private method that sends daily weather for the specified location to
         all subscribers. Possible value for `sub_type` is `SERVER_SUB_TYPE` for
         servers and `USER_SUB_TYPE` for users.
         ## Parameters:
         * `location`: location for which the weather is sent to all subscribing servers
-        * `sub_type`: type of subscribers, `SERVER_SUB_TYPE` for server,
-        `USER_SUB_TYPE` for user
         * `sub_dict`: dict of subscribers
         ## Return value:
         None
-        ## Exception:
-        * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
-        `USER_SUB_TYPE`
         """
-        self.check_sub_type(sub_type)
         # Get daily weather response from the API for current location:
-        request_response = weather_api_handler.dailyWeatherRequest(location.name)
+        request_response = weather_api_handler.ask_daily_weather(location.name)
         # If a response was sent by the weather API:
         if request_response != {}:
             create_daily_weather_img(request_response, "./Data/Images")
@@ -332,13 +329,10 @@ class DailyWeatherEvent(WeatherEvent):
             for sub_id in sub_dict:
                 # Get interaction for current server, which contains a channel
                 # where send daily weather:
-                interaction = sub_dict[sub_id]
-                # Send daily weather:
+                subscriber = sub_dict[sub_id]
+                # Send daily weather to current subscriber:
                 logging.info("Sending daily weather for %s to subscriber n°%d", location.name, sub_id)
-                if sub_type == SERVER_SUB_TYPE:
-                    await interaction.channel.send(content=f"Voici la météo prévue pour aujourd'hui à {location.name}\n", file=discord.File(f"{sunbot.DAILY_IMAGE_PATH}{sunbot.DAILY_IMAGE_NAME}"))
-                else:
-                    await interaction.user.send(content=f"Voici la météo prévue pour aujourd'hui à {location.name}\n", file=discord.File(f"{sunbot.DAILY_IMAGE_PATH}{sunbot.DAILY_IMAGE_NAME}"))
+                await subscriber.send(content=f"Voici la météo prévue pour aujourd'hui à {location.name}\n", file=discord.File(f"{sunbot.DAILY_IMAGE_PATH}{sunbot.DAILY_IMAGE_NAME}"))
                 await asyncio.sleep(0.1)
 
 

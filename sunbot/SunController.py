@@ -240,9 +240,9 @@ class SunController:
         if await self.daily_weather_handler.is_sub2location(weather_event.SERVER_SUB_TYPE, server_id, location_name):
             # If specified interaction is the same as the current registered interaction
             # for current server and location name:
-            registered_interaction = await self.daily_weather_handler.get_interaction(weather_event.SERVER_SUB_TYPE, server_id, location_name)
+            registered_entity = await self.daily_weather_handler.get_sub_entity(weather_event.SERVER_SUB_TYPE, server_id, location_name)
             # If the bot already sends daily weather on current channel, disable the sending
-            if interaction.channel_id == registered_interaction.channel_id:
+            if interaction.channel_id == registered_entity.id:
                 await self.daily_weather_handler.del_sub_from_location(weather_event.SERVER_SUB_TYPE, server_id, location_name)
                 await interaction.response.send_message(f"Bien compris, je n'enverrai plus la météo quotidienne pour {location_name} 😀")
                 logging.info(
