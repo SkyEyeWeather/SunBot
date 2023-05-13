@@ -3,14 +3,15 @@
 from abc import ABC, abstractmethod
 import asyncio
 from datetime import datetime
+import json
 import logging
 from typing import Dict, Literal, Union
 
 import discord
 from sunbot.location import Location
 from sunbot.weather.Meteo import create_daily_weather_img
-import sunbot.sunbot as sunbot
-import sunbot.weather_api_handler as weather_api_handler
+from sunbot import sunbot
+from sunbot import weather_api_handler
 
 
 USER_SUB_TYPE = 'u'
@@ -25,10 +26,13 @@ class WeatherEvent(ABC):
     is abstract, it cannot be directly instantiate
     """
 
-    def __init__(self) -> None:
-        """Constructor for this class, which can only be called by inheriting classes"""
-
+    def __init__(self, save_path : str) -> None:
+        """Constructor for this class, which can only be called by inheriting classes
+        ## Parameters:
+        * `save_path`: path to the file where saving locations' subscribers data
+        """
         # private attributes:
+        self.save_file_path = save_path
         self.__sub_locations_dict : dict[str, dict[Location, dict[int, Union[discord.TextChannel, discord.User]]]] = \
             {SERVER_SUB_TYPE : {}, USER_SUB_TYPE : {}}
         self.__mutex_access_dict = asyncio.Lock()    # Mutex to handle access to user dict
@@ -113,15 +117,15 @@ class WeatherEvent(ABC):
         self.__mutex_access_dict.release()
         return sub_in_dict
 
-    async def add_sub2location(self, sub_type : SubType, interaction : discord.Interaction, location_name : str, location_tz="") -> None:
+    async def add_sub2location(self, subscriber : Union[discord.TextChannel, discord.User], 
+                               location_name : str, location_tz="") -> None:
         """Add an entity contained in the specified `interaction `to the `location_name`
         dict of subscribers.Possible value for `sub_type` is `SERVER_SUB_TYPE`
         for servers and `USER_SUB_TYPE` for users. If the entity was already added
         to the location, the corresponding interaction is updated.
         ## Parameters:
-        * `sub_type`: type of subscribers to add, `SERVER_SUB_TYPE` for server,
-        `USER_SUB_TYPE` for user
-        * `interaction`: Discord interaction, use to retrieve context data
+        * `subscriber`: discord subscriber entity, must be a `TextChannel` or an
+        `User`.
         * `location_name`: name of the location to which specified user whish
         to subscribe
         * `location_tz`: time zone of the location, optional
@@ -131,15 +135,16 @@ class WeatherEvent(ABC):
         * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
         `USER_SUB_TYPE`
         """
-        # Argument checking:
-        self.check_sub_type(sub_type)
-        # Retrieve entity object:
-        if sub_type == USER_SUB_TYPE:
-            sub_id = interaction.user.id
-            sub_object = interaction.user
+        # Check subscriber type:
+        if isinstance(subscriber, (discord.User, discord.Member)):
+            sub_id = subscriber.id
+            sub_type = USER_SUB_TYPE
+        elif isinstance(subscriber, discord.TextChannel):
+            sub_id = subscriber.guild.id
+            sub_type = SERVER_SUB_TYPE
         else:
-            sub_id = interaction.guild_id
-            sub_object = interaction.channel
+            logging.error("Unknown subscriber type %s", sub_type)
+            raise ValueError("Unknown subscriber type")
         # It is not needed to check if entity was already added, the corresponding
         # discord interaction will just be updated
         await self.__mutex_access_dict.acquire()
@@ -147,10 +152,10 @@ class WeatherEvent(ABC):
         # If location is not yet known by the bot:
         if current_location not in self.__sub_locations_dict[sub_type]:
             self.__sub_locations_dict[sub_type][current_location] = {}
-        self.__sub_locations_dict[sub_type][current_location][sub_id] = sub_object
+        self.__sub_locations_dict[sub_type][current_location][sub_id] = subscriber
         self.__mutex_access_dict.release()
         logging.info("Subscriber n°%d was successfully added to the list for the location %s",
-                     sub_object.id, location_name)
+                     sub_id, location_name)
 
     async def del_sub_from_location(self, sub_type : SubType, sub_id : int, location_name : str) -> bool:
         """Delete subscriber whose ID is specified in argument from the list
@@ -202,6 +207,62 @@ class WeatherEvent(ABC):
             logging.error("Unknown subscriber type %s", sub_type)
             raise ValueError("Unknown subscriber type")
 
+    async def save_locations_subscribers(self) -> None:
+        """Save all locations' subscribers into a file at JSON format"""
+        logging.info("Saving locations' subscribers data...")
+        await self.__mutex_access_dict.acquire()
+        copy_dict = {}
+        for sub_type, sub_dict in self.__sub_locations_dict.items():
+            copy_dict[sub_type] = []
+            for location, location_subs_dict in sub_dict.items():
+                # Replace location by their name and tz to allow serialization:
+                location_dict = {'name': location.name, 'tz': location.tz, 'subscribers': []}
+                # Only subsribers' id need to be saved:
+                for subscriber_id in location_subs_dict.keys():
+                    location_dict['subscribers'].append(subscriber_id)
+                copy_dict[sub_type].append(location_dict)
+        self.__mutex_access_dict.release()
+        with open(self.save_file_path, 'w', encoding='UTF-8') as json_file:
+            json.dump(copy_dict, json_file, ensure_ascii=False, indent=2)
+        logging.info("Location's subscribers data saved into %s", self.save_file_path)
+
+    async def load_locations_subscribers(self, usr_loader, srv_loader) -> None:
+        """Load data from a JSON save file into the structure that contains
+        entities that subscribe to each location
+        ## Parameters:
+        * `usr_loader`: function or method used to load a discor user
+        * `srv_loader`: function or method used to load a discord server
+        ## Return value:
+        None
+        ## Exceptions:
+        * `FileNotFoundError` in the case where save file is not found
+        """
+        logging.info("Loading subscriber data for each location...")
+        try:
+            with open(self.save_file_path, 'r', encoding='UTF-8') as json_file:
+                loaded_dict = json.load(json_file)
+                print(loaded_dict)
+        except FileNotFoundError:
+            logging.error("Unable to load data from the JSON file at %s : file not found",
+                          self.save_file_path)
+        # Copy loaded dict into subscribers structure:
+        for sub_type, locations_dict_list in loaded_dict.items():
+            for location_dict in locations_dict_list:
+                location = Location(location_dict['name'], location_dict['tz'])
+                for subscriber_id in location_dict['subscribers']:
+                    if sub_type == USER_SUB_TYPE:
+                        subscriber = usr_loader(subscriber_id)
+                    else:
+                        subscriber = srv_loader(subscriber_id)
+                    # subscriber is None if current subscriber is not linked to an
+                    # existent discord entity:
+                    if subscriber is None:
+                        logging.error("ID %d does not correspond to any discord entity",
+                                      subscriber_id)
+                        continue  # Do not add a None subscriber, as it can broke the bot
+                    self.add_sub2location(subscriber, location.name, location.tz)
+        logging.info("Subscribers data was successfully loaded")
+
     @abstractmethod
     async def run_event_task(self):
         """Abstract method that listen for an event and handle it when it is
@@ -212,8 +273,8 @@ class WeatherEvent(ABC):
 class DailyWeatherEvent(WeatherEvent):
     """Class that handle daily weather event and send it to subscriber"""
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, save_path) -> None:
+        super().__init__(save_path)
         # Flag that indicates if daily weather was sent or not for each location:
         self.__dict_weather_sent_flag : Dict[str, Dict[Location, bool]] = \
             {SERVER_SUB_TYPE : {}, USER_SUB_TYPE : {}}
@@ -267,30 +328,37 @@ class DailyWeatherEvent(WeatherEvent):
         self.__dict_weather_sent_flag[sub_type][location] = value
         self.__mutex_dict_flag.release()
 
-    async def add_sub2location(self, sub_type : SubType, interaction : discord.Interaction, location_name : str, location_tz : str = "") -> bool:
+    async def add_sub2location(self, subscriber : Union[discord.TextChannel, discord.User], location_name : str, location_tz : str = "") -> bool:
         """Add an entity contained in the specified `interaction `to the `location_name`
         dict of subscribers.Possible value for `sub_type` is `SERVER_SUB_TYPE`
         for servers and `USER_SUB_TYPE` for users. If the entity was already added
         to the location, the corresponding interaction is updated.
         ## Parameters:
-        * `sub_type`: type of subscribers to add, `SERVER_SUB_TYPE` for server,
-        `USER_SUB_TYPE` for user
-        * `interaction`: Discord interaction, use to retrieve context data
+        * `subscriber`: discord subscriber entity, must be a `TextChannel` or an
+        `User`.
         * `location_name`: name of the location to which specified user whish
         to subscribe
         * `location_tz`: time zone of the location, optional
         ## Return value:
-        `True` if the subscriber was successfully added, `False` otherwise
+        Not applicable
         ## Exception:
         * `ValueError` if `sub_type` value is neither `SERVER_SUB_TYPE` nor
         `USER_SUB_TYPE`
         """
+        # TODO : Unneeded double check here
+        if isinstance(subscriber, (discord.User, discord.Member)):
+            sub_type = USER_SUB_TYPE
+        elif isinstance(subscriber, discord.TextChannel):
+            sub_type = SERVER_SUB_TYPE
+        else:
+            logging.error("Unknown subscriber type %s", sub_type)
+            raise ValueError("Unknown subscriber type")
         # Only add specified location if there is not already known by the task:
         location = Location(location_name, location_tz)
         if location not in self.__dict_weather_sent_flag[sub_type]:
             # Add current location to the task:
             await self.set_location_flag(sub_type, location, False)
-        return (await super().add_sub2location(sub_type, interaction, location_name, location_tz))
+        return (await super().add_sub2location(subscriber, location_name, location_tz))
 
     async def run_event_task(self):
         logging.info("Starting daily weather task")
@@ -340,8 +408,8 @@ class DailyWeatherEvent(WeatherEvent):
 class WeatherAlertEvent(WeatherEvent):
     """"""
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, save_path) -> None:
+        super().__init__(save_path)
 
     async def run_event_task(self):
         """"""
