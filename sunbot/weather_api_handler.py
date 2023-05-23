@@ -78,7 +78,7 @@ def ask_daily_weather(location_name : str) -> dict:
     """
     keys_list = ['temp', 'tempmin', 'tempmax', 'precip', 'preciptype', 'precipprob',
                  'windspeed', 'winddir', 'pressure', 'humidity', 'uvindex',
-                 'sunrise', 'sunset', 'timezone', 'conditions']
+                 'sunrise', 'sunset', 'conditions']
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{location_name}/today?unitGroup=metric&include=days&key={os.environ['idVisualCrossing']}&contentType=json&lang=id"
     logging.info("Retrieving the daily weather for the location %s", location_name)
     request_response = __perform_request(request)
@@ -91,6 +91,7 @@ def ask_daily_weather(location_name : str) -> dict:
         except KeyError:
             logging.error("Key %s is not in the request response. Set to the default value", key)
             dict2return[key] = ""
+    dict2return['timezone'] = request_response['timezone']
     return dict2return
 
 
