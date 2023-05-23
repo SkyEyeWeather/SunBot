@@ -2,6 +2,7 @@
 #   MODULES USED IN THIS FILE
 #==================================
 
+import asyncio
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -45,22 +46,17 @@ listeGifKernelDead = [
 
 logging.basicConfig(level=logging.INFO)
 sunBot = commands.Bot(command_prefix='+', intents=discord.Intents.all(), help_command=SunBotHelpCommand())
-sunController = SunController(sunBot)
 vcRequestHandler = VisualCrossingHandler()
 discordAPI_handler = DiscordHandler()
 dictUsersBot = {}
-
 
 
 #==================================
 #     Evénements liés au bot
 #==================================
 
-@sunBot.event
-async def on_ready(): 
-  await sunController.on_ready()
 
-  """
+"""
   #Création du thread écoutant les alertes météos:
   print("Génération des webhooks...")
   webhookServeurTest1 = discord.SyncWebhook.from_url('https://discord.com/api/webhooks/923863299270013018/6jfjT1QtrZ8UCXM1aEUhUD7z5G5Or9S3loFvlQs34Age8hX7VPfrD4UUQvGXCzmDN0Oo')
@@ -74,15 +70,7 @@ async def on_ready():
 """
 
 
-@sunBot.event
-async def on_member_join(member):
-  await sunController.on_member_join(member)
-
-
-@sunBot.event
-async def on_message(message):
-  await sunController.on_message(message)
-  """
+"""
   if messageMin in ["patrick", "patou", "patoche", "pata", "patrikou"] and np.random.uniform() > 0.25:
       indiceGifToSend = int(np.random.uniform(0, len(listeGifMignons)))
       await message.reply(listeGifMignons[indiceGifToSend])
@@ -108,36 +96,6 @@ async def adminSetEmoji(ctx, userId :int, emoji : str, freq : float) :
     await ctx.channel.send("La fréquence doit être dans l'intervalle [0, 1] \U0001f620")
   else:
     await ctx.channel.send("L'emoji a bien été mis à jour \U0001f642")
-
-
-@sunBot.tree.command(name="ping", description="Si je suis réveillé, je réponds pong! Sinon... et bien c'est que je dors 😴", guild=discord.Object(id=1029313313827471413))
-async def ping(interaction : discord.Interaction):
-  await sunController.ping(interaction)
-
-
-@sunBot.tree.command(name="pluie", description="Quand va-t-il pleuvoir aujourd'hui? ☔",  guild=discord.Object(id=1029313313827471413))
-@app_commands.describe(place_name="Nom de la localité")
-async def pluie(interaction : discord.Interaction, place_name : str) -> None:
-  await sunController.pluie(interaction, place_name)
-
-
-@sunBot.tree.command(name="meteo", description="Donne la météo courante", guild=discord.Object(id=1029313313827471413))
-@app_commands.describe(place_name="Nom de la localité")
-async def meteo(interaction : discord.Interaction, place_name : str) -> None:
-  await sunController.meteo(interaction, place_name)
-
-
-@sunBot.tree.command(name="daily_weather", description="Active ou désactive l'envoi quotidien de la météo du jour pour la localisation indiquée", guild=discord.Object(id=726063782606143618))
-@app_commands.describe(location_name = "Nom de la localité")
-async def set_daily_weather_channel(interaction : discord.Interaction, location_name : str) -> None:
-  await sunController.set_daily_weather_channel(interaction, location_name)
-
-
-@sunBot.tree.command(name="mp_daily_weather", description="Active ou désactive l'envoi quotidien de la météo du jour pour la localisation indiquée", guild=discord.Object(id=726063782606143618))
-@app_commands.describe(location_name="Nom de la localité")
-async def set_daily_weather_pm(interaction : discord.Interaction, location_name : str) -> None:
-  """Listen for set daily weather private message slash command call"""
-  await sunController.set_daily_weather_pm(interaction, location_name)
 
 
 @sunBot.command(name="favMeteo", brief="Envie de connaître la météo d'une localité sans te casser la tête ? Cette commande est pour toi !")
@@ -197,8 +155,10 @@ async def disconnect(unused_ctx):
   await sunBot.logout()
 
 
+async def main():
+    await sunBot.add_cog(SunController(sunBot))
+    await sunBot.start(os.environ['token'])
 #####################################################################################################
 #ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES - ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES
 #####################################################################################################
-
-sunBot.run(os.environ['token'])
+asyncio.run(main())
