@@ -23,43 +23,11 @@ from sunbot.SunController import SunController
 
 PATH_SAVE_USER_REP = "./Data/Save/Users/"
 
-listeGifMignons = [
-    "https://i.pinimg.com/originals/2a/65/72/2a6572296e58045b3f89c73e06e4916f.gif",
-    "https://pa1.narvii.com/6935/ed72ab48336b42b9fdfaa9f245637841cb2208ber1-504-282_hq.gif",
-    "https://acegif.com/wp-content/gifs/cute-bunny-gif-51.gif",
-    "https://i.pinimg.com/originals/de/b9/49/deb949a2ea8afe6f7f0358137aac721b.gif",
-    "https://img.filmsactu.net/datas/seriestv/t/h/the-mandalorian/n/the-mandalorian-gif-5fad8376c586e.gif",
-    "https://2.bp.blogspot.com/-bKltZSToaSk/WpfSKtfVdZI/AAAAAAAADmY/mYeUGkpOdf8HoEq0c7N9Z5ixU5OuFn9FACLcBGAs/s1600/hamtaro.gif",
-    "https://64.media.tumblr.com/a1f42c7b213265bde529ca41bd6c7e63/tumblr_nh5g2v3KlU1u465olo1_400.gifv",
-    "https://c.tenor.com/rWDSYK2dWoMAAAAM/red-panda.gif",
-    "https://tel.img.pmdstatic.net/fit/http.3A.2F.2Fprd2-bone-image.2Es3-website-eu-west-1.2Eamazonaws.2Ecom.2FTEL.2Enews.2F2018.2F01.2F11.2F7b751402-2a98-47d6-a69f-0e3d733181ed.2Egif/495x277/quality/80/thumbnail.gif",
-    "https://phoneky.co.uk/thumbs/screensavers/down/cartoon-anime/sweetcat_jo9eelal.gif",
-    "https://thumbs.gfycat.com/UnacceptableLittleCapybara-size_restricted.gif"
-]
-
-listeGifKernelDead = [
-    "https://c.tenor.com/Ojww2DB8_x0AAAAd/dead-teletubbies.gif",
-    "https://c.tenor.com/CXZRwTD_4BsAAAAM/im-dead-lol.gif",
-    "https://c.tenor.com/LPYL83NEVcAAAAAM/dead-dog.gif",
-    "https://c.tenor.com/X13wwMFZN2YAAAAM/dies-cat.gif"
-]
-
 logging.basicConfig(level=logging.INFO)
 sunBot = commands.Bot(command_prefix='+', intents=discord.Intents.all(), help_command=SunBotHelpCommand())
 vcRequestHandler = VisualCrossingHandler()
 discordAPI_handler = DiscordHandler()
 dictUsersBot = {}
-
-
-"""
-  if messageMin in ["patrick", "patou", "patoche", "pata", "patrikou"] and np.random.uniform() > 0.25:
-      indiceGifToSend = int(np.random.uniform(0, len(listeGifMignons)))
-      await message.reply(listeGifMignons[indiceGifToSend])
-      await message.channel.send("Mignon !!")
-  if "kernel is dead" in messageMin:
-      indiceGifToSend = int(np.random.uniform(0, len(listeGifKernelDead)))
-      await message.reply(listeGifKernelDead[indiceGifToSend])
-  """
 
 
 #====================
