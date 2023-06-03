@@ -11,12 +11,12 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-import sunbot.sunbot as sunbot
+from sunbot import sunbot
 from sunbot.SunServer import SunServer
 from sunbot.SunUser import SunUser
-import sunbot.weather_api_handler as weather_api_handler
+from sunbot import weather_api_handler
 import sunbot.weather.Meteo as weather
-import sunbot.weather_event as weather_event
+from sunbot import weather_event
 from sunbot.weather_event import DailyWeatherEvent
 
 

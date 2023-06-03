@@ -2,17 +2,17 @@
 #   MODULES USED IN THIS FILE
 #==================================
 
-import asyncio
-import discord
-from discord import app_commands
-from discord.ext import commands
 import logging
 import os
 import time
 
+import asyncio
+import discord
+from discord.ext import commands
+
 from sunbot.apiHandler.VisualCrossingHandler import VisualCrossingHandler
 from sunbot.apiHandler.discordHandler import DiscordHandler
-import sunbot.sunbot as sunbot
+from sunbot import sunbot
 from sunbot.SunBotHelpCommand import SunBotHelpCommand
 from sunbot.SunController import SunController
 
