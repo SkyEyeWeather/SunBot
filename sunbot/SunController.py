@@ -9,13 +9,14 @@ from http.client import HTTPException
 import numpy as np
 import discord
 from discord.ext import commands
+from discord import app_commands
 
-import sunbot.sunbot as sunbot
+from sunbot import sunbot
 from sunbot.SunServer import SunServer
 from sunbot.SunUser import SunUser
-import sunbot.weather_api_handler as weather_api_handler
+from sunbot import weather_api_handler
 import sunbot.weather.Meteo as weather
-import sunbot.weather_event as weather_event
+from sunbot import weather_event
 from sunbot.weather_event import DailyWeatherEvent
 
 
@@ -23,7 +24,7 @@ from sunbot.weather_event import DailyWeatherEvent
 #       CLASS DECLARATION
 # =================================
 
-class SunController:
+class SunController(commands.Cog):
     """This class is the core class of the SunBot. This is the class that makes
     the link between server that contains users, the discord API, the bot weather part
     and the weather API handler
@@ -42,6 +43,7 @@ class SunController:
         # Handler for daily weather events
         self.daily_weather_handler = DailyWeatherEvent("./Data/Save/save.json")
 
+    @commands.Cog.listener()
     async def on_ready(self) -> None:
         """This method specifies actions to be performed when the bot is
         launched"""
@@ -65,6 +67,7 @@ class SunController:
         loop.create_task(self.daily_weather_handler.run_event_task())
         logging.info("Bot is ready !")
 
+    @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member) -> None:
         """This method is called when a new member joins a server where the bot
         belongs
@@ -93,6 +96,7 @@ class SunController:
         system_channel.send(
             f"Bienvenue sur le serveur {member.metion}! Je suis SunBot, bot spécialiste de la météo (ou pas)! Tu peux utiliser +help dans le channel des bots pour en savoir plus sur moi!")
 
+    @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
         """This method is called when a message is published on one of the server the bot belongs
         or in PM
@@ -167,8 +171,9 @@ class SunController:
         except KeyError:
             pass
 
-    @staticmethod
-    async def ping(interaction: discord.Interaction) -> None:
+    @app_commands.command(name="ping", description="Si je suis réveillé, je réponds pong! Sinon... et bien c'est que je dors 😴")
+    @app_commands.guilds(726063782606143618)
+    async def ping(self, interaction: discord.Interaction) -> None:
         """Send a string to indicate that the bot is alive
         ## Parameters:
         * `interaction`: discord interaction which contains context data for
@@ -178,6 +183,9 @@ class SunController:
         """
         await interaction.response.send_message("Pong !")
 
+    @app_commands.command(name="meteo", description="Donne la météo courante")
+    @app_commands.guilds(726063782606143618)
+    @app_commands.describe(location_name="Nom de la localité")
     async def meteo(self, interaction: discord.Interaction, location_name: str) -> None:
         """Handle a call to the `meteo` slash command by querying current weather
         condition for the indicated `location_name` and sending the generated
@@ -200,6 +208,9 @@ class SunController:
         await interaction.response.send_message(f"Voici la météo actuelle sur {location_name}:",
                                                 file=discord.File(f"{sunbot.CURRENT_WEATHER_IMAGE_PATH}{sunbot.CURRENT_WEATHER_IMAGE_NAME}"))
 
+    @app_commands.command(name="pluie", description="Quand va-t-il pleuvoir aujourd'hui? ☔")
+    @app_commands.guilds(726063782606143618)
+    @app_commands.describe(location_name="Nom de la localité")
     async def pluie(self, interaction: discord.Interaction, location_name: str) -> None:
         """Handle a call to the `pluie` slash command by requesting rain information
         for the specified location name and returning acquired data to discord.
@@ -226,6 +237,9 @@ class SunController:
         embed2send = weather.createEmbedRainEmbed(request_response)
         await interaction.response.send_message(embed=embed2send)
 
+    @app_commands.command(name="daily_weather", description="Active ou désactive l'envoi quotidien de la météo du jour pour la localisation indiquée")
+    @app_commands.guilds(726063782606143618)
+    @app_commands.describe(location_name="Nom de la localité")
     async def set_daily_weather_channel(self, interaction: discord.Interaction, location_name: str) -> None:
         """Handle the call to the `daily_weather` slash command by adding or
         removing a server to / from the list of subscribing servers
@@ -268,6 +282,9 @@ class SunController:
                                                                   location_name, location_tz)
                 await interaction.response.send_message(f"C'est compris, j'enverrai désormais quotidiennement la météo du jour pour {location_name} ici 😉")
 
+    @app_commands.command(name="mp_daily_weather", description="Active ou désactive l'envoi quotidien de la météo du jour pour la localisation indiquée")
+    @app_commands.guilds(726063782606143618)
+    @app_commands.describe(location_name="Nom de la localité")
     async def set_daily_weather_pm(self, interaction: discord.Interaction, location_name: str) -> None:
         """Handle a call to the `mp_daily_weather` slash command by adding or
         removing user that invoked it to/from the list of user subscribing
