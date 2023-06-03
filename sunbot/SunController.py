@@ -29,7 +29,7 @@ class SunController(commands.Cog):
     the link between server that contains users, the discord API, the bot weather part
     and the weather API handler
     """
- 
+
     def __init__(self, bot: commands.Bot) -> None:
         """Constructor of this class. Bind the specified bot to this controller.
         ## Parameter :
@@ -239,7 +239,7 @@ class SunController(commands.Cog):
 
     @app_commands.command(name="daily_weather", description="Active ou désactive l'envoi quotidien de la météo du jour pour la localisation indiquée")
     @app_commands.guilds(726063782606143618)
-    @app_commands.describe(location_name = "Nom de la localité")
+    @app_commands.describe(location_name="Nom de la localité")
     async def set_daily_weather_channel(self, interaction: discord.Interaction, location_name: str) -> None:
         """Handle the call to the `daily_weather` slash command by adding or
         removing a server to / from the list of subscribing servers
