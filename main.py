@@ -83,7 +83,7 @@ async def vocalDisconnect(ctx):
 
 @sunBot.command(name="setEmoji", brief="Commande à utiliser pour ajouter un emoji à un membre ! [admin]")
 async def setEmoji(ctx, userId : int, emoji : str, freq : float) -> None:
-  """ Commande permettant de mettre à jour l'emoji ajouté aux messages postés par l'utilisateur dont l'ID est
+  """Commande permettant de mettre à jour l'emoji ajouté aux messages postés par l'utilisateur dont l'ID est
   passé en paramètre.
   Paramètres :  - ctx : contexte d'appel de la compile
                 - userId : Identifiant de l'utisateur dont on souhaite modifier l'emoji
