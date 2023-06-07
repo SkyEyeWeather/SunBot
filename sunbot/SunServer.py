@@ -7,7 +7,7 @@ import json
 import logging
 import os
 
-import sunbot.sunbot as sunbot
+from sunbot import sunbot
 from sunbot.SunUser import SunUser
 
 #================================
@@ -48,7 +48,7 @@ class SunServer:
         #Else, create a new server with a new corresponding backup file:
         else:
             logging.info(f"Creating server n°{id}")
-            self._saveServer()
+            self.save_srv_data()
 
 
     def __setattr__(self, __name: str, __value) -> None:
@@ -59,7 +59,7 @@ class SunServer:
         * `__value`: new value for the field to update"""
         if __name == "fun" :
             object.__setattr__(self, __name, __value)
-            self._saveServer()
+            self.save_srv_data()
             logging.info(f"Fun status for server {self.id} was updated. New value : {self.fun}")
         if __name == "appleHead":
             object.__setattr__(self, __name, __value)
@@ -162,7 +162,7 @@ class SunServer:
 
 
 
-    def _saveServer(self):
+    def save_srv_data(self):
         """Private method used to save server's data into corresponding backup 
         file"""
         with open(f"{sunbot.SERVER_BACKUP_REPERTORY_PATH}{self.id}.json", "w") as serverFile:

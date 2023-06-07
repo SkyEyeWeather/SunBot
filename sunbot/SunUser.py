@@ -7,7 +7,7 @@ import json
 import logging
 import os
 
-import sunbot.sunbot as sunbot
+from sunbot import sunbot
 
 
 #================================
@@ -66,7 +66,7 @@ class SunUser:
         #Else, create a new user with a new corresponding backup file:
         else:
             logging.info(f"Creating user n°{id}")
-            self._saveUserData()
+            self.save_usr_data()
 
 
     def __setattr__(self, __name: str, __value) -> None:
@@ -87,7 +87,7 @@ class SunUser:
                 object.__setattr__(self, __name, __value)
             else:
                 object.__setattr__(self, __name, __value)
-            self._saveUserData()
+            self.save_usr_data()
         else:
             logging.error(f"Class {__class__.__name__} haven't got a attribute named {__name}")
 
@@ -106,8 +106,8 @@ class SunUser:
         return self.id == __o.id
 
 
-    def _saveUserData(self) -> None:
-        """Private method used to save user's data into corresponding backup file."""
+    def save_usr_data(self) -> None:
+        """Method used to save user's data into corresponding backup file."""
         with open(f"{sunbot.USER_BACKUP_REPERTORY_PATH}{self.id}.json", "w") as userFile:
             jsonData = json.dumps(self.__dict__, ensure_ascii=False, indent=2)
             userFile.write(jsonData)

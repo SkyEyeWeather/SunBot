@@ -6,6 +6,8 @@
 import asyncio
 import logging
 from http.client import HTTPException
+import socket
+from typing import Dict, Optional
 import numpy as np
 import discord
 from discord.ext import commands
@@ -35,18 +37,21 @@ class SunController(commands.Cog):
         ## Parameter :
         * `discordBot`: bot to bind to the new controller
         ## Return value :
-        Not applicable"""
+        Not applicable
+        """
         self.bot: commands.Bot = bot  # Reference to the discord client for the bot
-        self.usr_dict: dict = {}      # Dict containing all Discord users who can use the bot
+        # Dict containing all Discord users who can use the bot:
+        self.usr_dict: Dict[int, SunUser] = {}
         # Dict containing all the servers to which the bot belongs
-        self.srv_dict: dict = {}
+        self.srv_dict: Dict[int, SunServer] = {}
         # Handler for daily weather events
         self.daily_weather_handler = DailyWeatherEvent("./Data/Save/save.json")
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
         """This method specifies actions to be performed when the bot is
-        launched"""
+        launched
+        """
         logging.info("Starting bot initialization...")
         logging.info("Synchronize bot commands tree to discord")
         await self.bot.tree.sync(guild=discord.Object(id=726063782606143618))
@@ -170,6 +175,41 @@ class SunController(commands.Cog):
             self.usr_dict[usr_id].emoji = emoji
         except KeyError:
             pass
+
+    @app_commands.command(name="disconnect", description="[admin] Deconnecte le bot de discord")
+    @app_commands.describe(debug="1=mode debug on, 0=mode debut off")
+    @app_commands.guilds(726063782606143618)
+    async def disconnect(self, interaction : discord.Interaction, debug : Optional[int] = 1) -> None:
+        """Mainteners' command used to disconnect the bot from discord, mainly for
+        debug purposes.
+        ## Parameters:
+        - `interaction`: discord interaction which contains context data
+        - `debug`: if set to `1`, only disconnect a local debug run of the bot.
+        If set to `0` the remote bot will be disonnected from discord. Default
+        to `1`.
+        ## Return value:
+        not applicable
+        """
+        if debug not in [0, 1]:
+            logging.warning("User has used an unknown value for debug argument")
+            await interaction.response.send_message("Je ne reconnais pas la valeur utilisée pour `debug`")
+            return
+
+        logging.info("Bot is disconnecting...")
+        for usr in self.usr_dict.values():
+            logging.info("Saving data for user n°%d", usr.id)
+            usr.save_usr_data()
+        for srv in self.srv_dict.values():
+            logging.info("Saving data for server n°%d", srv.id)
+            srv.save_srv_data()
+        await self.daily_weather_handler.save_locations_subscribers()
+        await interaction.response.send_message("La sauvegarde des données est terminée, je me déconnecte. Bonne nuit!")
+        # To avoid to accidently disconnect remote bot durint a debug session:
+        if socket.gethostname() == 'sunbot.fly.dev' and debug:
+            logging.warning("The disconnection signal was ignored")
+            return
+        logging.info("Bot was disconnected")
+        await self.bot.close()
 
     @app_commands.command(name="ping", description="Si je suis réveillé, je réponds pong! Sinon... et bien c'est que je dors 😴")
     @app_commands.guilds(726063782606143618)
