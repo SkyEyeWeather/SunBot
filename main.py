@@ -11,7 +11,7 @@ import time
 
 from sunbot.apiHandler.VisualCrossingHandler import VisualCrossingHandler
 from sunbot.apiHandler.discordHandler import DiscordHandler
-import sunbot.sunbot as sunbot
+from sunbot import sunbot
 from sunbot.SunBotHelpCommand import SunBotHelpCommand
 from sunbot.SunController import SunController
 
@@ -27,6 +27,36 @@ sunBot = commands.Bot(command_prefix='+', intents=discord.Intents.all(), help_co
 vcRequestHandler = VisualCrossingHandler()
 discordAPI_handler = DiscordHandler()
 dictUsersBot = {}
+
+
+#==================================
+#     Evénements liés au bot
+#==================================
+
+
+"""
+  #Création du thread écoutant les alertes météos:
+  print("Génération des webhooks...")
+  webhookServeurTest1 = discord.SyncWebhook.from_url('https://discord.com/api/webhooks/923863299270013018/6jfjT1QtrZ8UCXM1aEUhUD7z5G5Or9S3loFvlQs34Age8hX7VPfrD4UUQvGXCzmDN0Oo')
+  webhookServeurCUPGE = discord.SyncWebhook.from_url('https://discord.com/api/webhooks/921547043196002324/NJohjH9dduqidXHvV4Ei9V4KuIUvOiAPnbMEVPf_x06CUStZou0TlTapQi3B1i_zuLfp')
+  webhookServeurPrive = discord.SyncWebhook.from_url('https://discord.com/api/webhooks/965521867026866196/M_nmSDjgplk8a6DAbzAD8qZVEMBoVvR1FF9Mcts_-NQRg3Qc5lvXmFSSgUJxgDcAOQb5')
+  alerteMeteo = Meteo.AlerteMeteo(vcRequestHandler)
+  #alerteMeteo.addWebhook(webhookServeurTest1)
+  #alerteMeteo.addWebhook(webhookServeurPrive)
+  alerteMeteo.start()
+  print("Webhook alerte météo prêt")
+"""
+
+
+"""
+  if messageMin in ["patrick", "patou", "patoche", "pata", "patrikou"] and np.random.uniform() > 0.25:
+      indiceGifToSend = int(np.random.uniform(0, len(listeGifMignons)))
+      await message.reply(listeGifMignons[indiceGifToSend])
+      await message.channel.send("Mignon !!")
+  if "kernel is dead" in messageMin:
+      indiceGifToSend = int(np.random.uniform(0, len(listeGifKernelDead)))
+      await message.reply(listeGifKernelDead[indiceGifToSend])
+  """
 
 
 #====================
