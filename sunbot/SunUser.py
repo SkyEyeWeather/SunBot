@@ -7,7 +7,6 @@ import json
 import logging
 import os
 
-from sunbot import sunbot
 
 
 #================================
@@ -17,8 +16,10 @@ from sunbot import sunbot
 class SunUser:
     """This class represents a SunBot user. Each user has an ID that allows to 
     identify it in discord API. This can be used to send it a message for example. 
-    In this class, an user is also defined by its name."""
+    In this class, an user is also defined by its name.
+    """
 
+    usr_backup_path = ""
 
     def __init__(self, id : int, emoji : str = "", freqEmoji : float = 0.5, favLocation : str = "Toulouse", mp : bool = False) -> None:
         """Constructor for this class. A SunBot user is defined by its Discord ID. 
@@ -37,24 +38,27 @@ class SunUser:
         * `favLocation`: optional, string indicating the favourite location name 
         for user to create. Default to Toulouse
         * `mp`: optional, boolean indicating if the user allows private messages 
-        from the SunBot. Default value is `False`"""
+        from the SunBot. Default value is `False`
+        """
         object.__setattr__(self, "id", id)
         object.__setattr__(self, "emoji", emoji)
         object.__setattr__(self, "freqEmoji", freqEmoji)
         object.__setattr__(self, "favLocation", favLocation)
         object.__setattr__(self, "mp", mp)
 
-        #Creation of a file corresponding to the user, for data saving purposes:
-        #if backup repertory does not exist, create it:
-        if not os.path.exists(sunbot.USER_BACKUP_REPERTORY_PATH):
-            os.makedirs(sunbot.USER_BACKUP_REPERTORY_PATH)
-            logging.info(f"Repertory {sunbot.USER_BACKUP_REPERTORY_PATH} doesn't exist. Creating it.")
+        # Create a backup repository, if it was not already created:
+        if SunUser.usr_backup_path == "":
+            logging.warning("Users backup directory was not set. Use a default repository.")
+            SunUser.usr_backup_path = "./save/usr/"
+        if not os.path.exists(SunUser.usr_backup_path):
+            logging.info("Repertory %s doesn't exist. Creating it.", SunUser.usr_backup_path)
+            os.makedirs(SunUser.usr_backup_path)
 
-        #If this user was already created in the past, use data from corresponding 
-        #file instead of values passed in arguments of the constructor:
-        if os.path.isfile(f"{sunbot.USER_BACKUP_REPERTORY_PATH}{id}.json"):
+        # If this user was already created by the past, load its data from the corresponding
+        # file instead of values passed in arguments of the constructor:
+        if os.path.isfile(f"{SunUser.usr_backup_path}{id}.json"):
             logging.info(f"User n°{id} already exists. Loading data from existing file.")
-            with open(f"{sunbot.USER_BACKUP_REPERTORY_PATH}{id}.json", "r") as userFile:
+            with open(f"{self.usr_backup_path}{id}.json", "r", encoding="UTF-8") as userFile:
                 try:
                     userData = json.load(userFile)
                     object.__setattr__(self, "emoji", userData["emoji"])
@@ -89,7 +93,7 @@ class SunUser:
                 object.__setattr__(self, __name, __value)
             self.save_usr_data()
         else:
-            logging.error(f"Class {__class__.__name__} haven't got a attribute named {__name}")
+            logging.error("Class %s has not an attribute named %s", __class__.__name__, __name)
 
 
     def __eq__(self, __o: object) -> bool:
@@ -108,6 +112,6 @@ class SunUser:
 
     def save_usr_data(self) -> None:
         """Method used to save user's data into corresponding backup file."""
-        with open(f"{sunbot.USER_BACKUP_REPERTORY_PATH}{self.id}.json", "w") as userFile:
+        with open(f"{SunUser.usr_backup_path}{self.id}.json", "w", encoding="UTF-8") as userFile:
             jsonData = json.dumps(self.__dict__, ensure_ascii=False, indent=2)
             userFile.write(jsonData)

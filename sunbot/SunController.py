@@ -32,20 +32,26 @@ class SunController(commands.Cog):
     and the weather API handler
     """
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: commands.Bot, data_mount_pt : Optional[str] = "/data/") -> None:
         """Constructor of this class. Bind the specified bot to this controller.
         ## Parameter :
         * `discordBot`: bot to bind to the new controller
+        * `data_mount_pt`: mount point for bot persistent data storage
         ## Return value :
         Not applicable
         """
-        self.bot: commands.Bot = bot  # Reference to the discord client for the bot
+        # Reference to the discord client for the bot
+        self.bot: commands.Bot = bot
+        # Mount point toward bot data:
+        self.data_mount_pt = data_mount_pt
+        SunUser.usr_backup_path = data_mount_pt + "save/usr/"
+        SunServer.srv_backup_path = data_mount_pt + "save/srv/"
         # Dict containing all Discord users who can use the bot:
         self.usr_dict: Dict[int, SunUser] = {}
         # Dict containing all the servers to which the bot belongs
         self.srv_dict: Dict[int, SunServer] = {}
         # Handler for daily weather events
-        self.daily_weather_handler = DailyWeatherEvent("./Data/Save/save.json")
+        self.daily_weather_handler = DailyWeatherEvent(f"{self.data_mount_pt}/save/daily_weather_sub.json")
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
