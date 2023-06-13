@@ -3,6 +3,7 @@
 #==================================
 
 import asyncio
+from cgi import test
 import socket
 import discord
 from discord.ext import commands
@@ -124,11 +125,8 @@ async def setEmoji(ctx, userId : int, emoji : str, freq : float) -> None:
 
 
 async def main():
-    if socket.gethostname() == f"{os.environ['FLY_APP_NAME']}.fly.dev":
-      data_mount_pt = "/data/"
-    else:
-      data_mount_pt = "./data/"
-    await sunBot.add_cog(SunController(sunBot, data_mount_pt=data_mount_pt))
+    test_mode = (not "FLY_ALLOC_ID" in os.environ)
+    await sunBot.add_cog(SunController(sunBot, test_mode=test_mode))
     await sunBot.start(os.environ['token'])
 #####################################################################################################
 #ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES - ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES
