@@ -6,6 +6,7 @@
 import asyncio
 import logging
 from http.client import HTTPException
+import os
 import socket
 from typing import Dict, Optional
 import numpy as np
@@ -211,7 +212,7 @@ class SunController(commands.Cog):
         await self.daily_weather_handler.save_locations_subscribers()
         await interaction.response.send_message("La sauvegarde des données est terminée, je me déconnecte. Bonne nuit!")
         # To avoid to accidently disconnect remote bot durint a debug session:
-        if socket.gethostname() == 'sunbot.fly.dev' and debug:
+        if socket.gethostname() == f'{os.environ["FLY_APP_NAME"]}.fly.dev' and debug:
             logging.warning("The disconnection signal was ignored")
             return
         logging.info("Bot was disconnected")
