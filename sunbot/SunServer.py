@@ -7,7 +7,6 @@ import json
 import logging
 import os
 
-from sunbot import sunbot
 from sunbot.SunUser import SunUser
 
 #================================

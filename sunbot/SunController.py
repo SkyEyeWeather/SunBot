@@ -6,8 +6,6 @@
 import asyncio
 import logging
 from http.client import HTTPException
-import os
-import socket
 from typing import Dict, Optional
 import numpy as np
 import discord

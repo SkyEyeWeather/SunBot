@@ -3,13 +3,12 @@
 #==================================
 
 import asyncio
-from cgi import test
-import socket
-import discord
-from discord.ext import commands
 import logging
 import os
 import time
+
+import discord
+from discord.ext import commands
 
 from sunbot.apiHandler.VisualCrossingHandler import VisualCrossingHandler
 from sunbot.apiHandler.discordHandler import DiscordHandler
