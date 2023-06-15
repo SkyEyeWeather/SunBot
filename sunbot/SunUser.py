@@ -8,10 +8,10 @@ import logging
 import os
 
 
-
 #================================
 #        CLASS DEFINITION
 #================================
+
 
 class SunUser:
     """This class represents a SunBot user. Each user has an ID that allows to 

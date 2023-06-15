@@ -124,7 +124,7 @@ async def setEmoji(ctx, userId : int, emoji : str, freq : float) -> None:
 
 
 async def main():
-    test_mode = (not "FLY_ALLOC_ID" in os.environ)
+    test_mode = ("FLY_ALLOC_ID" not in os.environ)
     await sunBot.add_cog(SunController(sunBot, test_mode=test_mode))
     await sunBot.start(os.environ['token'])
 #####################################################################################################

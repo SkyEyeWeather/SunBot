@@ -215,7 +215,7 @@ class SunController(commands.Cog):
         await self.daily_weather_handler.save_locations_subscribers()
         await interaction.response.send_message("La sauvegarde des données est terminée, je me déconnecte. Bonne nuit!")
         # To avoid to accidently disconnect remote bot durint a debug session:
-        if not self.test_mode and  debug:
+        if not self.test_mode and debug:
             logging.warning("The disconnection signal was ignored")
             return
         logging.info("Bot was disconnected")
