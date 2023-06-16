@@ -7,7 +7,6 @@ import json
 import logging
 import os
 
-from sunbot import sunbot
 from sunbot.SunUser import SunUser
 
 #================================
@@ -21,6 +20,8 @@ class SunServer:
     that corresponds to its ID on Discord. There are two sorts of server : normal 
     and 'fun' server."""
 
+    srv_backup_path = ""
+
     def __init__(self, id : int, fun : bool = False) -> None:
         """Constructor of this class
         ## Parameter :
@@ -31,14 +32,17 @@ class SunServer:
         object.__setattr__(self, "webhooksDict", {})    #In this dict links to the webhook are the keys and state of this webhooks the values
         object.__setattr__(self, "appleHead", 0)
 
-        #If backup directory for server doesn't exist, create it:
-        if not os.path.exists(f"{sunbot.SERVER_BACKUP_REPERTORY_PATH}"):
-            logging.info(f"Repertory {sunbot.SERVER_BACKUP_REPERTORY_PATH} doesn't exist. Creating it")
-            os.makedirs(sunbot.SERVER_BACKUP_REPERTORY_PATH)
+        #If backup directory for servers does not already exist, create it:
+        if SunServer.srv_backup_path == "":
+            logging.warning("Server backup directory path was not set. Use a default repository.")
+            SunServer.srv_backup_path = "./save/srv/"
+        if not os.path.exists(f"{SunServer.srv_backup_path}"):
+            logging.info("Repertory %s doesn't exist. Creating it", SunServer.srv_backup_path)
+            os.makedirs(SunServer.srv_backup_path)
 
         #if server was already created in the past, load data from corresponding file:
-        if os.path.isfile(f"{sunbot.SERVER_BACKUP_REPERTORY_PATH}{id}.json"):
-            with open(f"{sunbot.SERVER_BACKUP_REPERTORY_PATH}{id}.json", "r") as serverFile:
+        if os.path.isfile(f"{SunServer.srv_backup_path}{id}.json"):
+            with open(f"{SunServer.srv_backup_path}{id}.json", "r", encoding="UTF-8") as serverFile:
                 try:
                     serverData = json.load(serverFile)
                     object.__setattr__(self, "webhooksDict", serverData["webhooksDict"])
@@ -165,7 +169,7 @@ class SunServer:
     def save_srv_data(self):
         """Private method used to save server's data into corresponding backup 
         file"""
-        with open(f"{sunbot.SERVER_BACKUP_REPERTORY_PATH}{self.id}.json", "w") as serverFile:
+        with open(f"{SunServer.srv_backup_path}{self.id}.json", "w", encoding="UTF-8") as serverFile:
             #To make current object transient, clear temporally dictionnary of users:
             tmpUsersDict = self.usersDict
             object.__setattr__(self, "usersDict", None)

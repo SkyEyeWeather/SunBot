@@ -3,6 +3,10 @@
 #==================================
 
 import asyncio
+import logging
+import os
+import time
+
 import discord
 from discord.ext import commands
 import logging
@@ -123,7 +127,8 @@ async def setEmoji(ctx, userId : int, emoji : str, freq : float) -> None:
 
 
 async def main():
-    await sunBot.add_cog(SunController(sunBot))
+    test_mode = ("FLY_ALLOC_ID" not in os.environ)
+    await sunBot.add_cog(SunController(sunBot, test_mode=test_mode))
     await sunBot.start(os.environ['token'])
 #####################################################################################################
 #ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES - ALWAYS RUN PART - NE RIEN METTRE SOUS CES LIGNES

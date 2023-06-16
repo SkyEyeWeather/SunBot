@@ -4,8 +4,6 @@
 #==================================
 
 #Path constants:
-USER_BACKUP_REPERTORY_PATH = "./Data/Save/Users/"
-SERVER_BACKUP_REPERTORY_PATH = "./Data/Save/Servers/"
 GIF_REPERTORY_PATH = "./Data/Images/Gifs/"
 ICON_DIR_PATH = "./Data/Images/Icons/"
 DAILY_IMAGE_PATH = "./Data/Images/"
