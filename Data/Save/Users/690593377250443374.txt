@@ -1,7 +1,0 @@
-{
-  "userDiscord": null,
-  "emojis": {},
-  "favMeteo": "Toulouse",
-  "offSetFav": 2,
-  "mp": false
-}

@@ -6,7 +6,6 @@
 import asyncio
 import logging
 from http.client import HTTPException
-import socket
 from typing import Dict, Optional
 import numpy as np
 import discord
@@ -32,20 +31,31 @@ class SunController(commands.Cog):
     and the weather API handler
     """
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: commands.Bot, test_mode : bool = False) -> None:
         """Constructor of this class. Bind the specified bot to this controller.
         ## Parameter :
         * `discordBot`: bot to bind to the new controller
+        * `test_mode`: mount point for bot persistent data storage
         ## Return value :
         Not applicable
         """
-        self.bot: commands.Bot = bot  # Reference to the discord client for the bot
+        # Reference to the discord client for the bot
+        self.bot: commands.Bot = bot
+        # Define whether the bot is running in test mode or not:
+        self.test_mode = test_mode
+        # Mount point toward bot data:
+        if test_mode:
+            self.data_mount_pt = "./data/"
+        else:
+            self.data_mount_pt = "/data/"
+        SunUser.usr_backup_path = self.data_mount_pt + "save/usr/"
+        SunServer.srv_backup_path = self.data_mount_pt + "save/srv/"
         # Dict containing all Discord users who can use the bot:
         self.usr_dict: Dict[int, SunUser] = {}
         # Dict containing all the servers to which the bot belongs
         self.srv_dict: Dict[int, SunServer] = {}
         # Handler for daily weather events
-        self.daily_weather_handler = DailyWeatherEvent("./Data/Save/save.json")
+        self.daily_weather_handler = DailyWeatherEvent(f"{self.data_mount_pt}/save/daily_weather_sub.json")
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -205,7 +215,7 @@ class SunController(commands.Cog):
         await self.daily_weather_handler.save_locations_subscribers()
         await interaction.response.send_message("La sauvegarde des données est terminée, je me déconnecte. Bonne nuit!")
         # To avoid to accidently disconnect remote bot durint a debug session:
-        if socket.gethostname() == 'sunbot.fly.dev' and debug:
+        if not self.test_mode and debug:
             logging.warning("The disconnection signal was ignored")
             return
         logging.info("Bot was disconnected")
