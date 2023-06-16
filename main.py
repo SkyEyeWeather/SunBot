@@ -1,4 +1,4 @@
-""" main.py"""
+"""main.py"""
 
 import asyncio
 import logging
@@ -11,7 +11,7 @@ from sunbot.SunController import SunController
 
 
 async def main():
-    """ Entry point of the program"""
+    """Entry point of the program"""
     logging.basicConfig(level=logging.INFO)
 
     bot = commands.Bot(command_prefix='+', intents=discord.Intents.all())
@@ -22,7 +22,7 @@ async def main():
 
 
 ###########################################################################
-#ALWAYS RUN PART - DO NOT PUT ANY CODE UNDER THESE LINES - ALWAYS RUN PART
+# ALWAYS RUN PART - DO NOT PUT ANY CODE UNDER THESE LINES - ALWAYS RUN PART
 ###########################################################################
 
 asyncio.run(main())
