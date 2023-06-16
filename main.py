@@ -9,9 +9,6 @@ import time
 
 import discord
 from discord.ext import commands
-import logging
-import os
-import time
 
 from sunbot.apiHandler.VisualCrossingHandler import VisualCrossingHandler
 from sunbot.apiHandler.discordHandler import DiscordHandler
