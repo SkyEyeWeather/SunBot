@@ -64,7 +64,7 @@ class SunController(commands.Cog):
         """
         logging.info("Starting bot initialization...")
         logging.info("Synchronize bot commands tree to discord")
-        await self.bot.tree.sync(guild=discord.Object(id=726063782606143618))
+        await self.bot.tree.sync()
         logging.info("Loading user data")
         # For all servers known by the bot:
         for server in self.bot.guilds:
@@ -188,7 +188,6 @@ class SunController(commands.Cog):
 
     @app_commands.command(name="disconnect", description="[admin] Deconnecte le bot de discord")
     @app_commands.describe(debug="1=mode debug on, 0=mode debut off")
-    @app_commands.guilds(726063782606143618)
     async def disconnect(self, interaction : discord.Interaction, debug : Optional[int] = 1) -> None:
         """Mainteners' command used to disconnect the bot from discord, mainly for
         debug purposes.
@@ -222,7 +221,6 @@ class SunController(commands.Cog):
         await self.bot.close()
 
     @app_commands.command(name="ping", description="Si je suis réveillé, je réponds pong! Sinon... et bien c'est que je dors 😴")
-    @app_commands.guilds(726063782606143618)
     async def ping(self, interaction: discord.Interaction) -> None:
         """Send a string to indicate that the bot is alive
         ## Parameters:
@@ -234,7 +232,6 @@ class SunController(commands.Cog):
         await interaction.response.send_message("Pong !")
 
     @app_commands.command(name="meteo", description="Donne la météo courante")
-    @app_commands.guilds(726063782606143618)
     @app_commands.describe(location_name="Nom de la localité")
     async def meteo(self, interaction: discord.Interaction, location_name: str) -> None:
         """Handle a call to the `meteo` slash command by querying current weather
@@ -259,7 +256,6 @@ class SunController(commands.Cog):
                                                 file=discord.File(f"{sunbot.CURRENT_WEATHER_IMAGE_PATH}{sunbot.CURRENT_WEATHER_IMAGE_NAME}"))
 
     @app_commands.command(name="pluie", description="Quand va-t-il pleuvoir aujourd'hui? ☔")
-    @app_commands.guilds(726063782606143618)
     @app_commands.describe(location_name="Nom de la localité")
     async def pluie(self, interaction: discord.Interaction, location_name: str) -> None:
         """Handle a call to the `pluie` slash command by requesting rain information
@@ -292,7 +288,9 @@ class SunController(commands.Cog):
     @app_commands.describe(location_name="Nom de la localité")
     async def set_daily_weather_channel(self, interaction: discord.Interaction, location_name: str) -> None:
         """Handle the call to the `daily_weather` slash command by adding or
-        removing a server to / from the list of subscribing servers
+        removing a server to / from the list of subscribing servers. This command
+        can only be used by an user that have admin permissions on the guild where
+        the command was called.
         ## Parameters:
         * `interaction`: discord interaction which contains context data
         * `location_name`: location to which the server have to be add / remove
@@ -300,6 +298,9 @@ class SunController(commands.Cog):
         not applicable
         """
         server_id = interaction.guild_id
+        # command can only be used by an admin of the guild that called it
+        if not interaction.user.guild_permissions.administrator:
+            return await interaction.response.send_message("Seul les administrateurs du serveur sont autorisés à utiliser cette commande!")
         # If daily weather for specified location and server was already set:
         if await self.daily_weather_handler.is_sub2location(weather_event.SERVER_SUB_TYPE, server_id, location_name):
             # If specified interaction is the same as the current registered interaction
@@ -333,7 +334,6 @@ class SunController(commands.Cog):
                 await interaction.response.send_message(f"C'est compris, j'enverrai désormais quotidiennement la météo du jour pour {location_name} ici 😉")
 
     @app_commands.command(name="mp_daily_weather", description="Active ou désactive l'envoi quotidien de la météo du jour pour la localisation indiquée")
-    @app_commands.guilds(726063782606143618)
     @app_commands.describe(location_name="Nom de la localité")
     async def set_daily_weather_pm(self, interaction: discord.Interaction, location_name: str) -> None:
         """Handle a call to the `mp_daily_weather` slash command by adding or
