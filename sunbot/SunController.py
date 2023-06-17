@@ -188,6 +188,7 @@ class SunController(commands.Cog):
 
     @app_commands.command(name="disconnect", description="[admin] Deconnecte le bot de discord")
     @app_commands.describe(debug="1=mode debug on, 0=mode debut off")
+    @app_commands.guilds(discord.Object(id=726063782606143618))
     async def disconnect(self, interaction : discord.Interaction, debug : Optional[int] = 1) -> None:
         """Mainteners' command used to disconnect the bot from discord, mainly for
         debug purposes.
@@ -284,7 +285,6 @@ class SunController(commands.Cog):
         await interaction.response.send_message(embed=embed2send)
 
     @app_commands.command(name="daily_weather", description="Active ou désactive l'envoi quotidien de la météo du jour pour la localisation indiquée")
-    @app_commands.guilds(726063782606143618)
     @app_commands.describe(location_name="Nom de la localité")
     async def set_daily_weather_channel(self, interaction: discord.Interaction, location_name: str) -> None:
         """Handle the call to the `daily_weather` slash command by adding or
@@ -373,6 +373,28 @@ class SunController(commands.Cog):
         logging.info(
             "User n°%d has subscribed to receive daily weather for the location %s", user_id, location_name)
         await interaction.response.send_message(content=f"Super ! Je vous enverrez désormais la météo pour {location_name} chaque jour en message privé! (à 7h00 heure locale de la localisation)")
+
+    @app_commands.command(name='global_info', description="Envoi un message sur tous les channels système connus par le bot")
+    @app_commands.describe(msg="message à envoyer")
+    @app_commands.guilds(discord.Object(id=726063782606143618))
+    async def global_info(self, interaction : discord.Interaction, msg : str) -> None:
+        """Send a message to all server to which the bot belongs
+        ## Parameters:
+        * `interaction`: discord interaction which contains context data
+        ## Return value:
+        None"""
+        embed2send = discord.Embed(title="Informations concernant la SunRisVersion (V2)",
+        description=msg)
+        for guild in self.bot.guilds:
+            guild_syst_channel = guild.system_channel
+            # check the existence of a system channel for the current guild:
+            if guild_syst_channel is None:
+                await guild.channels[0].send(embed=embed2send)
+            # if no system channel was set, send to the first channel available
+            else:
+                await guild_syst_channel.send(embed=embed2send)
+        await interaction.response.send_message("Message envoyé !")
+
     # ====================================================================================
     #                                   PRIVATE METHODS PART
     # ====================================================================================
