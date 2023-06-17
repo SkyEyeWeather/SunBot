@@ -292,7 +292,9 @@ class SunController(commands.Cog):
     @app_commands.describe(location_name="Nom de la localité")
     async def set_daily_weather_channel(self, interaction: discord.Interaction, location_name: str) -> None:
         """Handle the call to the `daily_weather` slash command by adding or
-        removing a server to / from the list of subscribing servers
+        removing a server to / from the list of subscribing servers. This command
+        can only be used by an user that have admin permissions on the guild where
+        the command was called.
         ## Parameters:
         * `interaction`: discord interaction which contains context data
         * `location_name`: location to which the server have to be add / remove
@@ -300,6 +302,9 @@ class SunController(commands.Cog):
         not applicable
         """
         server_id = interaction.guild_id
+        # command can only be used by an admin of the guild that called it
+        if not interaction.user.guild_permissions.administrator:
+            return await interaction.response.send_message("Seul les administrateurs du serveur sont autorisés à utiliser cette commande!")
         # If daily weather for specified location and server was already set:
         if await self.daily_weather_handler.is_sub2location(weather_event.SERVER_SUB_TYPE, server_id, location_name):
             # If specified interaction is the same as the current registered interaction
