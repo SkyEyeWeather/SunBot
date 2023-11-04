@@ -4,6 +4,7 @@
 
 import discord
 import time
+
 from sunbot.MetaSingleton import MetaSingleton
 
 class DiscordHandler(metaclass = MetaSingleton):

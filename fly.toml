@@ -1,6 +1,6 @@
 # fly.toml file generated for sun-bot on 2022-08-27T17:52:47+02:00
 
-app = "sunbot"
+app = "sunbot-v2"
 primary_region = "cdg"
 kill_signal = "SIGINT"
 kill_timeout = 5
@@ -11,3 +11,7 @@ processes = []
 [experimental]
   allowed_public_ports = []
   auto_rollback = true
+
+[mounts]
+  source = "sunbot_data"
+  destination = "/data"
