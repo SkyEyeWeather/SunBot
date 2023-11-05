@@ -49,7 +49,7 @@ fly auth login
 ```
 fly deploy
 ```
-Your environment is almost ready! The final step is to set environment variables (for example in your .bashrc file) to launch the bot from your computer. Claim value for these variables! These variables
+Your environment is almost ready! The final step is to set environment variables (for example in your .bashrc file) to launch the bot from your computer. Claim value for these variables (for team members only)! These variables
 are used to access to the visual crossing API and to connect the bot to discord.
 
 ## Useful links:
