@@ -5,6 +5,8 @@
 
 import asyncio
 import logging
+import signal
+
 from http.client import HTTPException
 from typing import Dict, Optional
 import numpy as np
@@ -76,9 +78,12 @@ class SunController(commands.Cog):
                 if user.id not in self.usr_dict:
                     self.usr_dict[user.id] = current_usr
                 self.srv_dict[server.id].addUser(current_usr)
+        loop = asyncio.get_event_loop()
+        # setup signal handlers:
+        loop.add_signal_handler(signal.SIGINT, lambda: asyncio.create_task(self.on_shut_down("SIGINT")))
+        loop.add_signal_handler(signal.SIGTERM, lambda: asyncio.create_task(self.on_shut_down("SIGTERM")))
         # Create and launch tasks:
         logging.info("Launching weather tasks...")
-        loop = asyncio.get_event_loop()
         loop.create_task(self.daily_weather_handler.run_event_task())
         logging.info("Bot is ready !")
 
@@ -163,6 +168,14 @@ class SunController(commands.Cog):
                 elif "kernel is dead" in lowered_msg:
                     pass    # TODO add corresponding list of gifs
 
+    async def on_shut_down(self, signame : str):
+        """This method is called when the SIGINT signal is trigerred"""
+        logging.info("%s signal received", signame)
+        await self.__save_data()
+        logging.info("Data waas saved on %s", self.data_mount_pt)
+        await self.bot.close()
+        logging.info("Bot was disconnected from Discord")
+
     # ====================================================================================
     #                                   COMMANDS PART
     # ====================================================================================
@@ -206,13 +219,7 @@ class SunController(commands.Cog):
             return
 
         logging.info("Bot is disconnecting...")
-        for usr in self.usr_dict.values():
-            logging.info("Saving data for user n°%d", usr.id)
-            usr.save_usr_data()
-        for srv in self.srv_dict.values():
-            logging.info("Saving data for server n°%d", srv.id)
-            srv.save_srv_data()
-        await self.daily_weather_handler.save_locations_subscribers()
+        self.__save_data()
         await interaction.response.send_message("La sauvegarde des données est terminée, je me déconnecte. Bonne nuit!")
         # To avoid to accidently disconnect remote bot durint a debug session:
         if not self.test_mode and debug:
@@ -398,6 +405,16 @@ class SunController(commands.Cog):
     # ====================================================================================
     #                                   PRIVATE METHODS PART
     # ====================================================================================
+
+    async def __save_data(self):
+        """Save bot data on the disk"""
+        for usr in self.usr_dict.values():
+            logging.info("Saving data for user n°%d", usr.id)
+            usr.save_usr_data()
+        for srv in self.srv_dict.values():
+            logging.info("Saving data for server n°%d", srv.id)
+            srv.save_srv_data()
+        await self.daily_weather_handler.save_locations_subscribers()
 
     async def __add_reaction(self, msg: discord.Message) -> None:
         """Private method to add a reaction to the specified message published
