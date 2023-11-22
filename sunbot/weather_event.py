@@ -363,22 +363,25 @@ class DailyWeatherEvent(WeatherEvent):
         return (await super().add_sub2location(subscriber, location_name, location_tz))
 
     async def run_event_task(self):
-        logging.info("Starting daily weather task")
-        # Run forever:
-        while True:
-            await asyncio.sleep(60)
-            # Check for each known location if it is the time to send the daily
-            # weather or reset flag:
-            for sub_type in SUB_TYPE_LIST:
-                for location, sub_dict in (await self.get_subscribers_list(sub_type)).items():
-                    loc_cur_h = int(datetime.now(location.tz).strftime("%H"))
-                    loc_cur_min = int(datetime.now(location.tz).strftime("%M"))
-                    # Check if it is the time to reset flag. It is reset between 0h00 and 0h01:
-                    if(loc_cur_h == sunbot.DAILY_WEATHER_RESET_HOUR) and (loc_cur_min in [0, 1]):
-                        await self.set_location_flag(sub_type, location, False)
-                    elif(loc_cur_h == sunbot.DAILY_WEATHER_SEND_HOUR) and (loc_cur_min in [0, 1]) and not await self.get_location_flag(sub_type, location):
-                        await self.set_location_flag(sub_type, location, True)
-                        await self.__send_daily_weather2sub(location, sub_dict)
+        try:
+            logging.info("Starting daily weather task")
+            # Run forever:
+            while True:
+                await asyncio.sleep(60)
+                # Check for each known location if it is the time to send the daily
+                # weather or reset flag:
+                for sub_type in SUB_TYPE_LIST:
+                    for location, sub_dict in (await self.get_subscribers_list(sub_type)).items():
+                        loc_cur_h = int(datetime.now(location.tz).strftime("%H"))
+                        loc_cur_min = int(datetime.now(location.tz).strftime("%M"))
+                        # Check if it is the time to reset flag. It is reset between 0h00 and 0h01:
+                        if(loc_cur_h == sunbot.DAILY_WEATHER_RESET_HOUR) and (loc_cur_min in [0, 1]):
+                            await self.set_location_flag(sub_type, location, False)
+                        elif(loc_cur_h == sunbot.DAILY_WEATHER_SEND_HOUR) and (loc_cur_min in [0, 1]) and not await self.get_location_flag(sub_type, location):
+                            await self.set_location_flag(sub_type, location, True)
+                            await self.__send_daily_weather2sub(location, sub_dict)
+        except asyncio.CancelledError:
+            logging.info("Stopping the daily weather task")
 
     async def __send_daily_weather2sub(self, location : Location, sub_dict : Dict[int, discord.Interaction]) -> None:
         """Private method that sends daily weather for the specified location to

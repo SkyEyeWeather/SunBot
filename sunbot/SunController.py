@@ -78,7 +78,7 @@ class SunController(commands.Cog):
                 if user.id not in self.usr_dict:
                     self.usr_dict[user.id] = current_usr
                 self.srv_dict[server.id].addUser(current_usr)
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         # setup signal handlers:
         loop.add_signal_handler(signal.SIGINT,
                                 lambda: asyncio.create_task(self.on_shut_down("SIGINT")))
@@ -170,13 +170,23 @@ class SunController(commands.Cog):
                 elif "kernel is dead" in lowered_msg:
                     pass    # TODO add corresponding list of gifs
 
+    @commands.Cog().listener()
     async def on_shut_down(self, signame : str):
         """This method is called when the SIGINT signal is trigerred"""
         logging.info("%s signal received", signame)
         await self.__save_data()
-        logging.info("Data waas saved on %s", self.data_mount_pt)
+        logging.info("Data was saved on %s", self.data_mount_pt)
+        # stop running tasks:
+        logging.info("Stopping running tasks...")
+        current_task = asyncio.current_task()
+        tasks = asyncio.all_tasks()
+        tasks.remove(current_task)
+        # cancel all the tasks except current and main tasks:
+        for task in tasks:
+            # Task-1 is for main task (launched with asyncio.run())
+            if task.get_name() != 'Task-1':
+                task.cancel()
         await self.bot.close()
-        logging.info("Bot was disconnected from Discord")
 
     # ====================================================================================
     #                                   COMMANDS PART
@@ -221,7 +231,7 @@ class SunController(commands.Cog):
             return
 
         logging.info("Bot is disconnecting...")
-        self.__save_data()
+        await self.__save_data()
         await interaction.response.send_message("La sauvegarde des données est terminée, je me déconnecte. Bonne nuit!")
         # To avoid to accidently disconnect remote bot durint a debug session:
         if not self.test_mode and debug:
