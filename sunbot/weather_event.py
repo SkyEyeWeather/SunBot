@@ -5,6 +5,7 @@ import asyncio
 from datetime import datetime
 import json
 import logging
+import os
 from typing import Dict, Literal, Union
 
 import discord
@@ -224,6 +225,7 @@ class WeatherEvent(ABC):
         self.__mutex_access_dict.release()
         with open(self.save_file_path, 'w', encoding='UTF-8') as json_file:
             json.dump(copy_dict, json_file, ensure_ascii=False, indent=2)
+        os.chmod(self.save_file_path, mode=666)
         logging.info("Location's subscribers data saved into %s", self.save_file_path)
 
     async def load_locations_subscribers(self, usr_loader, srv_loader) -> None:

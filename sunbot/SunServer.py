@@ -38,7 +38,7 @@ class SunServer:
             SunServer.srv_backup_path = "./save/srv/"
         if not os.path.exists(f"{SunServer.srv_backup_path}"):
             logging.info("Repertory %s doesn't exist. Creating it", SunServer.srv_backup_path)
-            os.makedirs(SunServer.srv_backup_path)
+            os.makedirs(SunServer.srv_backup_path, mode=666)
 
         #if server was already created in the past, load data from corresponding file:
         if os.path.isfile(f"{SunServer.srv_backup_path}{id}.json"):

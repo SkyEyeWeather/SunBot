@@ -52,7 +52,7 @@ class SunUser:
             SunUser.usr_backup_path = "./save/usr/"
         if not os.path.exists(SunUser.usr_backup_path):
             logging.info("Repertory %s doesn't exist. Creating it.", SunUser.usr_backup_path)
-            os.makedirs(SunUser.usr_backup_path)
+            os.makedirs(SunUser.usr_backup_path, mode=666)
 
         # If this user was already created by the past, load its data from the corresponding
         # file instead of values passed in arguments of the constructor:
