@@ -245,11 +245,11 @@ def createCurrentWeatherImage(currentWeather : dict, path : str) -> None:
     currentWeatherImage.saveImage(f"{CURRENT_WEATHER_IMAGE_PATH}{CURRENT_WEATHER_IMAGE_NAME}")
 
 
-def createEmbedRainEmbed(requestResponse : dict):
+def createEmbedRainEmbed(requestResponse : dict, period : str = "aujourd'hui"):
     """"""
     print(requestResponse)
     dictRainType = {"rain" : "averse", "snow" : "neige", "freezing rain " : "pluie verglaçante", "ice" : "grêle"}
-    embedToSend = discord.Embed(title="Pluie prévue aujourd'hui", description=f"Voici la pluie prévue aujourd'hui sur {requestResponse['address']}", color=0x77b5fe)
+    embedToSend = discord.Embed(title=f"Pluie prévue {period}", description=f"Voici la pluie prévue {period} sur {requestResponse['address']}", color=0x77b5fe)
     fieldAdded = False
     for hour_datetime, hour_data in requestResponse['rainfall_data'].items():
         preciptype = hour_data["preciptype"]
@@ -259,7 +259,7 @@ def createEmbedRainEmbed(requestResponse : dict):
             embedToSend.add_field(name="Pluie prévue à {} : ".format(hour_datetime), value="Probabilité de {} à {} %, attendu {} mm".format(dictRainType.get(preciptype[0], "pluie"), hour_data["precipprob"], hour_data["precip"]), inline=False)
     #If no rain is forecast for the day :
     if not fieldAdded:
-        embedToSend.add_field(name="Pas de pluie prévue aujourd'hui !", value="\u2600\uFE0F", inline=False)
+        embedToSend.add_field(name=f"Pas de pluie prévue {period} !", value="\u2600\uFE0F", inline=False)
     embedToSend.set_footer(text="Données de l'API Visual Crossing")
     return embedToSend
 
