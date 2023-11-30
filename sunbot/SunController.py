@@ -401,9 +401,12 @@ class SunController(commands.Cog):
         ## Parameters:
         * `interaction`: discord interaction which contains context data
         ## Return value:
-        None"""
-        embed2send = discord.Embed(title="Informations concernant la SunRisVersion (V2)",
-        description=msg)
+        None
+        """
+        embed2send = discord.Embed(
+            title="Informations concernant la SunRisVersion (V2)",
+            description=msg
+        )
         for guild in self.bot.guilds:
             guild_syst_channel = guild.system_channel
             # check the existence of a system channel for the current guild:
