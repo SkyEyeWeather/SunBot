@@ -225,7 +225,7 @@ class WeatherEvent(ABC):
         self.__mutex_access_dict.release()
         with open(self.save_file_path, 'w', encoding='UTF-8') as json_file:
             json.dump(copy_dict, json_file, ensure_ascii=False, indent=2)
-        os.chmod(self.save_file_path, mode=666)
+        os.chmod(self.save_file_path, mode=0o777)
         logging.info("Location's subscribers data saved into %s", self.save_file_path)
 
     async def load_locations_subscribers(self, usr_loader, srv_loader) -> None:
@@ -240,10 +240,10 @@ class WeatherEvent(ABC):
         * `FileNotFoundError` in the case where save file is not found
         """
         logging.info("Loading subscriber data for each location...")
+        loaded_dict = {}
         try:
             with open(self.save_file_path, 'r', encoding='UTF-8') as json_file:
                 loaded_dict = json.load(json_file)
-                print(loaded_dict)
         except FileNotFoundError:
             logging.error("Unable to load data from the JSON file at %s : file not found",
                           self.save_file_path)
@@ -262,7 +262,7 @@ class WeatherEvent(ABC):
                         logging.error("ID %d does not correspond to any discord entity",
                                       subscriber_id)
                         continue  # Do not add a None subscriber, as it can broke the bot
-                    self.add_sub2location(subscriber, location.name, location.tz)
+                    await self.add_sub2location(subscriber, location.name, location.tz)
         logging.info("Subscribers data was successfully loaded")
 
     @abstractmethod

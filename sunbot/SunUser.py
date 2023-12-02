@@ -52,7 +52,7 @@ class SunUser:
             SunUser.usr_backup_path = "./save/usr/"
         if not os.path.exists(SunUser.usr_backup_path):
             logging.info("Repertory %s doesn't exist. Creating it.", SunUser.usr_backup_path)
-            os.makedirs(SunUser.usr_backup_path, mode=666)
+            os.makedirs(SunUser.usr_backup_path)
 
         # If this user was already created by the past, load its data from the corresponding
         # file instead of values passed in arguments of the constructor:
@@ -115,3 +115,4 @@ class SunUser:
         with open(f"{SunUser.usr_backup_path}{self.id}.json", "w", encoding="UTF-8") as userFile:
             jsonData = json.dumps(self.__dict__, ensure_ascii=False, indent=2)
             userFile.write(jsonData)
+        os.chmod(f"{SunUser.usr_backup_path}{self.id}.json", mode=0o777)
