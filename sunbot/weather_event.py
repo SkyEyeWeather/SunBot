@@ -259,7 +259,8 @@ class WeatherEvent(ABC):
                     # subscriber is None if current subscriber is not linked to an
                     # existent discord entity:
                     if subscriber is None:
-                        logging.error("Subscriber %d does not correspond to any discord entity",
+                        logging.error(
+                            "Subscriber %d does not correspond to any discord entity",
                             sub_dict["sub_id"]
                         )
                         continue  # Do not add a None subscriber, as it can broke the bot
