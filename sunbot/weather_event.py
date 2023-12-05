@@ -6,7 +6,7 @@ from datetime import datetime
 import json
 import logging
 import os
-from typing import Dict, Literal, Union
+from typing import Dict, List, Literal,  Union
 
 import discord
 from sunbot.location import Location
@@ -144,8 +144,7 @@ class WeatherEvent(ABC):
             sub_id = subscriber.guild.id
             sub_type = SERVER_SUB_TYPE
         else:
-            logging.error("Unknown subscriber type %s", sub_type)
-            raise ValueError("Unknown subscriber type")
+            raise ValueError(f"Unknown subscriber type {type(subscriber)}")
         # It is not needed to check if entity was already added, the corresponding
         # discord interaction will just be updated
         await self.__mutex_access_dict.acquire()
@@ -217,10 +216,11 @@ class WeatherEvent(ABC):
             copy_dict[sub_type] = []
             for location, location_subs_dict in sub_dict.items():
                 # Replace location by their name and tz to allow serialization:
-                location_dict = {'name': location.name, 'tz': location.tz, 'subscribers': []}
+                location_dict = {'name': location.name, 'tz': str(location.tz), 'subscribers': []}
                 # Only subsribers' id need to be saved:
-                for subscriber_id in location_subs_dict.keys():
-                    location_dict['subscribers'].append(subscriber_id)
+                for sub_id, entity in location_subs_dict.items():
+                    subscriber_dict = {"sub_id": sub_id, "entity_id": entity.id}
+                    location_dict['subscribers'].append(subscriber_dict)
                 copy_dict[sub_type].append(location_dict)
         self.__mutex_access_dict.release()
         with open(self.save_file_path, 'w', encoding='UTF-8') as json_file:
@@ -228,7 +228,7 @@ class WeatherEvent(ABC):
         os.chmod(self.save_file_path, mode=0o777)
         logging.info("Location's subscribers data saved into %s", self.save_file_path)
 
-    async def load_locations_subscribers(self, usr_loader, srv_loader) -> None:
+    async def load_locations_subscribers(self, usr_loader, channel_loader) -> None:
         """Load data from a JSON save file into the structure that contains
         entities that subscribe to each location
         ## Parameters:
@@ -251,18 +251,19 @@ class WeatherEvent(ABC):
         for sub_type, locations_dict_list in loaded_dict.items():
             for location_dict in locations_dict_list:
                 location = Location(location_dict['name'], location_dict['tz'])
-                for subscriber_id in location_dict['subscribers']:
+                for sub_dict in location_dict['subscribers']:
                     if sub_type == USER_SUB_TYPE:
-                        subscriber = usr_loader(subscriber_id)
+                        subscriber = usr_loader(sub_dict["sub_id"])
                     else:
-                        subscriber = srv_loader(subscriber_id)
+                        subscriber = channel_loader(sub_dict["entity_id"])
                     # subscriber is None if current subscriber is not linked to an
                     # existent discord entity:
                     if subscriber is None:
-                        logging.error("ID %d does not correspond to any discord entity",
-                                      subscriber_id)
+                        logging.error("Subscriber %d does not correspond to any discord entity",
+                            sub_dict["sub_id"]
+                        )
                         continue  # Do not add a None subscriber, as it can broke the bot
-                    await self.add_sub2location(subscriber, location.name, location.tz)
+                    await self.add_sub2location(subscriber, location.name, str(location.tz))
         logging.info("Subscribers data was successfully loaded")
 
     @abstractmethod
@@ -353,8 +354,7 @@ class DailyWeatherEvent(WeatherEvent):
         elif isinstance(subscriber, discord.TextChannel):
             sub_type = SERVER_SUB_TYPE
         else:
-            logging.error("Unknown subscriber type %s", sub_type)
-            raise ValueError("Unknown subscriber type")
+            raise ValueError(f"Unknown subscriber type: {type(subscriber)}")
         # Only add specified location if there is not already known by the task:
         location = Location(location_name, location_tz)
         if location not in self.__dict_weather_sent_flag[sub_type]:

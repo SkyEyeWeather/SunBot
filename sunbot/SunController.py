@@ -78,6 +78,11 @@ class SunController(commands.Cog):
                 if user.id not in self.usr_dict:
                     self.usr_dict[user.id] = current_usr
                 self.srv_dict[server.id].addUser(current_usr)
+        # load daily weather data
+        await self.daily_weather_handler.load_locations_subscribers(
+            self.bot.get_user,
+            self.bot.get_channel,
+        )
         loop = asyncio.get_running_loop()
         # setup signal handlers:
         loop.add_signal_handler(signal.SIGINT,
