@@ -57,7 +57,9 @@ class SunController(commands.Cog):
         # Dict containing all the servers to which the bot belongs
         self.srv_dict: Dict[int, SunServer] = {}
         # Handler for daily weather events
-        self.daily_weather_handler = DailyWeatherEvent(f"{self.data_mount_pt}save/daily_weather_sub.json")
+        self.daily_weather_handler = DailyWeatherEvent(
+            f"{self.data_mount_pt}save/daily_weather_sub.json"
+        )
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:

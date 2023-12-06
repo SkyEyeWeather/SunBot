@@ -376,9 +376,16 @@ class DailyWeatherEvent(WeatherEvent):
                         loc_cur_h = int(datetime.now(location.tz).strftime("%H"))
                         loc_cur_min = int(datetime.now(location.tz).strftime("%M"))
                         # Check if it is the time to reset flag. It is reset between 0h00 and 0h01:
-                        if(loc_cur_h == sunbot.DAILY_WEATHER_RESET_HOUR) and (loc_cur_min in [0, 1]):
+                        if(
+                            loc_cur_h == sunbot.DAILY_WEATHER_RESET_HOUR
+                            and (loc_cur_min in [0, 1])
+                        ):
                             await self.set_location_flag(sub_type, location, False)
-                        elif(loc_cur_h == sunbot.DAILY_WEATHER_SEND_HOUR) and (loc_cur_min in [0, 1]) and not await self.get_location_flag(sub_type, location):
+                        elif(
+                            loc_cur_h == sunbot.DAILY_WEATHER_SEND_HOUR
+                            and (loc_cur_min in [0, 1])
+                            and not await self.get_location_flag(sub_type, location)
+                        ):
                             await self.set_location_flag(sub_type, location, True)
                             await self.__send_daily_weather2sub(location, sub_dict)
         except asyncio.CancelledError:
