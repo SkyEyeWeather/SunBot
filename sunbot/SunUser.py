@@ -115,3 +115,4 @@ class SunUser:
         with open(f"{SunUser.usr_backup_path}{self.id}.json", "w", encoding="UTF-8") as userFile:
             jsonData = json.dumps(self.__dict__, ensure_ascii=False, indent=2)
             userFile.write(jsonData)
+        os.chmod(f"{SunUser.usr_backup_path}{self.id}.json", mode=0o777)

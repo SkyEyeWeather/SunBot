@@ -177,3 +177,4 @@ class SunServer:
             jsonData = json.dumps(self.__dict__, ensure_ascii=False, indent=2)
             serverFile.write(jsonData)
             object.__setattr__(self, "usersDict", tmpUsersDict)
+        os.chmod(f"{SunServer.srv_backup_path}{self.id}.json", mode=0o777)
