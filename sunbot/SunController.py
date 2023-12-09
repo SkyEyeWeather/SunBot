@@ -124,6 +124,7 @@ class SunController(commands.Cog):
             system_channel = member.guild.channels[0]
         system_channel.send(
             f"Bienvenue sur le serveur {member.metion}! Je suis SunBot, bot spécialiste de la météo (ou pas)! Tu peux utiliser +help dans le channel des bots pour en savoir plus sur moi!")
+        new_usr.save_usr_data()
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
@@ -358,6 +359,7 @@ class SunController(commands.Cog):
                 await self.daily_weather_handler.add_sub2location(interaction.channel,
                                                                   location_name, location_tz)
                 await interaction.response.send_message(f"C'est compris, j'enverrai désormais quotidiennement la météo du jour pour {location_name} ici 😉")
+        await self.daily_weather_handler.save_locations_subscribers()
 
     @app_commands.command(name="mp_daily_weather", description="Active ou désactive l'envoi quotidien de la météo du jour pour la localisation indiquée")
     @app_commands.describe(location_name="Nom de la localité")
@@ -382,6 +384,7 @@ class SunController(commands.Cog):
             await interaction.response.send_message(content=f"C'est entendu, je ne vous enverrai plus la météo quotidienne pour {location_name}")
             logging.info(
                 "User n°%d has disabled daily weather pm for %s", user_id, location_name)
+            await self.daily_weather_handler.save_locations_subscribers()
             return
         # User has not enable the pm for the specified location, so first check
         # that this city is known by the API to avoid future errors
@@ -399,6 +402,7 @@ class SunController(commands.Cog):
         logging.info(
             "User n°%d has subscribed to receive daily weather for the location %s", user_id, location_name)
         await interaction.response.send_message(content=f"Super ! Je vous enverrez désormais la météo pour {location_name} chaque jour en message privé! (à 7h00 heure locale de la localisation)")
+        await self.daily_weather_handler.save_locations_subscribers()
 
     @app_commands.command(name='global_info', description="Envoi un message sur tous les channels système connus par le bot")
     @app_commands.describe(msg="message à envoyer")
