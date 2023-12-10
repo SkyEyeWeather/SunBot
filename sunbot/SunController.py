@@ -144,39 +144,6 @@ class SunController(commands.Cog):
         logging.info("A message was received on server n°%d", msg_srv.id)
         # Commands must be processed first
         await self.bot.process_commands(message)
-        # Enable eastereggs only on "fun" servers:
-        if msg_srv.fun:
-            # Randomly add a reaction to the message:
-            await self.__add_reaction(message)
-            lowered_msg = message.content.lower()
-            if lowered_msg in ["tête de pomme", "tete de pomme", "#tetedepomme"]:
-                msg_srv.appleHead += 1
-                # If the message was repeted three consecutive times, send the gif:
-                if msg_srv.appleHead == 3:
-                    msg_srv.appleHead = 0
-                    logging.info(
-                        "Invocation of apple head on server %s!", message.guild.name)
-                    embed2send = discord.Embed(title="Et tu savais qu'à Jean Jaurès",
-                                               color=0xff0000)
-                    apple_head_gif = discord.File(
-                        f"{sunbot.GIF_REPERTORY_PATH}{sunbot.APPLE_HEAD_GIF_NAME}")
-                    embed2send.set_image(
-                        url=f"attachment://{sunbot.APPLE_HEAD_GIF_NAME}")
-                    await message.channel.send(embed=embed2send, file=apple_head_gif)
-            # Other types of messages:
-            else:
-                msg_srv.appleHead = 0
-                # Easter eggs:
-                if "me foutre au sol" in lowered_msg and np.random.uniform() > 0.5:
-                    await message.reply("Tu sais, il y a des gens qui disaient ça \
-                                        et qui ont fini ingénieurs chez Boeing. \
-                                        Donc tu as du potentiel \U0001f31e !")
-                elif lowered_msg == "sinus":
-                    await message.channel.send("Tangente")
-                elif lowered_msg in ["patrick", "patou", "patoche", "pata", "patrikou"] and np.random.uniform() > 0.25:
-                    pass  # TODO add the list of gifs
-                elif "kernel is dead" in lowered_msg:
-                    pass    # TODO add corresponding list of gifs
 
     @commands.Cog().listener()
     async def on_shut_down(self, signame : str):
@@ -199,25 +166,6 @@ class SunController(commands.Cog):
     # ====================================================================================
     #                                   COMMANDS PART
     # ====================================================================================
-
-    # TODO Replace this classic command by it slash counterpart:
-    @np.deprecate_with_doc
-    async def set_emoji(self, ctx: commands.Context, usr_id: int, emoji: str, emoji_freq: float):
-        """Set an emoji for specified user that the bot will used to randomly
-        react to a message from this user
-        ## Parameters:
-        - `ctx`: command call context
-        - `usr_id`: id of the user for which the emoji will be set
-        - `emoji`: emoji to set
-        - `emoji_freq`: probability that the bot reacts to an user message using
-        specified emoji
-        ## Return value:
-        not applicable
-        """
-        try:
-            self.usr_dict[usr_id].emoji = emoji
-        except KeyError:
-            pass
 
     @app_commands.command(name="disconnect", description="[admin] Deconnecte le bot de discord")
     @app_commands.describe(debug="1=mode debug on, 0=mode debut off")
@@ -441,29 +389,6 @@ class SunController(commands.Cog):
             logging.info("Saving data for server n°%d", srv.id)
             srv.save_srv_data()
         await self.daily_weather_handler.save_locations_subscribers()
-
-    async def __add_reaction(self, msg: discord.Message) -> None:
-        """Private method to add a reaction to the specified message published
-        by an user, according to the user probability for this action
-        ## Parameters:
-        * `msg` : discord message that triggered this method
-        ## Return value:
-        not applicable
-        """
-        # Add a reaction only if the user is not a bot:
-        if not msg.author.bot:
-            # Get the user that sent the message:
-            user: SunUser = self.usr_dict[msg.author.id]
-            # If an emoji is define for this user and probability is under freqEmoji proba:
-            if user.emoji != "" and np.random.uniform() <= user.freqEmoji:
-                try:
-                    await msg.add_reaction(user.emoji)
-                except discord.errors.NotFound:
-                    logging.error(
-                        "Reaction cannot be added because the message was deleted or the emoji %s does not exist", user.emoji)
-                except TypeError:
-                    logging.error(
-                        "Emoji %s, set for the user n°%dis not in a valid emoji format", user.emoji, user.id)
 
     # TODO Remove this unused private method:
     @np.deprecate_with_doc
