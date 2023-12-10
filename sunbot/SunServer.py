@@ -19,6 +19,7 @@ class SunServer:
     allow the bot to send message without a context. It is identified by an ID 
     that corresponds to its ID on Discord.
     """
+
     srv_backup_path = ""
 
     def __init__(self, id : int) -> None:

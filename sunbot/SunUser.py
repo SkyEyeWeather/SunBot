@@ -14,29 +14,27 @@ import os
 
 
 class SunUser:
-    """This class represents a SunBot user. Each user has an ID that allows to 
+    """This class represents a SunBot user. Each user has an ID that allows to
     identify it in discord API. This can be used to send it a message for example.
     """
 
     usr_backup_path = ""
 
     def __init__(self, id : int, favLocation : str = "Toulouse", mp : bool = False) -> None:
-        """Constructor for this class. A SunBot user is defined by its Discord ID. 
-        Other informations can be provided in arguments, such as if the user authorize private 
-        message from the bot, or a specific favorite location for weather notifications. 
-        Each instance of this class is associated to a backup file. The link 
-        between the user and its backup file is done thanks to the user ID 
+        """Constructor for this class. A SunBot user is defined by its Discord ID.
+        Other informations can be provided in arguments, such as if the user authorize private
+        message from the bot, or a specific favorite location for weather notifications.
+        Each instance of this class is associated to a backup file. The link
+        between the user and its backup file is done thanks to the user ID
         (so ID is defined as a constant and cannot be modified).
         ## Parameters:
         * `id`: discord identifiant of the SunBot user to create
-        * `favLocation`: optional, string indicating the favourite location name 
+        * `favLocation`: optional, string indicating the favourite location name
         for user to create. Default to Toulouse
-        * `mp`: optional, boolean indicating if the user allows private messages 
+        * `mp`: optional, boolean indicating if the user allows private messages
         from the SunBot. Default value is `False`
         """
         object.__setattr__(self, "id", id)
-        object.__setattr__(self, "emoji", emoji)
-        object.__setattr__(self, "freqEmoji", freqEmoji)
         object.__setattr__(self, "favLocation", favLocation)
         object.__setattr__(self, "mp", mp)
 
@@ -84,7 +82,7 @@ class SunUser:
 
     def __eq__(self, __o: object) -> bool:
         """Test if the specified object `o` is equal to this instance
-        ## Parameter: 
+        ## Parameter:
         * `__o`: object to compare to this instance
         ## Return value:
         `True` if the specified object and this user are equal, `False` otherwise"""
