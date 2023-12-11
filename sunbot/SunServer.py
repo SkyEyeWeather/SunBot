@@ -27,8 +27,10 @@ class SunServer:
         ## Parameter :
         * `id`: discord ID for the server to create. This ID is unique on Discord"""
         object.__setattr__(self, "id", id)
-        object.__setattr__(self, "usersDict", {})       #In this dict users' ID are the keys and users the values
-        object.__setattr__(self, "webhooksDict", {})    #In this dict links to the webhook are the keys and state of this webhooks the values
+        # In this dict users' ID are the keys and users the values
+        object.__setattr__(self, "usersDict", {})
+        # In this dict links to the webhook are the keys and state of this webhooks the values
+        object.__setattr__(self, "webhooksDict", {})
 
         #If backup directory for servers does not already exist, create it:
         if SunServer.srv_backup_path == "":
@@ -38,7 +40,7 @@ class SunServer:
             logging.info("Repertory %s doesn't exist. Creating it", SunServer.srv_backup_path)
             os.makedirs(SunServer.srv_backup_path)
 
-        #if server was already created in the past, load data from corresponding file:
+        # If server was already created in the past, load data from corresponding file:
         if os.path.isfile(f"{SunServer.srv_backup_path}{id}.json"):
             with open(f"{SunServer.srv_backup_path}{id}.json", "r", encoding="UTF-8") as serverFile:
                 try:
@@ -116,7 +118,9 @@ class SunServer:
         Return `True` if the webhook was successfully added to this server, 
         otherwise `False`"""
         if webhookLink in self.webhooksDict.keys():
-            logging.error(f"Webhook pointed by {webhookLink} was already added to the server {self.id}. Abort")
+            logging.error(
+                f"Webhook pointed by {webhookLink} was already added to the server {self.id}. Abort"
+            )
             return False
         self.webhooksDict[webhookLink] = enabled
         logging.info(f"Webhook {webhookLink} was successfully added to the server {self.id}")
@@ -131,7 +135,9 @@ class SunServer:
         ## Return value:
         Return True if webhook was removed successfully, otherwise False"""
         if webhookLink not in self.webhooksDict.keys():
-            logging.error(f"Webhook pointed by {webhookLink} doesn't exist in the server {self.id}. Do nothing")
+            logging.error(
+                f"Webhook pointed by {webhookLink} doesn't exist in the server {self.id}. Do nothing"
+            )
             return False
         self.webhooksDict.pop(webhookLink)
         logging.info(f"Webhook {webhookLink} was successfully removed from the server {self.id}")
