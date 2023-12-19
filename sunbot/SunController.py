@@ -70,7 +70,9 @@ class SunController(commands.Cog):
         # Dict containing all the servers to which the bot belongs
         self.srv_dict: Dict[int, SunServer] = {}
         # Handler for daily weather events
-        self.daily_weather_handler = DailyWeatherEvent(f"{self.data_mount_pt}/save/daily_weather_sub.json")
+        self.daily_weather_handler = DailyWeatherEvent(
+            f"{self.data_mount_pt}save/daily_weather_sub.json"
+        )
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -91,7 +93,12 @@ class SunController(commands.Cog):
                 if user.id not in self.usr_dict:
                     self.usr_dict[user.id] = current_usr
                 self.srv_dict[server.id].addUser(current_usr)
-        loop = asyncio.get_event_loop()
+        # load daily weather data
+        await self.daily_weather_handler.load_locations_subscribers(
+            self.bot.get_user,
+            self.bot.get_channel,
+        )
+        loop = asyncio.get_running_loop()
         # setup signal handlers:
         loop.add_signal_handler(signal.SIGINT,
                                 lambda: asyncio.create_task(self.on_shut_down("SIGINT")))
@@ -130,6 +137,7 @@ class SunController(commands.Cog):
             system_channel = member.guild.channels[0]
         system_channel.send(
             f"Bienvenue sur le serveur {member.metion}! Je suis SunBot, bot spécialiste de la météo (ou pas)! Tu peux utiliser +help dans le channel des bots pour en savoir plus sur moi!")
+        new_usr.save_usr_data()
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
@@ -149,70 +157,28 @@ class SunController(commands.Cog):
         logging.info("A message was received on server n°%d", msg_srv.id)
         # Commands must be processed first
         await self.bot.process_commands(message)
-        # Enable eastereggs only on "fun" servers:
-        if msg_srv.fun:
-            # Randomly add a reaction to the message:
-            await self.__add_reaction(message)
-            lowered_msg = message.content.lower()
-            if lowered_msg in ["tête de pomme", "tete de pomme", "#tetedepomme"]:
-                msg_srv.appleHead += 1
-                # If the message was repeted three consecutive times, send the gif:
-                if msg_srv.appleHead == 3:
-                    msg_srv.appleHead = 0
-                    logging.info(
-                        "Invocation of apple head on server %s!", message.guild.name)
-                    embed2send = discord.Embed(title="Et tu savais qu'à Jean Jaurès",
-                                               color=0xff0000)
-                    apple_head_gif = discord.File(
-                        f"{sunbot.GIF_REPERTORY_PATH}{sunbot.APPLE_HEAD_GIF_NAME}")
-                    embed2send.set_image(
-                        url=f"attachment://{sunbot.APPLE_HEAD_GIF_NAME}")
-                    await message.channel.send(embed=embed2send, file=apple_head_gif)
-            # Other types of messages:
-            else:
-                msg_srv.appleHead = 0
-                # Easter eggs:
-                if "me foutre au sol" in lowered_msg and np.random.uniform() > 0.5:
-                    await message.reply("Tu sais, il y a des gens qui disaient ça \
-                                        et qui ont fini ingénieurs chez Boeing. \
-                                        Donc tu as du potentiel \U0001f31e !")
-                elif lowered_msg == "sinus":
-                    await message.channel.send("Tangente")
-                elif lowered_msg in ["patrick", "patou", "patoche", "pata", "patrikou"] and np.random.uniform() > 0.25:
-                    pass  # TODO add the list of gifs
-                elif "kernel is dead" in lowered_msg:
-                    pass    # TODO add corresponding list of gifs
 
+    @commands.Cog().listener()
     async def on_shut_down(self, signame : str):
         """This method is called when the SIGINT signal is trigerred"""
         logging.info("%s signal received", signame)
         await self.__save_data()
-        logging.info("Data waas saved on %s", self.data_mount_pt)
+        logging.info("Data was saved on %s", self.data_mount_pt)
+        # stop running tasks:
+        logging.info("Stopping running tasks...")
+        current_task = asyncio.current_task()
+        tasks = asyncio.all_tasks()
+        tasks.remove(current_task)
+        # cancel all the tasks except current and main tasks:
+        for task in tasks:
+            # Task-1 is for main task (launched with asyncio.run())
+            if task.get_name() != 'Task-1':
+                task.cancel()
         await self.bot.close()
-        logging.info("Bot was disconnected from Discord")
 
     # ====================================================================================
     #                                   COMMANDS PART
     # ====================================================================================
-
-    # TODO Replace this classic command by it slash counterpart:
-    @np.deprecate_with_doc
-    async def set_emoji(self, ctx: commands.Context, usr_id: int, emoji: str, emoji_freq: float):
-        """Set an emoji for specified user that the bot will used to randomly
-        react to a message from this user
-        ## Parameters:
-        - `ctx`: command call context
-        - `usr_id`: id of the user for which the emoji will be set
-        - `emoji`: emoji to set
-        - `emoji_freq`: probability that the bot reacts to an user message using
-        specified emoji
-        ## Return value:
-        not applicable
-        """
-        try:
-            self.usr_dict[usr_id].emoji = emoji
-        except KeyError:
-            pass
 
     @app_commands.command(name="disconnect", description="[admin] Deconnecte le bot de discord")
     @app_commands.describe(debug="1=mode debug on, 0=mode debut off")
@@ -234,7 +200,7 @@ class SunController(commands.Cog):
             return
 
         logging.info("Bot is disconnecting...")
-        self.__save_data()
+        await self.__save_data()
         await interaction.response.send_message("La sauvegarde des données est terminée, je me déconnecte. Bonne nuit!")
         # To avoid to accidently disconnect remote bot durint a debug session:
         if not self.test_mode and debug:
@@ -357,6 +323,7 @@ class SunController(commands.Cog):
                 await self.daily_weather_handler.add_sub2location(interaction.channel,
                                                                   location_name, location_tz)
                 await interaction.response.send_message(f"C'est compris, j'enverrai désormais quotidiennement la météo du jour pour {location_name} ici 😉")
+        await self.daily_weather_handler.save_locations_subscribers()
 
     @app_commands.command(name="mp_daily_weather", description="Active ou désactive l'envoi quotidien de la météo du jour pour la localisation indiquée")
     @app_commands.describe(location_name="Nom de la localité")
@@ -381,6 +348,7 @@ class SunController(commands.Cog):
             await interaction.response.send_message(content=f"C'est entendu, je ne vous enverrai plus la météo quotidienne pour {location_name}")
             logging.info(
                 "User n°%d has disabled daily weather pm for %s", user_id, location_name)
+            await self.daily_weather_handler.save_locations_subscribers()
             return
         # User has not enable the pm for the specified location, so first check
         # that this city is known by the API to avoid future errors
@@ -398,6 +366,7 @@ class SunController(commands.Cog):
         logging.info(
             "User n°%d has subscribed to receive daily weather for the location %s", user_id, location_name)
         await interaction.response.send_message(content=f"Super ! Je vous enverrez désormais la météo pour {location_name} chaque jour en message privé! (à 7h00 heure locale de la localisation)")
+        await self.daily_weather_handler.save_locations_subscribers()
 
     @app_commands.command(name='global_info', description="Envoi un message sur tous les channels système connus par le bot")
     @app_commands.describe(msg="message à envoyer")
@@ -407,9 +376,12 @@ class SunController(commands.Cog):
         ## Parameters:
         * `interaction`: discord interaction which contains context data
         ## Return value:
-        None"""
-        embed2send = discord.Embed(title="Informations concernant la SunRisVersion (V2)",
-        description=msg)
+        None
+        """
+        embed2send = discord.Embed(
+            title="Informations concernant la SunRisVersion (V2)",
+            description=msg
+        )
         for guild in self.bot.guilds:
             guild_syst_channel = guild.system_channel
             # check the existence of a system channel for the current guild:
@@ -433,29 +405,6 @@ class SunController(commands.Cog):
             logging.info("Saving data for server n°%d", srv.id)
             srv.save_srv_data()
         await self.daily_weather_handler.save_locations_subscribers()
-
-    async def __add_reaction(self, msg: discord.Message) -> None:
-        """Private method to add a reaction to the specified message published
-        by an user, according to the user probability for this action
-        ## Parameters:
-        * `msg` : discord message that triggered this method
-        ## Return value:
-        not applicable
-        """
-        # Add a reaction only if the user is not a bot:
-        if not msg.author.bot:
-            # Get the user that sent the message:
-            user: SunUser = self.usr_dict[msg.author.id]
-            # If an emoji is define for this user and probability is under freqEmoji proba:
-            if user.emoji != "" and np.random.uniform() <= user.freqEmoji:
-                try:
-                    await msg.add_reaction(user.emoji)
-                except discord.errors.NotFound:
-                    logging.error(
-                        "Reaction cannot be added because the message was deleted or the emoji %s does not exist", user.emoji)
-                except TypeError:
-                    logging.error(
-                        "Emoji %s, set for the user n°%dis not in a valid emoji format", user.emoji, user.id)
 
     # TODO Remove this unused private method:
     @np.deprecate_with_doc
