@@ -101,7 +101,7 @@ def ask_daily_rain(location_name : str, period : str = "today") -> dict :
     ## Parameters:
     * `location_name`: name of the locality whose we want to get data about rainfalls
        for the current day
-    * `period`: period to be considered 
+    * `period`: period to be considered
     ## Return value:
     JSON request response from the weather API, as a dictionnary
     """

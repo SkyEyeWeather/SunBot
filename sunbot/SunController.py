@@ -24,8 +24,11 @@ from sunbot import weather_event
 from sunbot.weather_event import DailyWeatherEvent
 
 
-async def _get_period_autocompletion(interaction : discord.Interaction, current : str) -> typing.List[app_commands.Choice[str]]:
-    """"""
+async def _get_period_autocompletion(
+        _interaction: discord.Interaction,
+        current: str
+    ) -> typing.List[app_commands.Choice[str]]:
+    """Return period time for autocompletion"""
     choice_list = []
     for period in sunbot.PERIODS:
         if current.lower() in period.lower():

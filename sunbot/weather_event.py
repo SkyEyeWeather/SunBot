@@ -117,7 +117,7 @@ class WeatherEvent(ABC):
         self.__mutex_access_dict.release()
         return sub_in_dict
 
-    async def add_sub2location(self, subscriber : Union[discord.TextChannel, discord.User], 
+    async def add_sub2location(self, subscriber : Union[discord.TextChannel, discord.User],
                                location_name : str, location_tz="") -> None:
         """Add an entity contained in the specified `interaction `to the `location_name`
         dict of subscribers.Possible value for `sub_type` is `SERVER_SUB_TYPE`
