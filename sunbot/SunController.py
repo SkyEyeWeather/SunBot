@@ -20,6 +20,19 @@ from sunbot.SunServer import SunServer
 from sunbot.SunUser import SunUser
 from sunbot.weather_event import DailyWeatherEvent
 
+
+async def _get_period_autocompletion(
+        _interaction: discord.Interaction,
+        current: str
+    ) -> typing.List[app_commands.Choice[str]]:
+    """Return period time for autocompletion"""
+    choice_list = []
+    for period in sunbot.PERIODS:
+        if current.lower() in period.lower():
+            choice_list.append(app_commands.Choice(name=period, value=period))
+    return choice_list
+
+
 # =================================
 #       CLASS DECLARATION
 # =================================
@@ -258,7 +271,9 @@ class SunController(commands.Cog):
         name="pluie", description="Quand va-t-il pleuvoir aujourd'hui? ☔"
     )
     @app_commands.describe(location_name="Nom de la localité")
-    async def pluie(self, interaction: discord.Interaction, location_name: str) -> None:
+    @app_commands.describe(period="Période (aujourd'hui / demain)")
+    @app_commands.autocomplete(period=_get_period_autocompletion)
+    async def pluie(self, interaction: discord.Interaction, location_name: str, period : str ="aujourd'hui") -> None:
         """Handle a call to the `pluie` slash command by requesting rain information
         for the specified location name and returning acquired data to discord.
         ## Parameters:
@@ -266,30 +281,23 @@ class SunController(commands.Cog):
         current command call
         * `location_name`: name of the location for which the user wants to retrieve
         rain data
+        * `period`: period to be considered
         ## Return value:
         not applicable
         """
         # If no location was provided by the user, use its favorite one:
         if location_name == "":
             location_name = self.usr_dict[interaction.user.id].favLocation
-        logging.info(
-            "%d called the command 'pluie' for the location %s",
-            interaction.user.id,
-            location_name,
-        )
-        request_response = weather_api_handler.ask_daily_rain(location_name)
-        if not request_response:
-            logging.error(
-                "An error occured when trying to get daily rain informations for the place %s",
-                location_name,
-            )
-            await interaction.response.send_message(
-                "Humm, quelque chose s'est mal passé en essayant de"
-                f" récupérer les informations de pluie pour {location_name} 😢"
-            )
+        logging.info("%d called the command 'pluie' for the location %s and period %s",
+                     interaction.user.id, location_name, sunbot.PERIODS[period])
+        request_response = weather_api_handler.ask_daily_rain(location_name, sunbot.PERIODS[period])
+        if request_response == {}:
+            logging.error("An error occured when trying to get daily rain informations for the place %s",
+                          location_name)
+            await interaction.response.send_message(f"Humm, quelque chose s'est mal passé en essayant de récupérer les informations de pluie pour {location_name} 😢")
             return
         # Build the embed message to send in response to the command call:
-        embed2send = weather.createEmbedRainEmbed(request_response)
+        embed2send = weather.createEmbedRainEmbed(request_response, period=period)
         await interaction.response.send_message(embed=embed2send)
 
     @app_commands.command(
