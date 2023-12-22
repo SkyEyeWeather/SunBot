@@ -7,7 +7,7 @@ import asyncio
 import logging
 import signal
 from http.client import HTTPException
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import discord
 import numpy as np
@@ -16,7 +16,7 @@ from discord.ext import commands
 
 import sunbot.weather.Meteo as weather
 from sunbot import sunbot, weather_api_handler, weather_event
-from sunbot.SunServer import SunServer
+from sunbot.guild import SunGuild
 from sunbot.SunUser import SunUser
 from sunbot.weather_event import DailyWeatherEvent
 
@@ -24,7 +24,7 @@ from sunbot.weather_event import DailyWeatherEvent
 async def _get_period_autocompletion(
         _interaction: discord.Interaction,
         current: str
-    ) -> typing.List[app_commands.Choice[str]]:
+    ) -> List[app_commands.Choice[str]]:
     """Return period time for autocompletion"""
     choice_list = []
     for period in sunbot.PERIODS:
@@ -62,11 +62,11 @@ class SunController(commands.Cog):
         else:
             self.data_mount_pt = "/data/"
         SunUser.usr_backup_path = self.data_mount_pt + "save/usr/"
-        SunServer.srv_backup_path = self.data_mount_pt + "save/srv/"
+        SunGuild.srv_backup_path = self.data_mount_pt + "save/srv/"
         # Dict containing all Discord users who can use the bot:
         self.usr_dict: Dict[int, SunUser] = {}
         # Dict containing all the servers to which the bot belongs
-        self.srv_dict: Dict[int, SunServer] = {}
+        self.srv_dict: Dict[int, SunGuild] = {}
         # Handler for daily weather events
         self.daily_weather_handler = DailyWeatherEvent(
             f"{self.data_mount_pt}save/daily_weather_sub.json"
@@ -83,7 +83,7 @@ class SunController(commands.Cog):
         logging.info("Loading user data")
         # For all servers known by the bot:
         for server in self.bot.guilds:
-            self.srv_dict[server.id] = SunServer(server.id)
+            self.srv_dict[server.id] = SunGuild(server.id)
             # For all members in the current server (bot users):
             for user in server.members:
                 current_usr = SunUser(user.id)
