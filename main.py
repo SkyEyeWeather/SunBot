@@ -19,7 +19,7 @@ async def main():
 
     await bot.add_cog(SunController(bot=bot, test_mode=test_mode))
     # run the bot until shut down
-    await bot.start(os.environ['token'], reconnect=False)
+    await bot.start(os.environ['token'])
 
     logging.info("bot was disconnected")
 
