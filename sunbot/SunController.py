@@ -5,7 +5,6 @@
 
 import asyncio
 import logging
-import signal
 
 from http.client import HTTPException
 from typing import Dict, Optional
@@ -99,11 +98,6 @@ class SunController(commands.Cog):
             self.bot.get_channel,
         )
         loop = asyncio.get_running_loop()
-        # setup signal handlers:
-        loop.add_signal_handler(signal.SIGINT,
-                                lambda: asyncio.create_task(self.on_shut_down("SIGINT")))
-        loop.add_signal_handler(signal.SIGTERM,
-                                lambda: asyncio.create_task(self.on_shut_down("SIGTERM")))
         # Create and launch tasks:
         logging.info("Launching weather tasks...")
         loop.create_task(self.daily_weather_handler.run_event_task())
