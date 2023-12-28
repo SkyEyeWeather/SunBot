@@ -15,22 +15,20 @@ from sunbot.SunUser import SunUser
 
 class SunServer:
     """This class defines a discord server (guild) where the bot is present. A 
-    discord server is a set of sun users (discord users) and have webhooks that 
+    discord server is a set of sun users (discord users) and has webhooks that
     allow the bot to send message without a context. It is identified by an ID 
-    that corresponds to its ID on Discord. There are two sorts of server : normal 
-    and 'fun' server."""
+    that corresponds to its ID on Discord.
+    """
 
     srv_backup_path = ""
 
-    def __init__(self, id : int, fun : bool = False) -> None:
+    def __init__(self, id : int) -> None:
         """Constructor of this class
         ## Parameter :
         * `id`: discord ID for the server to create. This ID is unique on Discord"""
         object.__setattr__(self, "id", id)
-        object.__setattr__(self, "fun", fun)
         object.__setattr__(self, "usersDict", {})       #In this dict users' ID are the keys and users the values
         object.__setattr__(self, "webhooksDict", {})    #In this dict links to the webhook are the keys and state of this webhooks the values
-        object.__setattr__(self, "appleHead", 0)
 
         #If backup directory for servers does not already exist, create it:
         if SunServer.srv_backup_path == "":
@@ -46,7 +44,6 @@ class SunServer:
                 try:
                     serverData = json.load(serverFile)
                     object.__setattr__(self, "webhooksDict", serverData["webhooksDict"])
-                    object.__setattr__(self, "fun", serverData["fun"])
                 except json.decoder.JSONDecodeError:
                     logging.error(f"An error occured when retrieving data for server n°{id}")
         #Else, create a new server with a new corresponding backup file:
@@ -57,18 +54,11 @@ class SunServer:
 
     def __setattr__(self, __name: str, __value) -> None:
         """Special method used to update object fields. Here, redefinition
-        prohibites all modifications excepted fun status and appleHead
+        prohibites all modifications.
         ## Parameters:
         * `__name`: name of the field to update
         * `__value`: new value for the field to update"""
-        if __name == "fun" :
-            object.__setattr__(self, __name, __value)
-            self.save_srv_data()
-            logging.info(f"Fun status for server {self.id} was updated. New value : {self.fun}")
-        if __name == "appleHead":
-            object.__setattr__(self, __name, __value)
-        else:
-            logging.error("Server attributes cannot directly modified")
+        logging.error("Server attributes cannot be directly modified")
 
 
     def __eq__(self, __o: object) -> bool:
@@ -177,3 +167,4 @@ class SunServer:
             jsonData = json.dumps(self.__dict__, ensure_ascii=False, indent=2)
             serverFile.write(jsonData)
             object.__setattr__(self, "usersDict", tmpUsersDict)
+        os.chmod(f"{SunServer.srv_backup_path}{self.id}.json", mode=0o777)

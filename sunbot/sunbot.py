@@ -40,6 +40,8 @@ ITEM_HEIGHT = ICON_SIZE[1] + INTER_ALIGNMENT
 DAILY_WEATHER_RESET_HOUR = 0
 DAILY_WEATHER_SEND_HOUR = 7
 
+PERIODS = {"aujourd'hui" : "today", "demain": "tomorrow"}
+
 #===================================
 #       DECORATORS DECLARATION
 #===================================
