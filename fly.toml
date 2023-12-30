@@ -1,17 +1,24 @@
-# fly.toml file generated for sun-bot on 2022-08-27T17:52:47+02:00
+# fly.toml app configuration file generated for sunbot on 2023-12-25T18:40:26+01:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
-app = "sunbot-v2"
+app = "sunbot"
 primary_region = "cdg"
 kill_signal = "SIGINT"
-kill_timeout = 5
-processes = []
-
-[env]
+kill_timeout = "5s"
 
 [experimental]
-  allowed_public_ports = []
   auto_rollback = true
 
-[mounts]
+[build]
+
+[[mounts]]
   source = "sunbot_data"
   destination = "/data"
+  auto_extend_size_threshold = 0
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 1024

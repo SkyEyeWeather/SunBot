@@ -1,0 +1,16 @@
+# flyctl launch added from .gitignore
+**/**/__pycache__/**
+**/.vscode/**
+**/.env
+**/Test/**
+
+# flyctl launch added from .trunk/.gitignore
+.trunk/**/*out
+.trunk/**/*logs
+.trunk/**/*actions
+.trunk/**/*notifications
+.trunk/**/*tools
+.trunk/**/plugins
+.trunk/**/user_trunk.yaml
+.trunk/**/user.yaml
+fly.toml
