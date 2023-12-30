@@ -71,6 +71,9 @@ class SunGuild:
         # Two guilds are equal if they have the same ID:
         return self.id == __o.id
 
+    def __hash__(self) -> int:
+        return self.id
+
     def add_member(self, member: SunUser) -> bool:
         """Adds an user to this guild.
         ## Parameter:

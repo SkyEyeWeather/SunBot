@@ -89,6 +89,9 @@ class SunUser:
         # Two users are equal if and only if they have the same ID:
         return self.id == __o.id
 
+    def __hash__(self) -> int:
+        return self.id
+
     def save_usr_data(self) -> None:
         """Method used to save user's data into corresponding backup file."""
         with open(self.__backup_file, "w", encoding="UTF-8") as usr_file:
