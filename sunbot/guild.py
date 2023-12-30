@@ -2,10 +2,9 @@
 
 import json
 import logging
-import os
 from pathlib import Path
 
-from sunbot.SunUser import SunUser
+from sunbot.user import SunUser
 
 
 class SunGuild:
@@ -15,46 +14,46 @@ class SunGuild:
     that corresponds to its ID on Discord.
     """
 
-    srv_backup_path = None
+    backup_dir = None
 
     def __init__(self, guild_id: int) -> None:
         """Constructor of this class
         ## Parameter :
-        * `id`: discord ID for the server to create. This ID is unique on Discord"""
-        self.guild_id = guild_id
+        * `id`: discord ID for the guild to create. This ID is unique on Discord"""
+        self.__id = guild_id
         self.__guild_members = {}
         self.__guild_webhooks = {}
 
-        # if backup directory for servers does not already exist, create it:
-        if not SunGuild.srv_backup_path:
+        # if backup directory for guilds does not already exist, create it:
+        if not SunGuild.backup_dir:
             logging.warning(
-                "Server backup directory path was not set. Use a default repository."
+                "guild backup directory path was not set. Use a default repository."
             )
-            SunGuild.srv_backup_path = Path("./save/srv/")
+            SunGuild.backup_dir = Path("./save/srv/")
 
-        self.backup = SunGuild.srv_backup_path / Path(f"{self.guild_id}.json")
+        self.__backup_file = SunGuild.backup_dir / Path(f"{self.id}.json")
         # if backup guild file does not yet exist, create it:
-        if not self.backup.exists():
+        if not self.__backup_file.exists():
             logging.info(
-                "Backup file for guild %d doesn't exist. Creating it", self.guild_id
+                "Backup file for guild %d doesn't exist. Creating it", self.id
             )
-            SunGuild.srv_backup_path.mkdir(parents=True, exist_ok=True, mode=777)
+            self.__backup_file.parent.mkdir(parents=True, exist_ok=True)
             self.save_srv_data()
         else:
-            with open(self.backup, "r", encoding="UTF-8") as backup_file:
+            with open(self.__backup_file, "r", encoding="UTF-8") as backup_file:
                 try:
                     guild_data = json.load(backup_file)
-                    self.__guild_webhooks = guild_data["webhooks_dict"]
+                    self.__guild_webhooks = guild_data["guild_webhooks"]
                 except json.decoder.JSONDecodeError:
                     logging.error(
                         "An error occured when retrieving data for guild n°%d",
-                        self.guild_id,
+                        self.id,
                     )
 
     @property
     def id(self) -> int:
         """Return discord guild ID"""
-        return self.id
+        return self.__id
 
     @id.setter
     def id(self, _value: int) -> None:
@@ -69,16 +68,16 @@ class SunGuild:
 
         if not isinstance(__o, SunGuild):
             return False
-        # Two servers are equal if they have the same ID:
+        # Two guilds are equal if they have the same ID:
         return self.id == __o.id
 
     def add_member(self, member: SunUser) -> bool:
-        """Adds an user to this server.
+        """Adds an user to this guild.
         ## Parameter:
-        * `member`: user to add to this server
+        * `member`: user to add to this guild
         ## Return value:
-        returns `True` if the user was added to the server, otherwise `False`. Falling to add
-        an user can be explain by the fact that user was already added in this server"""
+        returns `True` if the user was added to the guild, otherwise `False`. Falling to add
+        an user can be explain by the fact that user was already added in this guild"""
         # if user was already added into this guild, do nothing:
         if member.id in self.__guild_members:
             logging.error(
@@ -90,18 +89,18 @@ class SunGuild:
         # add the user to the guild  member  dictionnary:
         self.__guild_members[member.id] = member
         logging.info(
-            "User n°%d has been sucessfully added to the server %d", member.id, self.id
+            "User n°%d has been added to the guild %d", member.id, self.id
         )
         return True
 
     def remove_member(self, member_id: int) -> bool:
-        """Removes an user from this server, if the user exists in this server.
+        """Removes an user from this guild, if the user exists in this guild.
         ## Parameter:
-        * `member_id`: identifiant of the user to be removed from this server
+        * `member_id`: identifiant of the user to be removed from this guild
         ## Return value:
         Return `True` if the corresponding user was successfully removed from this
-        server, otherwise `False`"""
-        # if ID specified in arguments does not correspond to any server's user :
+        guild, otherwise `False`"""
+        # if ID specified in arguments does not correspond to any guild's user :
         if member_id not in self.__guild_members:
             logging.error(
                 "Member n°%d does not belong to the guild %d", member_id, self.id
@@ -109,19 +108,19 @@ class SunGuild:
             return False
         self.__guild_members.pop(member_id)
         logging.info(
-            "Member %d has been removed from the guild %d with success",
+            "Member %d has been removed from the guild %d",
             member_id,
             self.id,
         )
         return True
 
     def add_webhook(self, webhook_link: str, enabled: bool = True) -> bool:
-        """Adds a webhook to this server. If webhook was already added, do nothing.
+        """Adds a webhook to this guild. If webhook was already added, do nothing.
         ## Parameters:
         * `webhookLink`: link corresponding to the webhook to add
         * `enabled`:boolean that indicates whether specified webhook is enabled
         ## Return value:
-        Return `True` if the webhook was successfully added to this server,
+        Return `True` if the webhook was successfully added to this guild,
         otherwise `False`"""
         if webhook_link in self.__guild_webhooks:
             logging.error(
@@ -130,14 +129,14 @@ class SunGuild:
             return False
         self.__guild_webhooks[webhook_link] = enabled
         logging.info(
-            "Webhook %s was successfully added to the server n°%d",
+            "Webhook %s was successfully added to the guild n°%d",
             webhook_link,
             self.id,
         )
         return True
 
     def remove_webhook(self, webhook_link: str) -> bool:
-        """Removes a webhoook from this server. If webhook does not exist,
+        """Removes a webhoook from this guild. If webhook does not exist,
         do nothing.
         ## Parameter:
         * `webhookLink`: link corresponding to the webhook to remove
@@ -145,14 +144,14 @@ class SunGuild:
         Return True if webhook was removed successfully, otherwise False"""
         if webhook_link not in self.__guild_webhooks.keys():
             logging.error(
-                "Webhook pointed by %s doesn't exist in the server %d.Do nothing.",
+                "Webhook pointed by %s doesn't exist in the guild %d.Do nothing.",
                 webhook_link,
                 self.id,
             )
             return False
         self.__guild_webhooks.pop(webhook_link)
         logging.info(
-            "Webhook %s was successfully removed from the server %d",
+            "Webhook %s was successfully removed from the guild %d",
             webhook_link,
             self.id,
         )
@@ -160,7 +159,7 @@ class SunGuild:
 
     def update_webhook(self, webhook_link: str, enabled: bool) -> bool:
         """Enables or disables webhook specified in arguments, if it exists in
-        this server.
+        this guild.
         ## Parameters:
         * `webhooklink`: link corresponding to the webhook to update the status
         * `enabled`: flag that indicates the new state for specified webhook. `True`
@@ -169,28 +168,26 @@ class SunGuild:
         Return `True` if operation was a success, otherwise `False`"""
         if webhook_link not in self.__guild_webhooks.keys():
             logging.error(
-                "Webhook %s does not exist in the server %d. Do nothing",
+                "Webhook %s does not exist in the guild %d. Do nothing",
                 webhook_link,
                 self.id,
             )
             return False
         self.__guild_webhooks[webhook_link] = enabled
         logging.info(
-            "Webhook %s is now enabled in the server %d", webhook_link, self.id
+            "Webhook %s is now enabled in the guild %d", webhook_link, self.id
         )
         return True
 
     def save_srv_data(self):
-        """Private method used to save server's data into corresponding backup
+        """Private method used to save guild's data into corresponding backup
         file"""
-        with open(
-            f"{SunGuild.srv_backup_path}{self.id}.json", "w", encoding="UTF-8"
-        ) as guild_file:
-            # To make current object transient, clear temporally dictionnary of users:
-            tmp_members_dict = self.__guild_members
-            object.__setattr__(self, "usr_dir", None)
-            # Save server data into the backup file:
-            json_data = json.dumps(self.__dict__, ensure_ascii=False, indent=2)
+        with open(self.__backup_file, "w", encoding="UTF-8") as guild_file:
+            backup_dict = {
+                "guild_id": self.id,
+                "guild_members": list(self.__guild_members.keys()),
+                "guild_webhooks": self.__guild_webhooks,
+            }
+            
+            json_data = json.dumps(backup_dict, ensure_ascii=False, indent=2)
             guild_file.write(json_data)
-            object.__setattr__(self, "usr_dir", tmp_members_dict)
-        os.chmod(f"{SunGuild.srv_backup_path}{self.id}.json", mode=0o777)

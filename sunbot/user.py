@@ -2,7 +2,6 @@
 
 import json
 import logging
-import os
 from pathlib import Path
 
 # ================================
@@ -18,7 +17,7 @@ class SunUser:
     backup_dir = None
 
     def __init__(
-        self, user_id: int, fav_location: str = "Toulouse", mp: bool = False
+        self, usr_id: int, fav_location: str = "Toulouse", mp: bool = False
     ) -> None:
         """Constructor for this class. A SunBot user is defined by its Discord ID.
         Other informations can be provided in arguments, such as if the user authorize private
@@ -34,7 +33,7 @@ class SunUser:
         from the SunBot. Default value is `False`
         """
 
-        self.user_id = user_id
+        self.__id = usr_id
         self.fav_location = fav_location
         self.mp = mp
 
@@ -44,49 +43,38 @@ class SunUser:
                 "Users backup directory was not set. Use a default repository."
             )
             SunUser.backup_dir = Path("./save/usr/")
-        if not os.path.exists(SunUser.backup_dir):
-            logging.info("Repertory %s doesn't exist. Creating it.", SunUser.backup_dir)
-            os.makedirs(SunUser.backup_dir)
-        self.backup = SunUser.backup_dir / Path(f"{self.user_id}.json")
-        # If this user was already created by the past, load its data from the corresponding
-        # file instead of values passed in arguments of the constructor:
-        if os.path.isfile(f"{SunUser.backup_dir}{user_id}.json"):
+
+        self.__backup_file = SunUser.backup_dir / Path(f"{self.id}.json")
+        if not self.__backup_file.exists():
+            logging.info("Backup file for user %d doesn't exist. Creating it.", self.id)
+            self.__backup_file.parent.mkdir(parents=True, exist_ok=True)
+            self.save_usr_data()
+        else:
+            # If this user was already created by the past, load its data from the corresponding
+            # file instead of values passed in arguments of the constructor:
             logging.info(
-                f"User n°{user_id} already exists. Loading data from existing file."
+                "User n°%d already exists. Loading data from existing file.",
+                self.id
             )
-            with open(
-                f"{self.backup_dir}{user_id}.json", "r", encoding="UTF-8"
-            ) as userFile:
+            with open(self.__backup_file, "r", encoding="UTF-8") as usr_file:
                 try:
-                    userData = json.load(userFile)
-                    object.__setattr__(self, "favLocation", userData["favLocation"])
-                    object.__setattr__(self, "mp", userData["mp"])
+                    usr_data = json.load(usr_file)
+                    self.fav_location = usr_data["fav_location"]
+                    self.mp = usr_data["mp"]
                 except json.decoder.JSONDecodeError:
                     logging.error(
-                        f"An error occured when retrieving data for user n°{user_id}. File may be corrupted"
+                        "An error occured when retrieving data for user %d. File may be corrupted",
+                        self.id
                     )
-        # Else, create a new user with a new corresponding backup file:
-        else:
-            logging.info(f"Creating user n°{user_id}")
-            self.save_usr_data()
 
-    def __setattr__(self, __name: str, __value) -> None:
-        """Special method used to update object attributes
-        ## Parameters:
-        * `__name`: name of the attribute to update
-        * `__value`: new value for the attribute to update"""
-        # if attribute exists:
-        if __name in self.__dict__:
-            # User id cannot be modified:
-            if __name == "id":
-                logging.error("User identifiant cannot be modified. Abort")
-            else:
-                object.__setattr__(self, __name, __value)
-            self.save_usr_data()
-        else:
-            logging.error(
-                "Class %s has not an attribute named %s", __class__.__name__, __name
-            )
+    @property
+    def id(self) -> int:
+        """Return discord user ID"""
+        return self.__id
+
+    @id.setter
+    def id(self, value: int) -> None:
+        raise AttributeError("User ID cannot be modified")
 
     def __eq__(self, __o: object) -> bool:
         """Test if the specified object `o` is equal to this instance
@@ -96,16 +84,19 @@ class SunUser:
         `True` if the specified object and this user are equal, `False` otherwise"""
 
         # If specified object is not a sunbot user, return false:
-        if type(__o) != SunUser:
+        if not isinstance(__o, SunUser):
             return False
         # Two users are equal if and only if they have the same ID:
         return self.id == __o.id
 
     def save_usr_data(self) -> None:
         """Method used to save user's data into corresponding backup file."""
-        with open(
-            f"{SunUser.backup_dir}{self.id}.json", "w", encoding="UTF-8"
-        ) as userFile:
-            jsonData = json.dumps(self.__dict__, ensure_ascii=False, indent=2)
-            userFile.write(jsonData)
-        os.chmod(f"{SunUser.backup_dir}{self.id}.json", mode=0o777)
+        with open(self.__backup_file, "w", encoding="UTF-8") as usr_file:
+            backup_dict = {
+                "user_id": self.id,
+                "fav_location": self.fav_location,
+                "mp": self.mp,
+            }
+
+            json_data = json.dumps(backup_dict, ensure_ascii=False, indent=2)
+            usr_file.write(json_data)
