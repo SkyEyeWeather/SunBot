@@ -582,42 +582,41 @@ def createCurrentWeatherImage(currentWeather: dict, path: str) -> None:
     )
 
 
-def createEmbedRainEmbed(requestResponse: dict, period: str = "aujourd'hui"):
-    """"""
-    print(requestResponse)
-    dictRainType = {
+def create_rain_embed(data: dict, period: str = "aujourd'hui"):
+    """create embed to send to discord from received data"""
+    en2fr_dict = {
         "rain": "averse",
         "snow": "neige",
         "freezing rain ": "pluie verglaçante",
         "ice": "grêle",
     }
-    embedToSend = discord.Embed(
+    embed2send = discord.Embed(
         title=f"Pluie prévue {period}",
-        description=f"Voici la pluie prévue {period} sur {requestResponse['address']}",
+        description=f"Voici la pluie prévue {period} sur {data['address']}",
         color=0x77B5FE,
     )
-    fieldAdded = False
-    for hour_datetime, hour_data in requestResponse["rainfall_data"].items():
-        preciptype = hour_data["preciptype"]
+    sunny_day = True
+    for i in range(24):
+        hour = data[f"days/0/hours/{i}/datetime"]
+        preciptype = data[f"days/0/hours/{i}/preciptype"]
+        precipprob = data[f"days/0/hours/{i}/precipprob"]
+        preciplvl = data[f"days/0/hours/{i}/precip"]
         # If rain is forecast for the current hour, add it to the embed message:
-        if hour_data["precipprob"] > 0.0 and preciptype is not None:
-            fieldAdded = True
-            embedToSend.add_field(
-                name="Pluie prévue à {} : ".format(hour_datetime),
-                value="Probabilité de {} à {} %, attendu {} mm".format(
-                    dictRainType.get(preciptype[0], "pluie"),
-                    hour_data["precipprob"],
-                    hour_data["precip"],
-                ),
+        if precipprob > 0.0 and preciptype is not None:
+            sunny_day = False
+            preciptype = en2fr_dict[preciptype[0]]
+            embed2send.add_field(
+                name=f"Pluie prévue à {hour} : ",
+                value=f"Probabilité de {preciptype[0]} à {precipprob} %, attendu {preciplvl} mm",
                 inline=False,
             )
     # If no rain is forecast for the day :
-    if not fieldAdded:
-        embedToSend.add_field(
+    if sunny_day:
+        embed2send.add_field(
             name=f"Pas de pluie prévue {period} !", value="\u2600\uFE0F", inline=False
         )
-    embedToSend.set_footer(text="Données de l'API Visual Crossing")
-    return embedToSend
+    embed2send.set_footer(text="Données de l'API Visual Crossing")
+    return embed2send
 
 
 def create_daily_weather_img(day_info: dict, path: str) -> None:

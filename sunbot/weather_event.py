@@ -6,13 +6,13 @@ from datetime import datetime
 import json
 import logging
 import os
-from typing import Dict, List, Literal,  Union
+from typing import Dict, Literal,  Union
 
 import discord
 from sunbot.location import Location
 from sunbot.weather.Meteo import create_daily_weather_img
 from sunbot import sunbot
-from sunbot import weather_api_handler
+from sunbot.apis.weather import WeatherAPIHandler
 
 
 USER_SUB_TYPE = 'u'
@@ -27,13 +27,15 @@ class WeatherEvent(ABC):
     is abstract, it cannot be directly instantiate
     """
 
-    def __init__(self, save_path : str) -> None:
+    def __init__(self, save_path : str, api_handler: WeatherAPIHandler) -> None:
         """Constructor for this class, which can only be called by inheriting classes
         ## Parameters:
         * `save_path`: path to the file where saving locations' subscribers data
+        * `api_handler`: API handler
         """
         # private attributes:
         self.save_file_path = save_path
+        self.api_handler = api_handler
         self.__sub_locations_dict : dict[str, dict[Location, dict[int, Union[discord.TextChannel, discord.User]]]] = \
             {SERVER_SUB_TYPE : {}, USER_SUB_TYPE : {}}
         self.__mutex_access_dict = asyncio.Lock()    # Mutex to handle access to user dict
@@ -277,8 +279,8 @@ class WeatherEvent(ABC):
 class DailyWeatherEvent(WeatherEvent):
     """Class that handle daily weather event and send it to subscriber"""
 
-    def __init__(self, save_path) -> None:
-        super().__init__(save_path)
+    def __init__(self, save_path: str, api_handler: WeatherAPIHandler) -> None:
+        super().__init__(save_path, api_handler)
         # Flag that indicates if daily weather was sent or not for each location:
         self.__dict_weather_sent_flag : Dict[str, Dict[Location, bool]] = \
             {SERVER_SUB_TYPE : {}, USER_SUB_TYPE : {}}
@@ -402,28 +404,35 @@ class DailyWeatherEvent(WeatherEvent):
         None
         """
         # Get daily weather response from the API for current location:
-        request_response = weather_api_handler.ask_daily_weather(location.name)
+        data = self.api_handler.get_daily_weather_data(location.name)
         # If a response was sent by the weather API:
-        if request_response != {}:
-            create_daily_weather_img(request_response, "./Data/Images")
+        if data:
+            create_daily_weather_img(data, "./Data/Images")
             # Send data for current location on each registered server:
             for sub_id in sub_dict:
                 # Get interaction for current server, which contains a channel
                 # where send daily weather:
                 subscriber = sub_dict[sub_id]
                 # Send daily weather to current subscriber:
-                logging.info("Sending daily weather for %s to subscriber n°%d", location.name, sub_id)
-                await subscriber.send(content=f"Voici la météo prévue pour aujourd'hui à {location.name}\n", file=discord.File(f"{sunbot.DAILY_IMAGE_PATH}{sunbot.DAILY_IMAGE_NAME}"))
+                logging.info(
+                    "Sending daily weather for %s to subscriber n°%d",
+                    location.name,
+                    sub_id
+                )
+                await subscriber.send(
+                    content=f"Voici la météo prévue pour aujourd'hui à {location.name}\n",
+                    file=discord.File(f"{sunbot.DAILY_IMAGE_PATH}{sunbot.DAILY_IMAGE_NAME}")
+                )
                 await asyncio.sleep(0.1)
 
 
-#TODO implement weather alert event handling
 class WeatherAlertEvent(WeatherEvent):
     """"""
 
-    def __init__(self, save_path) -> None:
-        super().__init__(save_path)
+    def __init__(self, save_path, api_handler) -> None:
+        super().__init__(save_path, api_handler)
+        raise NotImplementedError
 
     async def run_event_task(self):
         """"""
-        pass
+        raise NotImplementedError

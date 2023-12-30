@@ -4,14 +4,14 @@ import logging
 from typing import Dict, List, Literal, Optional, Union
 import requests
 
-from sunbot.utils import (
+from sunbot.utils.utils import (
     merge_dict,
     flatten_dict,
     get_best_items,
     )
 
 AuthMode = Literal['no', 'token', 'jwt']
-AuthModes = [AuthMode.__args__]
+AuthModes = AuthMode.__args__
 
 class APIHandler:
     """The APIHandler class defines an object able to call a web API
@@ -45,7 +45,7 @@ class APIHandler:
 
     def __init__(self,
                  domain_name : str,
-                 auth_mode : Optional[AuthModes] = 'token',
+                 auth_mode : Optional[AuthMode] = 'token',
                  accepted_formats : Union[Dict[str, float],None] = None,
                  **kwargs,
                  ) -> None:
@@ -62,7 +62,7 @@ class APIHandler:
             if _format not in self.ACCEPTED_FORMATS:
                 logging.warning('%s is not supported for now', _format)
                 continue
-            accepted_formats_str += _format + ";q=" + priority + ","
+            accepted_formats_str += _format + ";q=" + str(priority) + ","
         if len(accepted_formats_str) == 0:
             raise NotImplementedError("All the specified accepted format are not supported for now")
         self.session.headers.update({'Accept': accepted_formats_str[:-1]})
@@ -212,8 +212,9 @@ class APIHandler:
 
     def get_data(self,
                  response : requests.Response,
-                 target_keys : List[str],
-                 tolerance : Optional[float]
+                 targets : Union[str, List[str],Dict[str, str]],
+                 tolerance : Optional[float] = 0.,
+                 verbose: Optional[bool] = False
                  )-> Dict[str, any]:
         """Get data from the specified request response and format it following
         the structure indicated in `data_keys`
@@ -222,11 +223,14 @@ class APIHandler:
         ----------
         :param response: response from the web API for a request
         :type response: requests.Response
-        :param target_keys: list of key to search in response structure
+        :param targets: list of keys to search in response structure. It is
+        also possible to specified a dict where keys are target to search in response and
+        value are corresponding keys in the dict returned by this method.
         :type data_keys: List[str]
         :param tolerance: tolerance to apply on search results
         :type tolerance: Optional[float]
-
+        :param verbose:
+        :type verbose: Optional[bool]
         Returns
         -------
         :returns: formatted dictionnary
@@ -245,11 +249,20 @@ class APIHandler:
         json_resp = response.json()
         # flatten json response
         flattened_json_resp = flatten_dict(json_resp)
-        for target in target_keys:
-            filtered_dict = get_best_items(flattened_json_resp, target=target, tolerance=tolerance)
+
+        if isinstance(targets, str):
+            targets_list = [targets]
+        elif isinstance(targets, dict):
+            targets_list = targets.keys()
+        else:
+            targets_list = targets
+
+        for target in targets_list:
+            filtered_dict = get_best_items(flattened_json_resp, target=target, tolerance=tolerance, verbose=verbose)
+            key = targets[target] if isinstance(targets, dict) else target
             # if filtered dict contains only one item, use its unique value instead
             if len(filtered_dict) == 1:
-                data[target] = filtered_dict[list(filtered_dict)[0]]
+                data[key] = filtered_dict[list(filtered_dict)[0]]
             else:
-                data[target] = filtered_dict
+                data[key] = filtered_dict
         return data
