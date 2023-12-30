@@ -4,7 +4,7 @@ import json
 import logging
 from pathlib import Path
 
-from sunbot.user import SunUser
+from sunbot.core.user import SunUser
 
 
 class SunGuild:

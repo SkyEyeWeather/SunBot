@@ -16,8 +16,8 @@ from discord.ext import commands
 
 import sunbot.weather.Meteo as weather
 from sunbot import sunbot, weather_api_handler, weather_event
-from sunbot.guild import SunGuild
-from sunbot.user import SunUser
+from sunbot.core.guild import SunGuild
+from sunbot.core.user import SunUser
 from sunbot.weather_event import DailyWeatherEvent
 
 
