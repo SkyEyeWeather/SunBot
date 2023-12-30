@@ -11,13 +11,10 @@
 
 import logging
 
-from PIL import (
-    Image as img,
-    ImageDraw,
-    ImageFont as font,
-    UnidentifiedImageError,
-)
-
+from PIL import Image as img
+from PIL import ImageDraw
+from PIL import ImageFont as font
+from PIL import UnidentifiedImageError
 
 # ===============================#
 #       CLASS DEFINITION        #

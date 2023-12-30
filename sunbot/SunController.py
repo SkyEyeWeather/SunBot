@@ -21,9 +21,8 @@ from sunbot.weather_event import DailyWeatherEvent
 
 
 async def _get_period_autocompletion(
-        _interaction: discord.Interaction,
-        current: str
-    ) -> List[app_commands.Choice[str]]:
+    _interaction: discord.Interaction, current: str
+) -> List[app_commands.Choice[str]]:
     """Return period time for autocompletion"""
     choice_list = []
     for period in sunbot.PERIODS:
@@ -265,7 +264,12 @@ class SunController(commands.Cog):
     @app_commands.describe(location_name="Nom de la localité")
     @app_commands.describe(period="Période (aujourd'hui / demain)")
     @app_commands.autocomplete(period=_get_period_autocompletion)
-    async def pluie(self, interaction: discord.Interaction, location_name: str, period : str ="aujourd'hui") -> None:
+    async def pluie(
+        self,
+        interaction: discord.Interaction,
+        location_name: str,
+        period: str = "aujourd'hui",
+    ) -> None:
         """Handle a call to the `pluie` slash command by requesting rain information
         for the specified location name and returning acquired data to discord.
         ## Parameters:
@@ -280,13 +284,23 @@ class SunController(commands.Cog):
         # If no location was provided by the user, use its favorite one:
         if location_name == "":
             location_name = self.usr_dict[interaction.user.id].favLocation
-        logging.info("%d called the command 'pluie' for the location %s and period %s",
-                     interaction.user.id, location_name, sunbot.PERIODS[period])
-        request_response = weather_api_handler.ask_daily_rain(location_name, sunbot.PERIODS[period])
+        logging.info(
+            "%d called the command 'pluie' for the location %s and period %s",
+            interaction.user.id,
+            location_name,
+            sunbot.PERIODS[period],
+        )
+        request_response = weather_api_handler.ask_daily_rain(
+            location_name, sunbot.PERIODS[period]
+        )
         if request_response == {}:
-            logging.error("An error occured when trying to get daily rain informations for the place %s",
-                          location_name)
-            await interaction.response.send_message(f"Humm, quelque chose s'est mal passé en essayant de récupérer les informations de pluie pour {location_name} 😢")
+            logging.error(
+                "An error occured when trying to get daily rain informations for the place %s",
+                location_name,
+            )
+            await interaction.response.send_message(
+                f"Humm, quelque chose s'est mal passé en essayant de récupérer les informations de pluie pour {location_name} 😢"
+            )
             return
         # Build the embed message to send in response to the command call:
         embed2send = weather.createEmbedRainEmbed(request_response, period=period)

@@ -129,7 +129,7 @@ def ask_daily_weather(location_name: str) -> dict:
     return dict2return
 
 
-def ask_daily_rain(location_name : str, period : str = "today") -> dict :
+def ask_daily_rain(location_name: str, period: str = "today") -> dict:
     """Perform a request to the weather API to retrieve hourly rainfall data
     for the current day for the location whose name was specified in argument.
     ## Parameters:
@@ -140,7 +140,7 @@ def ask_daily_rain(location_name : str, period : str = "today") -> dict :
     JSON request response from the weather API, as a dictionnary
     """
     request = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{location_name}/{period}?unitGroup=metric&elements=datetime%2CdatetimeEpoch%2Cprecip%2Cprecipprob%2Cprecipcover%2Cpreciptype%2Csnow%2Csource&include=hours%2Cdays&key={os.environ['idVisualCrossing']}&contentType=json&lang=fr"
-    dict2return = {'address': "", 'rainfall_data' : {}}
+    dict2return = {"address": "", "rainfall_data": {}}
     logging.info("Performing a daily rainfall request for %s", location_name)
     request_response = __perform_request(request)
     if request_response == {}:

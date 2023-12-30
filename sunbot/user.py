@@ -1,10 +1,9 @@
-# =================================
-#   LIBRARIES USED BY THIS CLASS
-# =================================
+""" Sunbot users module"""
 
 import json
 import logging
 import os
+from pathlib import Path
 
 # ================================
 #        CLASS DEFINITION
@@ -16,10 +15,10 @@ class SunUser:
     identify it in discord API. This can be used to send it a message for example.
     """
 
-    usr_backup_path = ""
+    backup_dir = None
 
     def __init__(
-        self, id: int, favLocation: str = "Toulouse", mp: bool = False
+        self, user_id: int, fav_location: str = "Toulouse", mp: bool = False
     ) -> None:
         """Constructor for this class. A SunBot user is defined by its Discord ID.
         Other informations can be provided in arguments, such as if the user authorize private
@@ -28,36 +27,35 @@ class SunUser:
         between the user and its backup file is done thanks to the user ID
         (so ID is defined as a constant and cannot be modified).
         ## Parameters:
-        * `id`: discord identifiant of the SunBot user to create
-        * `favLocation`: optional, string indicating the favourite location name
+        * `user_id`: discord identifiant of the SunBot user to create
+        * `fav_location`: optional, string indicating the favourite location name
         for user to create. Default to Toulouse
         * `mp`: optional, boolean indicating if the user allows private messages
         from the SunBot. Default value is `False`
         """
-        object.__setattr__(self, "id", id)
-        object.__setattr__(self, "favLocation", favLocation)
-        object.__setattr__(self, "mp", mp)
+
+        self.user_id = user_id
+        self.fav_location = fav_location
+        self.mp = mp
 
         # Create a backup repository, if it was not already created:
-        if SunUser.usr_backup_path == "":
+        if not SunUser.backup_dir:
             logging.warning(
                 "Users backup directory was not set. Use a default repository."
             )
-            SunUser.usr_backup_path = "./save/usr/"
-        if not os.path.exists(SunUser.usr_backup_path):
-            logging.info(
-                "Repertory %s doesn't exist. Creating it.", SunUser.usr_backup_path
-            )
-            os.makedirs(SunUser.usr_backup_path)
-
+            SunUser.backup_dir = Path("./save/usr/")
+        if not os.path.exists(SunUser.backup_dir):
+            logging.info("Repertory %s doesn't exist. Creating it.", SunUser.backup_dir)
+            os.makedirs(SunUser.backup_dir)
+        self.backup = SunUser.backup_dir / Path(f"{self.user_id}.json")
         # If this user was already created by the past, load its data from the corresponding
         # file instead of values passed in arguments of the constructor:
-        if os.path.isfile(f"{SunUser.usr_backup_path}{id}.json"):
+        if os.path.isfile(f"{SunUser.backup_dir}{user_id}.json"):
             logging.info(
-                f"User n°{id} already exists. Loading data from existing file."
+                f"User n°{user_id} already exists. Loading data from existing file."
             )
             with open(
-                f"{self.usr_backup_path}{id}.json", "r", encoding="UTF-8"
+                f"{self.backup_dir}{user_id}.json", "r", encoding="UTF-8"
             ) as userFile:
                 try:
                     userData = json.load(userFile)
@@ -65,11 +63,11 @@ class SunUser:
                     object.__setattr__(self, "mp", userData["mp"])
                 except json.decoder.JSONDecodeError:
                     logging.error(
-                        f"An error occured when retrieving data for user n°{id}. File may be corrupted"
+                        f"An error occured when retrieving data for user n°{user_id}. File may be corrupted"
                     )
         # Else, create a new user with a new corresponding backup file:
         else:
-            logging.info(f"Creating user n°{id}")
+            logging.info(f"Creating user n°{user_id}")
             self.save_usr_data()
 
     def __setattr__(self, __name: str, __value) -> None:
@@ -106,8 +104,8 @@ class SunUser:
     def save_usr_data(self) -> None:
         """Method used to save user's data into corresponding backup file."""
         with open(
-            f"{SunUser.usr_backup_path}{self.id}.json", "w", encoding="UTF-8"
+            f"{SunUser.backup_dir}{self.id}.json", "w", encoding="UTF-8"
         ) as userFile:
             jsonData = json.dumps(self.__dict__, ensure_ascii=False, indent=2)
             userFile.write(jsonData)
-        os.chmod(f"{SunUser.usr_backup_path}{self.id}.json", mode=0o777)
+        os.chmod(f"{SunUser.backup_dir}{self.id}.json", mode=0o777)

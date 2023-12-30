@@ -175,7 +175,9 @@ class SunGuild:
             )
             return False
         self.__guild_webhooks[webhook_link] = enabled
-        logging.info("Webhook %s is now enabled in the server %d", webhook_link, self.id)
+        logging.info(
+            "Webhook %s is now enabled in the server %d", webhook_link, self.id
+        )
         return True
 
     def save_srv_data(self):
