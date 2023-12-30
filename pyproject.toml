@@ -12,6 +12,8 @@ nest-asyncio = "^1.5.5"
 numpy = "^1.23.2"
 Pillow = "^10.0.1"
 pytz = "^2023.3"
+pylcs = "^0.1.1"
+levenshtein = "^0.23.0"
 
 [tool.poetry.dev-dependencies]
 
