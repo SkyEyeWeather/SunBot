@@ -2,7 +2,7 @@
 utils.py
 """
 
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 
 import Levenshtein as levenshtein
 import pylcs
@@ -142,7 +142,8 @@ def get_best_items(
 
 
 def unflatten_dict(
-    flat_dict: dict, sep: str = "/",
+    flat_dict: dict,
+    sep: str = "/",
 ) -> dict:
     """Unflatten specified `input_dict` at the indicated max_depth
 
