@@ -7,9 +7,7 @@ import requests
 from PIL import ImageFont
 
 from sunbot import sunbot
-from sunbot.apiHandler.VisualCrossingHandler import VisualCrossingHandler
 from sunbot.SunImager import SunImage
-from sunbot.WebhookEvent import WebhookEvent
 
 # ===========================================================#
 #           CONSTANTES VARIABLES DECLARATIONS               #
@@ -788,91 +786,3 @@ def create_daily_weather_img(day_info: dict, path: str) -> None:
     )
     # Save the image:
     weatherImage.saveImage(f"{path}/{sunbot.DAILY_IMAGE_NAME}")
-
-
-class AlerteMeteo(WebhookEvent):
-    """Classe permettant de récupérer les alertes météo générées par l'API et de
-    les transmettre sous forme de Webhook aux serveurs Discord reliés"""
-
-    def __init__(self, apiHandler: VisualCrossingHandler):
-        WebhookEvent.__init__(
-            self,
-            "https://api.openweathermap.org/data/2.5/onecall?lat=43.604259&lon=1.44367&" +
-            "exclude=current,minutely,hourly,daily&appid={}&lang=fr".format(
-                os.environ["idOpenWeather"]
-            ),
-            apiHandler,
-        )
-
-        # Attributs de la classe
-        # Nombre de requêtes consécutives ne renvoyant pas d'alerte en cours avant de considérer
-        # la levée de l'alerte:
-        self.decompteurStopAlerte = 0.0
-
-    def run(self):
-        while True:
-            time.sleep(300)
-            reponse = requests.get(self.url)
-            if reponse.status_code != 200:
-                print(
-                    "AlerteMeteo : Une erreur est survenue lors du traitement de la requête",
-                    "de récupération d'alerte météo. code erreur = {}".format(
-                        reponse.status_code
-                    ),
-                )
-            else:
-                reponseJson = reponse.json()
-                # S'il n'y a aucune alerte en cours sur Toulouse :
-                if reponseJson.get("alerts", None) is None:
-                    print("AlerteMeteo : Aucune alerte en cours sur Toulouse")
-                    # Décompte de 1 pour indiquer qu'aucune alerte n'a été renvoyée pour
-                    # la requête en cours
-                    self.decompteurStopAlerte -= 1
-                else:
-                    # Si l'alerte vient de débuter on envoie un webHook :
-                    if self.decompteurStopAlerte <= 0:
-                        self.decompteurStopAlerte = 2
-                        # Création de l'embed à envoyer
-                        alerteToSend = discord.Embed(
-                            title="Alerte météo",
-                            description=reponseJson["alerts"][0]["event"],
-                            color=0x77B5FE,
-                        )
-
-                        alerteToSend.add_field(
-                            name="Début du phénomène :",
-                            value=datetime.fromtimestamp(
-                                reponseJson["alerts"][0]["start"]
-                            ),
-                            inline=False,
-                        )
-                        alerteToSend.add_field(
-                            name="Fin du phénomène :",
-                            value=datetime.fromtimestamp(
-                                reponseJson["alerts"][0]["end"]
-                            ),
-                            inline=False,
-                        )
-                        alerteToSend.add_field(
-                            name="Description :",
-                            value=reponseJson["alerts"][0]["description"],
-                            inline=False,
-                        )
-                        # Envoie de l'embed sur les différents serveurs reliés au bot:
-                        for webhook in self.webhooksList:
-                            time.sleep(1)
-                            logoMeteoFrance = discord.File(
-                                "./Data/Images/logoMeteoFrance.png",
-                                "logoMeteoFrance.png",
-                            )
-                            alerteToSend.set_thumbnail(
-                                url="attachment://logoMeteoFrance.png"
-                            )
-                            alerteToSend.set_footer(
-                                text="Source : Météo France via OpenWeather"
-                            )
-                            webhook.send(file=logoMeteoFrance, embed=alerteToSend)
-                    # Si l'alerte a déjà été signalée :
-                    else:
-                        self.decompteurStopAlerte = 2
-                        print("AlerteMeteo : Alerte en cours déjà signalée")
