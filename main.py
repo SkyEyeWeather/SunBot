@@ -14,12 +14,12 @@ async def main():
     """Entry point of the program"""
     logging.basicConfig(level=logging.INFO)
 
-    bot = commands.Bot(command_prefix='+', intents=discord.Intents.all())
+    bot = commands.Bot(command_prefix="+", intents=discord.Intents.all())
     test_mode = "FLY_ALLOC_ID" not in os.environ
 
     await bot.add_cog(SunController(bot=bot, test_mode=test_mode))
     # run the bot until shut down
-    await bot.start(os.environ['token'])
+    await bot.start(os.environ["token"])
 
     logging.info("bot was disconnected")
 

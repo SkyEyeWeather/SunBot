@@ -341,21 +341,21 @@ def generateWeatherImage(weatherConditionCode: str) -> SunImage:
     # Create background image according to the current weather conditions:
     weatherImage = SunImage(getPathImageWeatherType(weatherConditionCode))
     # Add mask to the image:
-    weatherImage.addMask(
+    weatherImage.add_mask(
         "BLACK", 180, (weatherImage.width // 2 + 40, weatherImage.height), (0, 0)
     )
     # Add the weather icon according to the current weather conditions:
-    weatherImage.addIcon(
+    weatherImage.add_icon(
         getIconPathWeatherType(weatherConditionCode),
         sunbot.MAIN_ICON_SIZE,
         (350, sunbot.UP_ALIGNMENT),
     )
-    weatherImage.addIcon(
+    weatherImage.add_icon(
         f"{sunbot.ICON_DIR_PATH}logoVC.jpeg",
         sunbot.ICON_SIZE,
         (5, weatherImage.height - 45),
     )
-    weatherImage.drawText(
+    weatherImage.draw_txt(
         "Données de l'API VisualCrossing", smallFont, (60, weatherImage.height - 40)
     )
     return weatherImage
@@ -371,46 +371,46 @@ def addPrecipData(request_response: dict, weather_image: SunImage) -> SunImage:
     Weather image with added precipitations data, for chained calls"""
     # If excepted precipitation type is rain, freezing or ice:
     if request_response["preciptype"] in ["rain", "freezing", "ice"]:
-        weather_image.addIcon(
+        weather_image.add_icon(
             f"{sunbot.ICON_DIR_PATH}water-drop.png",
             sunbot.ICON_SIZE,
             (sunbot.LEFT_ALIGNMENT, sunbot.ITEMS_UP_ALIGNMENT),
         )
-        weather_image.drawText(
+        weather_image.draw_txt(
             f"{request_response['precipprob']}%",
             mediumFont,
             (sunbot.TXT_VERTICAL_ALIGNMENT, sunbot.ITEMS_UP_ALIGNMENT),
         )
-        weather_image.addIcon(
+        weather_image.add_icon(
             f"{sunbot.ICON_DIR_PATH}pluviometer.png",
             sunbot.ICON_SIZE,
             (sunbot.CENTRE_ALIGNMENT, sunbot.ITEMS_UP_ALIGNMENT),
         )
         precip = request_response["precip"]
         if precip > 0.0:
-            weather_image.drawText(
+            weather_image.draw_txt(
                 f"{precip}mm",
                 mediumFont,
                 (sunbot.TXT_CENTRAL_VERTICAL_ALIGNMENT, sunbot.ITEMS_UP_ALIGNMENT),
             )
     # If excepted precipitation type is snow:
     elif request_response["preciptype"] == "snow":
-        weather_image.addIcon(
+        weather_image.add_icon(
             f"{sunbot.ICON_DIR_PATH}snowflake.png",
             sunbot.ICON_SIZE,
             (sunbot.LEFT_ALIGNMENT, sunbot.ITEMS_UP_ALIGNMENT),
         )
-        weather_image.drawText(
+        weather_image.draw_txt(
             f"{request_response['precipprob']}%",
             mediumFont,
             (sunbot.TXT_VERTICAL_ALIGNMENT, sunbot.ITEMS_UP_ALIGNMENT),
         )
-        weather_image.addIcon(
+        weather_image.add_icon(
             f"{sunbot.ICON_DIR_PATH}snow-depth.png",
             sunbot.ICON_SIZE,
             (sunbot.CENTRE_ALIGNMENT, sunbot.ITEMS_UP_ALIGNMENT),
         )
-        weather_image.drawText(
+        weather_image.draw_txt(
             f"{request_response['snowdepth']}+{request_response['snow']}",
             mediumFont,
             (sunbot.TXT_CENTRAL_VERTICAL_ALIGNMENT, sunbot.ITEMS_UP_ALIGNMENT),
@@ -428,12 +428,12 @@ def addWindData(request_response: dict, weather_image: SunImage) -> SunImage:
     Weather image with wind data added, for chained calls"""
     # if wind speed data is specified:
     if request_response["windspeed"] is not None:
-        weather_image.addIcon(
+        weather_image.add_icon(
             f"{sunbot.ICON_DIR_PATH}wind.png",
             sunbot.ICON_SIZE,
             (sunbot.LEFT_ALIGNMENT, sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT),
         )
-        weather_image.drawText(
+        weather_image.draw_txt(
             f"{request_response['windspeed']}km/h",
             mediumFont,
             (
@@ -441,13 +441,13 @@ def addWindData(request_response: dict, weather_image: SunImage) -> SunImage:
                 sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT,
             ),
         )
-        weather_image.addIcon(
+        weather_image.add_icon(
             f"{sunbot.ICON_DIR_PATH}windDirection.png",
             sunbot.ICON_SIZE,
             (sunbot.LEFT_ALIGNMENT, 2 * sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT),
             360 - request_response["winddir"],
         )
-        weather_image.drawText(
+        weather_image.draw_txt(
             f"{degToStrDirectVent(request_response['winddir'])[1]}",
             mediumFont,
             (
@@ -457,12 +457,12 @@ def addWindData(request_response: dict, weather_image: SunImage) -> SunImage:
         )
     # If a wind gust data is specified:
     if request_response["windgust"] is not None:
-        weather_image.addIcon(
+        weather_image.add_icon(
             f"{sunbot.ICON_DIR_PATH}wind.png",
             sunbot.ICON_SIZE,
             (sunbot.CENTRE_ALIGNMENT, sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT),
         )
-        weather_image.drawText(
+        weather_image.draw_txt(
             f"{request_response['windgust']}",
             mediumFont,
             (
@@ -481,12 +481,12 @@ def addHumidityData(request_response: dict, weather_image: SunImage) -> None:
     * `weather_image`: image where add humidity data
     ## Return value:
     Weather image with humidity data added, for chained calls"""
-    weather_image.addIcon(
+    weather_image.add_icon(
         f"{sunbot.ICON_DIR_PATH}humidity.png",
         sunbot.ICON_SIZE,
         (sunbot.LEFT_ALIGNMENT, 5 * sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT),
     )
-    weather_image.drawText(
+    weather_image.draw_txt(
         f"{request_response['humidity']}%",
         mediumFont,
         (
@@ -505,12 +505,12 @@ def createCurrentWeatherImage(currentWeather: dict, path: str) -> None:
     # Create a basic image according to the current weather conditions:
     currentWeatherImage = generateWeatherImage(currentWeather["conditions"])
     # Add temperature data to the image:
-    currentWeatherImage.drawText(
+    currentWeatherImage.draw_txt(
         f"{round(currentWeather['temp'], 1)}°C",
         bigFont,
         (sunbot.LEFT_ALIGNMENT, sunbot.UP_ALIGNMENT),
     )
-    currentWeatherImage.drawText(
+    currentWeatherImage.draw_txt(
         f"ressenti {round(currentWeather['feelslike'], 1)}°C",
         mediumFont,
         (sunbot.LEFT_ALIGNMENT, sunbot.MIN_MAX_TEMP_ALIGNMENT),
@@ -520,12 +520,12 @@ def createCurrentWeatherImage(currentWeather: dict, path: str) -> None:
     # Add wind data to the image:
     addWindData(currentWeather, currentWeatherImage)
     # Add atmospheric data to the image:
-    currentWeatherImage.addIcon(
+    currentWeatherImage.add_icon(
         f"{sunbot.ICON_DIR_PATH}pressure.png",
         sunbot.ICON_SIZE,
         (sunbot.LEFT_ALIGNMENT, 3 * sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT),
     )
-    currentWeatherImage.drawText(
+    currentWeatherImage.draw_txt(
         f"{currentWeather['pressure']}hPa",
         mediumFont,
         (
@@ -533,12 +533,12 @@ def createCurrentWeatherImage(currentWeather: dict, path: str) -> None:
             3 * sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT,
         ),
     )
-    currentWeatherImage.addIcon(
+    currentWeatherImage.add_icon(
         f"{sunbot.ICON_DIR_PATH}visibility.png",
         sunbot.ICON_SIZE,
         (sunbot.CENTRE_ALIGNMENT, 3 * sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT),
     )
-    currentWeatherImage.drawText(
+    currentWeatherImage.draw_txt(
         f"{int(currentWeather['visibility'] * 1000)}m",
         mediumFont,
         (
@@ -546,12 +546,12 @@ def createCurrentWeatherImage(currentWeather: dict, path: str) -> None:
             3 * sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT,
         ),
     )
-    currentWeatherImage.addIcon(
+    currentWeatherImage.add_icon(
         f"{sunbot.ICON_DIR_PATH}rays.png",
         sunbot.ICON_SIZE,
         (sunbot.LEFT_ALIGNMENT, 4 * sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT),
     )
-    currentWeatherImage.drawText(
+    currentWeatherImage.draw_txt(
         f"{currentWeather['uvindex']}",
         mediumFont,
         (
@@ -559,12 +559,12 @@ def createCurrentWeatherImage(currentWeather: dict, path: str) -> None:
             4 * sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT,
         ),
     )
-    currentWeatherImage.addIcon(
+    currentWeatherImage.add_icon(
         f"{sunbot.ICON_DIR_PATH}cloudcover.png",
         sunbot.ICON_SIZE,
         (sunbot.CENTRE_ALIGNMENT, 4 * sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT),
     )
-    currentWeatherImage.drawText(
+    currentWeatherImage.draw_txt(
         f"{currentWeather['cloudcover']}%",
         mediumFont,
         (
@@ -575,7 +575,7 @@ def createCurrentWeatherImage(currentWeather: dict, path: str) -> None:
     # Add humidity data to the image:
     addHumidityData(currentWeather, currentWeatherImage)
 
-    currentWeatherImage.saveImage(
+    currentWeatherImage.save_img(
         f"{sunbot.CURRENT_WEATHER_IMAGE_PATH}{sunbot.CURRENT_WEATHER_IMAGE_NAME}"
     )
 
@@ -627,103 +627,103 @@ def create_daily_weather_img(day_info: dict, path: str) -> None:
     # Create background image according to the weather condition for the day:
     weatherImage = SunImage(getPathImageWeatherType(day_info["conditions"]))
     # Add mask to the image:
-    weatherImage.addMask(
+    weatherImage.add_mask(
         "BLACK", 180, (weatherImage.width // 2 + 40, weatherImage.height), (0, 0)
     )
     # Add weather icon according to the forecast daily weather :
-    weatherImage.addIcon(
+    weatherImage.add_icon(
         getIconPathWeatherType(day_info["conditions"]),
         sunbot.MAIN_ICON_SIZE,
         (350, sunbot.UP_ALIGNMENT),
     )
     # Add icons to the daily weather image:
-    weatherImage.addIcon(
+    weatherImage.add_icon(
         f"{sunbot.ICON_DIR_PATH}water-drops.png",
         sunbot.ICON_SIZE,
         (sunbot.LEFT_ALIGNMENT, sunbot.ITEMS_UP_ALIGNMENT),
     )
-    weatherImage.addIcon(
+    weatherImage.add_icon(
         f"{sunbot.ICON_DIR_PATH}pluviometer.png",
         sunbot.ICON_SIZE,
         (sunbot.CENTRE_ALIGNMENT, sunbot.ITEMS_UP_ALIGNMENT),
     )
-    weatherImage.addIcon(
+    weatherImage.add_icon(
         f"{sunbot.ICON_DIR_PATH}wind.png",
         sunbot.ICON_SIZE,
         (sunbot.LEFT_ALIGNMENT, sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT),
     )
-    weatherImage.addIcon(
+    weatherImage.add_icon(
         f"{sunbot.ICON_DIR_PATH}windDirection.png",
         sunbot.ICON_SIZE,
         (sunbot.CENTRE_ALIGNMENT, sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT),
         360 - day_info["winddir"],
     )
-    weatherImage.addIcon(
+    weatherImage.add_icon(
         f"{sunbot.ICON_DIR_PATH}pressure.png",
         sunbot.ICON_SIZE,
         (sunbot.LEFT_ALIGNMENT, 2 * sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT),
     )
-    weatherImage.addIcon(
+    weatherImage.add_icon(
         f"{sunbot.ICON_DIR_PATH}humidity.png",
         sunbot.ICON_SIZE,
         (sunbot.LEFT_ALIGNMENT, 3 * sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT),
     )
-    weatherImage.addIcon(
+    weatherImage.add_icon(
         f"{sunbot.ICON_DIR_PATH}rays.png",
         sunbot.ICON_SIZE,
         (sunbot.LEFT_ALIGNMENT, 4 * sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT),
     )
-    weatherImage.addIcon(
+    weatherImage.add_icon(
         f"{sunbot.ICON_DIR_PATH}sunrise.png",
         sunbot.ICON_SIZE,
         (sunbot.LEFT_ALIGNMENT, 5 * sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT),
     )
-    weatherImage.addIcon(
+    weatherImage.add_icon(
         f"{sunbot.ICON_DIR_PATH}sunset.png",
         sunbot.ICON_SIZE,
         (sunbot.CENTRE_ALIGNMENT, 5 * sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT),
     )
-    weatherImage.addIcon(
+    weatherImage.add_icon(
         f"{sunbot.ICON_DIR_PATH}logoVC.jpeg",
         sunbot.ICON_SIZE,
         (5, weatherImage.height - 45),
     )
     # Write text on the image:
-    weatherImage.drawText(
+    weatherImage.draw_txt(
         f"{round(day_info['temp'], 1)}°C",
         bigFont,
         (sunbot.LEFT_ALIGNMENT, sunbot.UP_ALIGNMENT),
     )
-    weatherImage.drawText(
+    weatherImage.draw_txt(
         f"{round(day_info['tempmin'], 1)}°C",
         mediumFont,
         (sunbot.LEFT_ALIGNMENT, sunbot.MIN_MAX_TEMP_ALIGNMENT),
         (0, 63, 255),
     )
-    weatherImage.drawText(
+    weatherImage.draw_txt(
         f"{round(day_info['tempmax'], 1)}°C",
         mediumFont,
         (200, sunbot.MIN_MAX_TEMP_ALIGNMENT),
         "ORANGE",
     )
-    weatherImage.drawText(
+    weatherImage.draw_txt(
         f"{day_info['precipprob']}%",
         mediumFont,
         (sunbot.TXT_VERTICAL_ALIGNMENT, sunbot.ITEMS_UP_ALIGNMENT),
     )
     precip = day_info["precip"]
     if precip > 0:
-        weatherImage.drawText(
+        weatherImage.draw_txt(
             f"{precip}mm",
             mediumFont,
             (sunbot.TXT_CENTRAL_VERTICAL_ALIGNMENT, sunbot.ITEMS_UP_ALIGNMENT),
         )
-    weatherImage.drawText(
+    weatherImage.draw_txt(
         f"{round(day_info['windspeed'], 2)}km/h",
         mediumFont,
         (sunbot.TXT_VERTICAL_ALIGNMENT, sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT),
     )
-    weatherImage.drawText(
+    weatherImage.draw_txt(
         f"{degToStrDirectVent(day_info['winddir'])[1]}",
         mediumFont,
         (
@@ -731,7 +731,7 @@ def create_daily_weather_img(day_info: dict, path: str) -> None:
             sunbot.ITEM_HEIGHT + sunbot.ITEMS_UP_ALIGNMENT,
         ),
     )
-    weatherImage.drawText(
+    weatherImage.draw_txt(
         f"{day_info['pressure']}hPa",
         mediumFont,
         (
@@ -741,7 +741,7 @@ def create_daily_weather_img(day_info: dict, path: str) -> None:
             + sunbot.TXT_HORIZONTAL_ALIGNMENT,
         ),
     )
-    weatherImage.drawText(
+    weatherImage.draw_txt(
         f"{day_info['humidity']}%",
         mediumFont,
         (
@@ -751,7 +751,7 @@ def create_daily_weather_img(day_info: dict, path: str) -> None:
             + sunbot.TXT_HORIZONTAL_ALIGNMENT,
         ),
     )
-    weatherImage.drawText(
+    weatherImage.draw_txt(
         f"{day_info['uvindex']}",
         mediumFont,
         (
@@ -761,7 +761,7 @@ def create_daily_weather_img(day_info: dict, path: str) -> None:
             + sunbot.TXT_HORIZONTAL_ALIGNMENT,
         ),
     )
-    weatherImage.drawText(
+    weatherImage.draw_txt(
         f"{day_info['sunrise'][0 : 5]}",
         mediumFont,
         (
@@ -771,7 +771,7 @@ def create_daily_weather_img(day_info: dict, path: str) -> None:
             + sunbot.TXT_HORIZONTAL_ALIGNMENT,
         ),
     )
-    weatherImage.drawText(
+    weatherImage.draw_txt(
         f"{day_info['sunset'][0 : 5]}",
         mediumFont,
         (
@@ -781,8 +781,8 @@ def create_daily_weather_img(day_info: dict, path: str) -> None:
             + sunbot.TXT_HORIZONTAL_ALIGNMENT,
         ),
     )
-    weatherImage.drawText(
+    weatherImage.draw_txt(
         "Données de l'API VisualCrossing", smallFont, (60, weatherImage.height - 40)
     )
     # Save the image:
-    weatherImage.saveImage(f"{path}/{sunbot.DAILY_IMAGE_NAME}")
+    weatherImage.save_img()(f"{path}/{sunbot.DAILY_IMAGE_NAME}")

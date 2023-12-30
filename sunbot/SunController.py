@@ -5,26 +5,25 @@
 
 import asyncio
 import logging
-import typing
-from http.client import HTTPException
-from typing import Dict, Optional
+from pathlib import Path
+from typing import Dict, List, Optional
 
 import discord
 import numpy as np
-from discord import app_commands
+from discord import HTTPException, app_commands
 from discord.ext import commands
 
 import sunbot.weather.Meteo as weather
 from sunbot import sunbot, weather_event
-from sunbot.apis.weather import VisualCrossingHandler
-from sunbot.SunServer import SunServer
-from sunbot.SunUser import SunUser
+from sunbot.core.guild import SunGuild
+from sunbot.core.user import SunUser
 from sunbot.weather_event import DailyWeatherEvent
+from sunbot.apis.weather import VisualCrossingHandler
 
 
 async def _get_period_autocompletion(
     _interaction: discord.Interaction, current: str
-) -> typing.List[app_commands.Choice[str]]:
+) -> List[app_commands.Choice[str]]:
     """Return period time for autocompletion"""
     choice_list = []
     for period in sunbot.PERIODS:
@@ -40,7 +39,7 @@ async def _get_period_autocompletion(
 
 class SunController(commands.Cog):
     """This class is the core class of the SunBot. This is the class that makes
-    the link between server that contains users, the discord API, the bot weather part
+    the link between guild that contains users, the discord API, the bot weather part
     and the weather API handler
     """
 
@@ -61,13 +60,13 @@ class SunController(commands.Cog):
             self.data_mount_pt = "./data/"
         else:
             self.data_mount_pt = "/data/"
-        SunUser.usr_backup_path = self.data_mount_pt + "save/usr/"
-        SunServer.srv_backup_path = self.data_mount_pt + "save/srv/"
+        SunUser.backup_dir = Path(self.data_mount_pt + "save/usr/")
+        SunGuild.backup_dir = Path(self.data_mount_pt + "save/srv/")
         # Dict containing all Discord users who can use the bot:
         self.usr_dict: Dict[int, SunUser] = {}
-        # Dict containing all the servers to which the bot belongs
-        self.srv_dict: Dict[int, SunServer] = {}
-        # api handlers
+        # Dict containing all the guilds to which the bot belongs
+        self.srv_dict: Dict[int, SunGuild] = {}
+        # apu handlers
         self.vc_handler = VisualCrossingHandler()
         # Handler for daily weather events
         self.daily_weather_handler = DailyWeatherEvent(
@@ -83,16 +82,16 @@ class SunController(commands.Cog):
         logging.info("Synchronize bot commands tree to discord")
         await self.bot.tree.sync()
         logging.info("Loading user data")
-        # For all servers known by the bot:
-        for server in self.bot.guilds:
-            self.srv_dict[server.id] = SunServer(server.id)
-            # For all members in the current server (bot users):
-            for user in server.members:
+        # For all guilds known by the bot:
+        for guild in self.bot.guilds:
+            self.srv_dict[guild.id] = SunGuild(guild.id)
+            # For all members in the current guild (bot users):
+            for user in guild.members:
                 current_usr = SunUser(user.id)
                 # If the current user was not already added to the known users dict:
                 if user.id not in self.usr_dict:
                     self.usr_dict[user.id] = current_usr
-                self.srv_dict[server.id].addUser(current_usr)
+                self.srv_dict[guild.id].add_member(current_usr)
         # load daily weather data
         await self.daily_weather_handler.load_locations_subscribers(
             self.bot.get_user,
@@ -106,40 +105,42 @@ class SunController(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member) -> None:
-        """This method is called when a new member joins a server where the bot
+        """This method is called when a new member joins a guild where the bot
         belongs
         ## Parameter:
-        * `member` : reference to the new member that has joined a server known
+        * `member` : reference to the new member that has joined a guild known
         by the bot
         ## Return value:
         not applicable
         """
-        logging.info("%s joins the server %s", member.name, member.guild.name)
+        logging.info("%s joins the guild %s", member.name, member.guild.name)
         # Create a new user:
         new_usr = SunUser(member.id)
         # If user is already known by the bot, for example because he / she is present
-        # on another server where the bot is, do not add him to the list of bot users:
+        # on another guild where the bot is, do not add him to the list of bot users:
         if member.id not in self.usr_dict:
             self.usr_dict[member.id] = new_usr
-        # Add new user to the corresponding server:
+        # Add new user to the corresponding guild:
         self.srv_dict[member.guild.id].addUser(new_usr)
-        # Send a welcome message to the new user on system channel of the server:
+        # Send a welcome message to the new user on system channel of the guild:
         system_channel = member.guild.system_channel
-        # If no system channel was set on the server, try to find another channel:
+        # If no system channel was set on the guild, try to find another channel:
         if system_channel is None:
             logging.warning(
-                "No system channel was found for the server %s. Trying to send on another channel",
+                "No system channel was found for the guild %s. Trying to send on another channel",
                 member.guild.name,
             )
             system_channel = member.guild.channels[0]
         system_channel.send(
-            f"Bienvenue sur le serveur {member.metion}! Je suis SunBot, bot spécialiste de la météo (ou pas)! Tu peux utiliser +help dans le channel des bots pour en savoir plus sur moi!"
+            f"Bienvenue sur le serveur {member.mention}!"
+            " Je suis SunBot, bot spécialiste de la météo (ou pas)!"
+            " Tu peux utiliser +help dans le channel des bots pour en savoir plus sur moi!"
         )
         new_usr.save_usr_data()
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
-        """This method is called when a message is published on one of the server the bot belongs
+        """This method is called when a message is published on one of the guild the bot belongs
         or in PM
         ## Parameters:
         * `message` : discord message sent
@@ -152,7 +153,7 @@ class SunController(commands.Cog):
             logging.info("A private message was received")
             return  # Nothing to do
         msg_srv = self.srv_dict[message.guild.id]
-        logging.info("A message was received on server n°%d", msg_srv.id)
+        logging.info("A message was received on guild n°%d", msg_srv.id)
         # Commands must be processed first
         await self.bot.process_commands(message)
 
@@ -217,7 +218,7 @@ class SunController(commands.Cog):
 
     @app_commands.command(
         name="ping",
-        description="Si je suis réveillé, je réponds pong! Sinon... et bien c'est que je dors 😴",
+        description="Si je suis réveillé, je réponds pong! Sinon...et bien c'est que je dors 😴",
     )
     async def ping(self, interaction: discord.Interaction) -> None:
         """Send a string to indicate that the bot is alive
@@ -315,42 +316,42 @@ class SunController(commands.Cog):
         self, interaction: discord.Interaction, location_name: str
     ) -> None:
         """Handle the call to the `daily_weather` slash command by adding or
-        removing a server to / from the list of subscribing servers. This command
+        removing a guild to / from the list of subscribing guilds. This command
         can only be used by an user that have admin permissions on the guild where
         the command was called.
         ## Parameters:
         * `interaction`: discord interaction which contains context data
-        * `location_name`: location to which the server have to be add / remove
+        * `location_name`: location to which the guild have to be add / remove
         ## Return value:
         not applicable
         """
-        server_id = interaction.guild_id
+        guild_id = interaction.guild_id
         # command can only be used by an admin of the guild that called it
         if not interaction.user.guild_permissions.administrator:
             return await interaction.response.send_message(
                 "Seul les administrateurs du serveur sont autorisés à utiliser cette commande!"
             )
-        # If daily weather for specified location and server was already set:
+        # If daily weather for specified location and guild was already set:
         if await self.daily_weather_handler.is_sub2location(
-            weather_event.SERVER_SUB_TYPE, server_id, location_name
+            weather_event.SERVER_SUB_TYPE, guild_id, location_name
         ):
             # If specified interaction is the same as the current registered interaction
-            # for current server and location name:
+            # for current guild and location name:
             registered_entity = await self.daily_weather_handler.get_sub_entity(
-                weather_event.SERVER_SUB_TYPE, server_id, location_name
+                weather_event.SERVER_SUB_TYPE, guild_id, location_name
             )
             # If the bot already sends daily weather on current channel, disable the sending
             if interaction.channel_id == registered_entity.id:
                 await self.daily_weather_handler.del_sub_from_location(
-                    weather_event.SERVER_SUB_TYPE, server_id, location_name
+                    weather_event.SERVER_SUB_TYPE, guild_id, location_name
                 )
                 await interaction.response.send_message(
                     f"Bien compris, je n'enverrai plus la météo quotidienne pour {location_name} 😀"
                 )
                 logging.info(
-                    "Daily weather was disabled for the location %s on the server n°%d",
+                    "Daily weather was disabled for the location %s on the guild n°%d",
                     location_name,
-                    server_id,
+                    guild_id,
                 )
             # Else replace registered interaction with the new one:
             else:
@@ -363,7 +364,7 @@ class SunController(commands.Cog):
                 logging.info(
                     "Daily weather for location %s on the server n°%d was updated with a new channel",
                     location_name,
-                    server_id,
+                    guild_id,
                 )
         # If daily weather for specified location and server is not set:
         else:
@@ -452,7 +453,7 @@ class SunController(commands.Cog):
     @app_commands.describe(msg="message à envoyer")
     @app_commands.guilds(discord.Object(id=726063782606143618))
     async def global_info(self, interaction: discord.Interaction, msg: str) -> None:
-        """Send a message to all server to which the bot belongs
+        """Send a message to all the guilds to which the bot belongs
         ## Parameters:
         * `interaction`: discord interaction which contains context data
         ## Return value:
@@ -481,7 +482,7 @@ class SunController(commands.Cog):
             logging.info("Saving data for user n°%d", usr.id)
             usr.save_usr_data()
         for srv in self.srv_dict.values():
-            logging.info("Saving data for server n°%d", srv.id)
+            logging.info("Saving data for guild n°%d", srv.id)
             srv.save_srv_data()
         await self.daily_weather_handler.save_locations_subscribers()
 
@@ -498,11 +499,11 @@ class SunController(commands.Cog):
             await ctx.message.delete()
         except discord.Forbidden:
             logging.error(
-                "The bot doesn't have the permissions to delete a message on the server %s",
+                "The bot doesn't have the permissions to delete a message on the guild %s",
                 ctx.guild.name,
             )
         except (discord.NotFound, HTTPException):
             logging.error(
-                "The message to be deleted was not found on the server %s",
+                "The message to be deleted was not found on the guild %s",
                 ctx.guild.name,
             )
