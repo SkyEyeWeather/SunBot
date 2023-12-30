@@ -1,4 +1,4 @@
-""" Sunbot users module"""
+"""Sunbot users module"""
 
 import json
 import logging
@@ -32,7 +32,6 @@ class SunUser:
         * `mp`: optional, boolean indicating if the user allows private messages
         from the SunBot. Default value is `False`
         """
-
         self.__id = usr_id
         self.fav_location = fav_location
         self.mp = mp
@@ -83,7 +82,6 @@ class SunUser:
         ## Return value:
         `True` if the specified object and this user are equal, `False` otherwise
         """
-
         # If specified object is not a sunbot user, return false:
         if not isinstance(__o, SunUser):
             return False

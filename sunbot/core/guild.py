@@ -1,4 +1,4 @@
-""" Sunbot guild module"""
+"""Sunbot guild module"""
 
 import json
 import logging
@@ -67,7 +67,6 @@ class SunGuild:
         ## Return value:
         `True` if the specified object to this instance, `False` otherwise
         """
-
         if not isinstance(__o, SunGuild):
             return False
         # Two guilds are equal if they have the same ID:
