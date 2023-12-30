@@ -188,13 +188,14 @@ class SunImage:
         # Write the text on this image :
         self.drawTool.text(position, text, color, font=textFont)
 
-    def saveImage(self, saveLocationPath: str, format: str = "png") -> None:
-        """Saves this image at the specified `saveLocationPath` and `format`
+    def saveImage(self, saveLocationPath: str, img_format: str = "png") -> None:
+        """Saves this image at the specified `saveLocationPath` and `img_format`
         ## Parameters:
         * `saveLocationPath` : path where to save this image, as a string
-        * `format` : optional, save format for this image, default is png
+        * `img_format` : optional, save format for this image, default is png
         ## Return value: not applicable
         ##Exceptions:
         * `ValueError`: if specified `format` could not be determined
-        * `IOError`: if the file where save this image cannot be created"""
-        self.backgroundImage.save(saveLocationPath, format)
+        * `IOError`: if the file where save this image cannot be created
+        """
+        self.backgroundImage.save(saveLocationPath, img_format)

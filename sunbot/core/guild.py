@@ -19,7 +19,8 @@ class SunGuild:
     def __init__(self, guild_id: int) -> None:
         """Constructor of this class
         ## Parameter :
-        * `id`: discord ID for the guild to create. This ID is unique on Discord"""
+        * `id`: discord ID for the guild to create. This ID is unique on Discord
+        """
         self.__id = guild_id
         self.__guild_members = {}
         self.__guild_webhooks = {}
@@ -64,7 +65,8 @@ class SunGuild:
         ## Parameter:
         * `__o`: object to compare to this instance
         ## Return value:
-        `True` if the specified object to this instance, `False` otherwise"""
+        `True` if the specified object to this instance, `False` otherwise
+        """
 
         if not isinstance(__o, SunGuild):
             return False
@@ -80,7 +82,8 @@ class SunGuild:
         * `member`: user to add to this guild
         ## Return value:
         returns `True` if the user was added to the guild, otherwise `False`. Falling to add
-        an user can be explain by the fact that user was already added in this guild"""
+        an user can be explain by the fact that user was already added in this guild
+        """
         # if user was already added into this guild, do nothing:
         if member.id in self.__guild_members:
             logging.error(
@@ -102,7 +105,8 @@ class SunGuild:
         * `member_id`: identifiant of the user to be removed from this guild
         ## Return value:
         Return `True` if the corresponding user was successfully removed from this
-        guild, otherwise `False`"""
+        guild, otherwise `False`
+        """
         # if ID specified in arguments does not correspond to any guild's user :
         if member_id not in self.__guild_members:
             logging.error(
@@ -124,7 +128,8 @@ class SunGuild:
         * `enabled`:boolean that indicates whether specified webhook is enabled
         ## Return value:
         Return `True` if the webhook was successfully added to this guild,
-        otherwise `False`"""
+        otherwise `False`
+        """
         if webhook_link in self.__guild_webhooks:
             logging.error(
                 "Webhook pointed by %s was already added to the guild %d. Abort"
@@ -144,7 +149,8 @@ class SunGuild:
         ## Parameter:
         * `webhookLink`: link corresponding to the webhook to remove
         ## Return value:
-        Return True if webhook was removed successfully, otherwise False"""
+        Return True if webhook was removed successfully, otherwise False
+        """
         if webhook_link not in self.__guild_webhooks.keys():
             logging.error(
                 "Webhook pointed by %s doesn't exist in the guild %d.Do nothing.",
@@ -168,7 +174,8 @@ class SunGuild:
         * `enabled`: flag that indicates the new state for specified webhook. `True`
         to enable, `False` to disable
         ## Return value:
-        Return `True` if operation was a success, otherwise `False`"""
+        Return `True` if operation was a success, otherwise `False`
+        """
         if webhook_link not in self.__guild_webhooks.keys():
             logging.error(
                 "Webhook %s does not exist in the guild %d. Do nothing",
@@ -183,14 +190,13 @@ class SunGuild:
         return True
 
     def save_srv_data(self):
-        """Private method used to save guild's data into corresponding backup
-        file"""
+        """Private method used to save guild's data into corresponding backup file"""
         with open(self.__backup_file, "w", encoding="UTF-8") as guild_file:
             backup_dict = {
                 "guild_id": self.id,
                 "guild_members": list(self.__guild_members.keys()),
                 "guild_webhooks": self.__guild_webhooks,
             }
-            
+
             json_data = json.dumps(backup_dict, ensure_ascii=False, indent=2)
             guild_file.write(json_data)

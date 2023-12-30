@@ -81,7 +81,8 @@ class SunUser:
         ## Parameter:
         * `__o`: object to compare to this instance
         ## Return value:
-        `True` if the specified object and this user are equal, `False` otherwise"""
+        `True` if the specified object and this user are equal, `False` otherwise
+        """
 
         # If specified object is not a sunbot user, return false:
         if not isinstance(__o, SunUser):
