@@ -60,24 +60,25 @@ class VisualCrossingHandler(WeatherAPIHandler):
             return {}
         data = self.get_data(
             response=response,
-            targets=[
-                "conditions",
-                "temp",
-                "feelslike",
-                "preciptype",
-                "precipprob",
-                "precip",
-                "snowdepth",
-                "snow",
-                "windspeed",
-                "winddir",
-                "windgust",
-                "humidity",
-                "pressure",
-                "visibility",
-                "uvindex",
-                "cloudcover",
-            ],
+            targets={
+                "currentConditions/conditions": "conditions",
+                "currentConditions/temp": "temp",
+                "currentConditions/feelslike": "feelslike",
+                "currentConditions/preciptype": "preciptype",
+                "currentConditions/precipprob": "preciprob",
+                "currentConditions/precip": "precip",
+                "currentConditions/snowdepth": "snowdepth",
+                "currentConditions/snow": "snow",
+                "currentConditions/windspeed": "windspeed",
+                "currentConditions/winddir": "winddir",
+                "currentConditions/windgust": "windgust",
+                "currentConditions/humidity": "humidity",
+                "currentConditions/pressure": "pressure",
+                "currentConditions/visibility": "visibility",
+                "currentConditions/uvindex": "uvindex",
+                "currentConditions/cloudcover": "cloudcover",
+            },
+            verbose=True
         )
         return data
 

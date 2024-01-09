@@ -583,10 +583,10 @@ def createCurrentWeatherImage(currentWeather: dict, path: str) -> None:
 def create_rain_embed(data: dict, period: str = "aujourd'hui"):
     """create embed to send to discord from received data"""
     en2fr_dict = {
-        "rain": "averse",
-        "snow": "neige",
-        "freezing rain ": "pluie verglaçante",
-        "ice": "grêle",
+        "rain": "d'averse",
+        "snow": "de neige",
+        "freezing rain ": "de pluie verglaçante",
+        "ice": "de grêle",
     }
     embed2send = discord.Embed(
         title=f"Pluie prévue {period}",
@@ -605,7 +605,7 @@ def create_rain_embed(data: dict, period: str = "aujourd'hui"):
             preciptype = en2fr_dict[preciptype[0]]
             embed2send.add_field(
                 name=f"Pluie prévue à {hour} : ",
-                value=f"Probabilité de {preciptype[0]} à {precipprob} %, attendu {preciplvl} mm",
+                value=f"Probabilité {preciptype} à {precipprob} %, attendu {preciplvl} mm",
                 inline=False,
             )
     # If no rain is forecast for the day :
