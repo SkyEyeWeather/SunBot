@@ -485,25 +485,3 @@ class SunController(commands.Cog):
             logging.info("Saving data for guild n°%d", srv.id)
             srv.save_srv_data()
         await self.daily_weather_handler.save_locations_subscribers()
-
-    # TODO Remove this unused private method:
-    @np.deprecate_with_doc
-    async def __delete_command_msg(self, ctx: commands.Context) -> None:
-        """Private method to delete the message written by an user to invoke a bot command
-        ## Parameters:
-        * `ctx` : discord context in which the command has been invoked
-        ## Return value:
-        not applicable
-        """
-        try:
-            await ctx.message.delete()
-        except discord.Forbidden:
-            logging.error(
-                "The bot doesn't have the permissions to delete a message on the guild %s",
-                ctx.guild.name,
-            )
-        except (discord.NotFound, HTTPException):
-            logging.error(
-                "The message to be deleted was not found on the guild %s",
-                ctx.guild.name,
-            )

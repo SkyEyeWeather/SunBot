@@ -73,7 +73,7 @@ class APIHandler:
         self.session.headers.update({"Accept": accepted_formats_str[:-1]})
 
         self.domain_name = domain_name
-        self.certificate_file = kwargs.get("certificate_file", None)
+        self.certificate_file = kwargs.get("certificate_file")
         auth_mode_id = AuthModes.index("token")
         try:
             auth_mode_id = AuthModes.index(auth_mode)
@@ -97,7 +97,7 @@ class APIHandler:
         # JWT authentification mode need an application id and a token url
         if self.auth_mode == AuthModes.index("jwt"):
             self.auth_args = kwargs.get("auth_args", {})
-            for missing_key in set(["token_url", "app_id"]) - set(self.auth_args):
+            for missing_key in {"token_url", "app_id"} - {self.auth_args}:
                 logging.warning(
                     "JWT authentification mode needs %s but no one was provided",
                     missing_key,
