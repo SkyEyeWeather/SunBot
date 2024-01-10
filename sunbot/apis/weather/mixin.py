@@ -1,5 +1,6 @@
 from sunbot.core import APIHandler
 
+
 class WeatherAPIHandler(APIHandler):
     """"""
 
@@ -7,10 +8,10 @@ class WeatherAPIHandler(APIHandler):
         """"""
         raise NotImplementedError
 
-    def get_current_weather_data(self, location_name:str) -> dict:
+    def get_current_weather_data(self, location_name: str) -> dict:
         """"""
         raise NotImplementedError
 
-    def get_daily_weather_data(self, location_name:str) -> dict:
+    def get_daily_weather_data(self, location_name: str) -> dict:
         """"""
         raise NotImplementedError

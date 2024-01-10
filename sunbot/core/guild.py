@@ -35,9 +35,7 @@ class SunGuild:
         self.__backup_file = SunGuild.backup_dir / Path(f"{self.id}.json")
         # if backup guild file does not yet exist, create it:
         if not self.__backup_file.exists():
-            logging.info(
-                "Backup file for guild %d doesn't exist. Creating it", self.id
-            )
+            logging.info("Backup file for guild %d doesn't exist. Creating it", self.id)
             self.__backup_file.parent.mkdir(parents=True, exist_ok=True)
             self.save_srv_data()
         else:
@@ -93,9 +91,7 @@ class SunGuild:
             return False
         # add the user to the guild  member  dictionnary:
         self.__guild_members[member.id] = member
-        logging.info(
-            "User n°%d has been added to the guild %d", member.id, self.id
-        )
+        logging.info("User n°%d has been added to the guild %d", member.id, self.id)
         return True
 
     def remove_member(self, member_id: int) -> bool:
@@ -183,9 +179,7 @@ class SunGuild:
             )
             return False
         self.__guild_webhooks[webhook_link] = enabled
-        logging.info(
-            "Webhook %s is now enabled in the guild %d", webhook_link, self.id
-        )
+        logging.info("Webhook %s is now enabled in the guild %d", webhook_link, self.id)
         return True
 
     def save_srv_data(self):

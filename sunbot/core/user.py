@@ -52,8 +52,7 @@ class SunUser:
             # If this user was already created by the past, load its data from the corresponding
             # file instead of values passed in arguments of the constructor:
             logging.info(
-                "User n°%d already exists. Loading data from existing file.",
-                self.id
+                "User n°%d already exists. Loading data from existing file.", self.id
             )
             with open(self.__backup_file, "r", encoding="UTF-8") as usr_file:
                 try:
@@ -63,7 +62,7 @@ class SunUser:
                 except json.decoder.JSONDecodeError:
                     logging.error(
                         "An error occured when retrieving data for user %d. File may be corrupted",
-                        self.id
+                        self.id,
                     )
 
     @property

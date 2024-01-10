@@ -3,6 +3,7 @@ import os
 from sunbot import sunbot
 from sunbot.apis.weather import WeatherAPIHandler
 
+
 class VisualCrossingHandler(WeatherAPIHandler):
     """Visual Crossing API Handler"""
 
@@ -78,7 +79,7 @@ class VisualCrossingHandler(WeatherAPIHandler):
                 "currentConditions/uvindex": "uvindex",
                 "currentConditions/cloudcover": "cloudcover",
             },
-            verbose=True
+            verbose=True,
         )
         return data
 

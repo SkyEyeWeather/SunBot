@@ -2,16 +2,14 @@
 
 import logging
 from typing import Dict, List, Literal, Optional, Union
+
 import requests
 
-from sunbot.utils.utils import (
-    merge_dict,
-    flatten_dict,
-    get_best_items,
-    )
+from sunbot.utils.utils import flatten_dict, get_best_items, merge_dict
 
-AuthMode = Literal['no', 'token', 'jwt']
+AuthMode = Literal["no", "token", "jwt"]
 AuthModes = AuthMode.__args__
+
 
 class APIHandler:
     """The APIHandler class defines an object able to call a web API
@@ -40,62 +38,77 @@ class APIHandler:
     :param
 
     """
-    ACCEPTED_FORMATS = ['application/json']
-    ACCEPTED_FORMAT_DEFAULT_DICT = {_format : 1.0 for _format in ACCEPTED_FORMATS}
 
-    def __init__(self,
-                 domain_name : str,
-                 auth_mode : Optional[AuthMode] = 'token',
-                 accepted_formats : Union[Dict[str, float],None] = None,
-                 **kwargs,
-                 ) -> None:
+    ACCEPTED_FORMATS = ["application/json"]
+    ACCEPTED_FORMAT_DEFAULT_DICT = {_format: 1.0 for _format in ACCEPTED_FORMATS}
 
+    def __init__(
+        self,
+        domain_name: str,
+        auth_mode: Optional[AuthMode] = "token",
+        accepted_formats: Union[Dict[str, float], None] = None,
+        **kwargs,
+    ) -> None:
         # Create a session to maintains connection with the web API and speed
         # up the reception of a response from the API
         self.session = requests.Session()
 
         # For now, this handler only accept JSON format response from web API:
         # See https://http.dev/accept for more info about Accept HTTP header
-        accepted_formats = accepted_formats if accepted_formats is not None else self.ACCEPTED_FORMAT_DEFAULT_DICT
+        accepted_formats = (
+            accepted_formats
+            if accepted_formats is not None
+            else self.ACCEPTED_FORMAT_DEFAULT_DICT
+        )
         accepted_formats_str = ""
         for _format, priority in accepted_formats.items():
             if _format not in self.ACCEPTED_FORMATS:
-                logging.warning('%s is not supported for now', _format)
+                logging.warning("%s is not supported for now", _format)
                 continue
             accepted_formats_str += _format + ";q=" + str(priority) + ","
         if len(accepted_formats_str) == 0:
-            raise NotImplementedError("All the specified accepted format are not supported for now")
-        self.session.headers.update({'Accept': accepted_formats_str[:-1]})
+            raise NotImplementedError(
+                "All the specified accepted format are not supported for now"
+            )
+        self.session.headers.update({"Accept": accepted_formats_str[:-1]})
 
         self.domain_name = domain_name
-        self.certificate_file = kwargs.get('certificate_file', None)
-        auth_mode_id = AuthModes.index('token')
+        self.certificate_file = kwargs.get("certificate_file", None)
+        auth_mode_id = AuthModes.index("token")
         try:
             auth_mode_id = AuthModes.index(auth_mode)
         # If authentification mode is not recognized
         except ValueError:
-            logging.warning('specified authentification mode (%s) was not recognized.\
-                            Possible values for this argument are: %s. Set to no.',
-                           auth_mode, AuthModes)
+            logging.warning(
+                "specified authentification mode (%s) was not recognized.\
+                            Possible values for this argument are: %s. Set to no.",
+                auth_mode,
+                AuthModes,
+            )
         finally:
             self.auth_mode = auth_mode_id
         # Token authentification mode only need a token
-        if self.auth_mode == AuthModes.index('token'):
-            self.auth_args = kwargs.get('auth_args', {})
+        if self.auth_mode == AuthModes.index("token"):
+            self.auth_args = kwargs.get("auth_args", {})
             if self.auth_args is None:
-                logging.warning("Token authentification need a token, but no one was provided.")
+                logging.warning(
+                    "Token authentification need a token, but no one was provided."
+                )
         # JWT authentification mode need an application id and a token url
-        if self.auth_mode == AuthModes.index('jwt'):
+        if self.auth_mode == AuthModes.index("jwt"):
+            self.auth_args = kwargs.get("auth_args", {})
+            for missing_key in set(["token_url", "app_id"]) - set(self.auth_args):
+                logging.warning(
+                    "JWT authentification mode needs %s but no one was provided",
+                    missing_key,
+                )
 
-            self.auth_args = kwargs.get('auth_args', {})
-            for missing_key in set(['token_url', 'app_id']) - set(self.auth_args):
-                logging.warning('JWT authentification mode needs %s but no one was provided',
-                                missing_key)
-
-    def __build_url(self, resource_path : str,
-                    url_args : Dict[str, str] | None = None,
-                    protocol : str ="https",
-                    ) -> str:
+    def __build_url(
+        self,
+        resource_path: str,
+        url_args: Dict[str, str] | None = None,
+        protocol: str = "https",
+    ) -> str:
         """Build a request URL
 
         Parameters
@@ -112,22 +125,22 @@ class APIHandler:
         -------
             built URL
         """
-        if protocol != 'https':
-            raise NotImplementedError('APIHandler only supports HTTPS protcol')
+        if protocol != "https":
+            raise NotImplementedError("APIHandler only supports HTTPS protcol")
         # Add a '/' to separate domain name from resource path
-        if resource_path[0] != '/' and self.domain_name[-1] != '/':
-            resource_path = '/' + resource_path
-        url = protocol + '://' + self.domain_name + resource_path
+        if resource_path[0] != "/" and self.domain_name[-1] != "/":
+            resource_path = "/" + resource_path
+        url = protocol + "://" + self.domain_name + resource_path
 
         # If authentification mode is token, add the web API token to URL arguments:
-        if self.auth_mode == AuthModes.index('token'):
+        if self.auth_mode == AuthModes.index("token"):
             url_args = merge_dict(url_args, self.auth_args)
 
         # Add URL parameters
         if url_args is not None:
-            url += '?'
+            url += "?"
             for key, value in url_args.items():
-                url += f'{key}={value}&'
+                url += f"{key}={value}&"
             url = url[:-1]
         return url
 
@@ -135,10 +148,10 @@ class APIHandler:
     def __token_has_expired(response: requests.Response) -> bool:
         """Test if JWT has expired"""
         status = response.status_code
-        return status == 401 and 'expired' in response.headers['WWW-Authenticate']
+        return status == 401 and "expired" in response.headers["WWW-Authenticate"]
 
-    def __obtain_jwt_token(self, timeout: Optional[float] = 10.) -> bool:
-        """ Obtain new jwt token from the web API. The token is added into
+    def __obtain_jwt_token(self, timeout: Optional[float] = 10.0) -> bool:
+        """Obtain new jwt token from the web API. The token is added into
         session's header
 
         Parameters
@@ -153,33 +166,36 @@ class APIHandler:
         or not.
         """
         logging.info("Requesting a new JWT for %s web API", self.domain_name)
-        data = {'grant_type': 'client_credentials'}
-        headers = {'Authorization': f'Basic {self.auth_args["app_id"]}'}
-        access_token_response = requests.post(self.auth_args['token_url'],
-                                              data=data,
-                                              verify=self.certificate_file,
-                                              allow_redirects=True,
-                                              headers=headers,
-                                              timeout=timeout,
-                                              )
+        data = {"grant_type": "client_credentials"}
+        headers = {"Authorization": f'Basic {self.auth_args["app_id"]}'}
+        access_token_response = requests.post(
+            self.auth_args["token_url"],
+            data=data,
+            verify=self.certificate_file,
+            allow_redirects=True,
+            headers=headers,
+            timeout=timeout,
+        )
         if access_token_response.status_code == requests.Response:
-            token = access_token_response.json()['access_token']
+            token = access_token_response.json()["access_token"]
             # Update session with fresh token:
-            self.session.headers.update({'Authorization': f'Bearer {token}'})
+            self.session.headers.update({"Authorization": f"Bearer {token}"})
             logging.info("JWT successfully updated for %s web API", self.domain_name)
             return True
-        logging.error("An error occured when getting a JWT for %s web API. Code error: %d",
-                      self.domain_name,
-                      access_token_response.status_code
-                      )
+        logging.error(
+            "An error occured when getting a JWT for %s web API. Code error: %d",
+            self.domain_name,
+            access_token_response.status_code,
+        )
         return False
 
-    def request(self,
-                resource_path : str,
-                request_args : Dict[str, str] | None = None,
-                protocol: str = 'https',
-                method : Literal['GET', 'POST'] = 'GET',
-                ) -> requests.Response:
+    def request(
+        self,
+        resource_path: str,
+        request_args: Dict[str, str] | None = None,
+        protocol: str = "https",
+        method: Literal["GET", "POST"] = "GET",
+    ) -> requests.Response:
         """Send a request to the web API
 
         Parameters
@@ -199,7 +215,10 @@ class APIHandler:
         """
         # First request will always need to obtain a token first, when using JWT auth
         # mode
-        if 'Authorization' not in self.session.headers and self.auth_mode == AuthModes.index('jwt'):
+        if (
+            "Authorization" not in self.session.headers
+            and self.auth_mode == AuthModes.index("jwt")
+        ):
             self.__obtain_jwt_token()
         # Generate request URL
         url = self.__build_url(resource_path, request_args, protocol)
@@ -213,11 +232,11 @@ class APIHandler:
 
     @staticmethod
     def get_data(
-                 response : requests.Response,
-                 targets : Union[str, List[str],Dict[str, str]],
-                 tolerance : Optional[float] = 0.,
-                 verbose: Optional[bool] = False
-                 )-> Dict[str, any]:
+        response: requests.Response,
+        targets: Union[str, List[str], Dict[str, str]],
+        tolerance: Optional[float] = 0.0,
+        verbose: Optional[bool] = False,
+    ) -> Dict[str, any]:
         """Get data from the specified request response and format it following
         the structure indicated in `data_keys`
 
@@ -244,10 +263,12 @@ class APIHandler:
         :raise NotImplementedError: if response data is not provided as JSON format
         """
         data = {}
-        content_type = response.headers['Content-Type']
+        content_type = response.headers["Content-Type"]
         # only JSON format is supported for now:
-        if 'application/json' not in content_type:
-            raise NotImplementedError(f'The API handler does not support {content_type} formats')
+        if "application/json" not in content_type:
+            raise NotImplementedError(
+                f"The API handler does not support {content_type} formats"
+            )
         json_resp = response.json()
         # flatten json response
         flattened_json_resp = flatten_dict(json_resp)
@@ -260,7 +281,9 @@ class APIHandler:
             targets_list = targets
 
         for target in targets_list:
-            filtered_dict = get_best_items(flattened_json_resp, target=target, tolerance=tolerance, verbose=verbose)
+            filtered_dict = get_best_items(
+                flattened_json_resp, target=target, tolerance=tolerance, verbose=verbose
+            )
             key = targets[target] if isinstance(targets, dict) else target
             # if filtered dict contains only one item, use its unique value instead
             if len(filtered_dict) == 1:
