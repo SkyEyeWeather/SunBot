@@ -131,7 +131,8 @@ class APIHandler:
             url = url[:-1]
         return url
 
-    def __token_has_expired(self, response: requests.Response) -> bool:
+    @staticmethod
+    def __token_has_expired(response: requests.Response) -> bool:
         """Test if JWT has expired"""
         status = response.status_code
         return status == 401 and 'expired' in response.headers['WWW-Authenticate']
@@ -210,7 +211,8 @@ class APIHandler:
             response = self.session.request(method, url)
         return response
 
-    def get_data(self,
+    @staticmethod
+    def get_data(
                  response : requests.Response,
                  targets : Union[str, List[str],Dict[str, str]],
                  tolerance : Optional[float] = 0.,

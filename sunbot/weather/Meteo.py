@@ -1,9 +1,6 @@
-import os
-import time
-from datetime import datetime
+"""" Weather module"""
 
 import discord
-import requests
 from PIL import ImageFont
 
 from sunbot import sunbot
@@ -785,4 +782,4 @@ def create_daily_weather_img(day_info: dict, path: str) -> None:
         "Données de l'API VisualCrossing", smallFont, (60, weatherImage.height - 40)
     )
     # Save the image:
-    weatherImage.save_img()(f"{path}/{sunbot.DAILY_IMAGE_NAME}")
+    weatherImage.save_img(f"{path}/{sunbot.DAILY_IMAGE_NAME}")
