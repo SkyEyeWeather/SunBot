@@ -1,4 +1,4 @@
-""" Weather module"""
+"""Weather module"""
 
 import discord
 from PIL import ImageFont
