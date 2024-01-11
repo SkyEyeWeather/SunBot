@@ -9,8 +9,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import discord
-import numpy as np
-from discord import HTTPException, app_commands
+from discord import app_commands
 from discord.ext import commands
 
 import sunbot.weather.Meteo as weather

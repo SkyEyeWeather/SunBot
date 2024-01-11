@@ -22,7 +22,8 @@ class DiscordHandler(metaclass=MetaSingleton):
         ## Param :
         * webhook : webhook used to publish a message in to pointed channel on discord
         * msg [opt] : string message to send
-        * embedMsg [opt] : embed to send, must be specified if string is not"""
+        * embedMsg [opt] : embed to send, must be specified if string is not
+        """
         numAttempt = 1
         sendSucessfully = False
         while not sendSucessfully and numAttempt <= 5:
