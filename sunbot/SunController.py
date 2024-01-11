@@ -5,20 +5,19 @@
 
 import asyncio
 import logging
-from http.client import HTTPException
 from pathlib import Path
 from typing import Dict, List, Optional
 
 import discord
-import numpy as np
 from discord import app_commands
 from discord.ext import commands
 
 import sunbot.weather.Meteo as weather
-from sunbot import sunbot, weather_api_handler, weather_event
+from sunbot import sunbot, weather_event
 from sunbot.core.guild import SunGuild
 from sunbot.core.user import SunUser
 from sunbot.weather_event import DailyWeatherEvent
+from sunbot.apis.weather import VisualCrossingHandler
 
 
 async def _get_period_autocompletion(
@@ -66,9 +65,11 @@ class SunController(commands.Cog):
         self.usr_dict: Dict[int, SunUser] = {}
         # Dict containing all the guilds to which the bot belongs
         self.srv_dict: Dict[int, SunGuild] = {}
+        # apu handlers
+        self.vc_handler = VisualCrossingHandler()
         # Handler for daily weather events
         self.daily_weather_handler = DailyWeatherEvent(
-            f"{self.data_mount_pt}save/daily_weather_sub.json"
+            f"{self.data_mount_pt}save/daily_weather_sub.json", self.vc_handler
         )
 
     @commands.Cog.listener()
@@ -247,11 +248,10 @@ class SunController(commands.Cog):
             interaction.user.id,
             location_name,
         )
-        json_current_weather = weather_api_handler.ask_current_weather(location_name)
+
+        data = self.vc_handler.get_current_weather_data(location_name)
         # Create current weather image:
-        weather.createCurrentWeatherImage(
-            json_current_weather, sunbot.CURRENT_WEATHER_IMAGE_PATH
-        )
+        weather.createCurrentWeatherImage(data, sunbot.CURRENT_WEATHER_IMAGE_PATH)
         await interaction.response.send_message(
             f"Voici la météo actuelle sur {location_name}:",
             file=discord.File(
@@ -291,20 +291,19 @@ class SunController(commands.Cog):
             location_name,
             sunbot.PERIODS[period],
         )
-        request_response = weather_api_handler.ask_daily_rain(
-            location_name, sunbot.PERIODS[period]
-        )
-        if request_response == {}:
+        data = self.vc_handler.get_rain_data(location_name, period)
+        if not data:
             logging.error(
                 "An error occured when trying to get daily rain informations for the place %s",
                 location_name,
             )
             await interaction.response.send_message(
-                f"Humm, quelque chose s'est mal passé en essayant de récupérer les informations de pluie pour {location_name} 😢"
+                "Humm, quelque chose s'est mal passé en essayant de récupérer"
+                f" les informations de pluie pour {location_name} 😢"
             )
             return
         # Build the embed message to send in response to the command call:
-        embed2send = weather.createEmbedRainEmbed(request_response, period=period)
+        embed2send = weather.create_rain_embed(data, period=period)
         await interaction.response.send_message(embed=embed2send)
 
     @app_commands.command(
@@ -359,33 +358,30 @@ class SunController(commands.Cog):
                     interaction.channel, location_name
                 )
                 await interaction.response.send_message(
-                    f"Ok, j'enverrai désormais la météo quotidienne pour {location_name}"
-                    "ici à la place du channel précédent!"
+                    f"Ok, j'enverrai désormais la météo quotidienne pour {location_name} ici à la place du channel précédent!"
                 )
                 logging.info(
-                    "Daily weather for location %s on the guild n°%d"
-                    " was updated with a new channel",
+                    "Daily weather for location %s on the server n°%d was updated with a new channel",
                     location_name,
                     guild_id,
                 )
-        # If daily weather for specified location and guild is not set:
+        # If daily weather for specified location and server is not set:
         else:
             # Check if location is known by the API:
-            daily_weather_test = weather_api_handler.ask_daily_weather(location_name)
-            if not daily_weather_test:
-                logging.error("Unknown location: %s", location_name)
+            data = self.vc_handler.get_daily_weather_data(location_name)
+            if not data:
+                logging.error("Unknown location:  %s", location_name)
                 await interaction.response.send_message(
                     f"Je n'ai pas {location_name} dans mes données, vérifies le nom !"
                 )
-            else:
-                location_tz: str = daily_weather_test["timezone"]
-                await self.daily_weather_handler.add_sub2location(
-                    interaction.channel, location_name, location_tz
-                )
-                await interaction.response.send_message(
-                    "C'est compris, j'enverrai désormais quotidiennement"
-                    f" la météo du jour pour {location_name} ici 😉"
-                )
+                return
+            location_tz: str = data["timezone"]
+            await self.daily_weather_handler.add_sub2location(
+                interaction.channel, location_name, location_tz
+            )
+            await interaction.response.send_message(
+                f"C'est compris, j'enverrai désormais quotidiennement la météo du jour pour {location_name} ici 😉"
+            )
         await self.daily_weather_handler.save_locations_subscribers()
 
     @app_commands.command(
@@ -427,15 +423,15 @@ class SunController(commands.Cog):
             return
         # User has not enable the pm for the specified location, so first check
         # that this city is known by the API to avoid future errors
-        daily_weather_test = weather_api_handler.ask_daily_weather(location_name)
-        if not daily_weather_test:
+        data = self.vc_handler.get_daily_weather_data(location_name)
+        if not data:
             logging.error("Location %s is unknown by the API", location_name)
-            interaction.response.send_message(
-                content="Je ne connais pas %s, désolé ! Vérifiez l'orthographe de la localisation et reéessayez!"
+            await interaction.response.send_message(
+                content=f"Je ne connais pas {location_name}, désolé ! Vérifiez l'orthographe de la localisation et reéessayez!"
             )
             return
         # Add the user to the location subscribers list:
-        location_tz: str = daily_weather_test["timezone"]
+        location_tz = data["timezone"]
         await self.daily_weather_handler.add_sub2location(
             interaction.user, location_name, location_tz
         )
@@ -488,25 +484,3 @@ class SunController(commands.Cog):
             logging.info("Saving data for guild n°%d", srv.id)
             srv.save_srv_data()
         await self.daily_weather_handler.save_locations_subscribers()
-
-    # TODO Remove this unused private method:
-    @np.deprecate_with_doc
-    async def __delete_command_msg(self, ctx: commands.Context) -> None:
-        """Private method to delete the message written by an user to invoke a bot command
-        ## Parameters:
-        * `ctx` : discord context in which the command has been invoked
-        ## Return value:
-        not applicable
-        """
-        try:
-            await ctx.message.delete()
-        except discord.Forbidden:
-            logging.error(
-                "The bot doesn't have the permissions to delete a message on the guild %s",
-                ctx.guild.name,
-            )
-        except (discord.NotFound, HTTPException):
-            logging.error(
-                "The message to be deleted was not found on the guild %s",
-                ctx.guild.name,
-            )
