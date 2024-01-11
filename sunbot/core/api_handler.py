@@ -40,7 +40,7 @@ class APIHandler:
     """
 
     ACCEPTED_FORMATS = ["application/json"]
-    ACCEPTED_FORMAT_DEFAULT_DICT = {_format: 1.0 for _format in ACCEPTED_FORMATS}
+    DEFAULT_ACCEPTED_FORMAT = {_format: 1.0 for _format in ACCEPTED_FORMATS}
 
     def __init__(
         self,
@@ -49,6 +49,27 @@ class APIHandler:
         accepted_formats: Union[Dict[str, float], None] = None,
         **kwargs,
     ) -> None:
+        """_summary_
+
+        Parameters
+        ----------
+        domain_name : str
+            API domain name, for instance www.visualcrossing.com
+        auth_mode : Optional[AuthMode], optional
+            API authentification method , by default "token"
+        accepted_formats : Union[Dict[str, float], None], optional
+            dict of accepted format, with key representing format and value
+            the associated priority (a weight of 1.0 indicates that corresponding
+            format has a higher priority, than one with a weight of 0.8). This
+            priority is used by HTTP for format resolution. The default value
+            is None, so DEFAULT_ACCEPTED_FORMAT will be used (application/json,
+            with a priority of 1.0)
+
+        Raises
+        ------
+        NotImplementedError
+            For now application/json format is the only format supported by the bot.
+        """
         # Create a session to maintains connection with the web API and speed
         # up the reception of a response from the API
         self.session = requests.Session()
@@ -58,7 +79,7 @@ class APIHandler:
         accepted_formats = (
             accepted_formats
             if accepted_formats is not None
-            else self.ACCEPTED_FORMAT_DEFAULT_DICT
+            else self.DEFAULT_ACCEPTED_FORMAT
         )
         accepted_formats_str = ""
         for _format, priority in accepted_formats.items():
@@ -113,11 +134,10 @@ class APIHandler:
 
         Parameters
         ----------
-
         resource_path: str
             path to the reosurce on the web API
         url_args: Dict[str, str]
-            parameters used for the URL, as key=value dict
+            parameters used for the URL, as key:value dict
         protocol:
             protocol used for the communication between the bot and the web API
 
@@ -146,7 +166,18 @@ class APIHandler:
 
     @staticmethod
     def __token_has_expired(response: requests.Response) -> bool:
-        """Test if JWT has expired"""
+        """Check wether authentification token has expired
+
+        Parameters
+        ----------
+        response : requests.Response
+            response received from an API
+
+        Returns
+        -------
+        bool
+            `True` if authentification token has expired, else `False`
+        """
         status = response.status_code
         return status == 401 and "expired" in response.headers["WWW-Authenticate"]
 
@@ -252,6 +283,7 @@ class APIHandler:
         :type tolerance: Optional[float]
         :param verbose:
         :type verbose: Optional[bool]
+
         Returns
         -------
         :returns: formatted dictionnary
